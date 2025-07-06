@@ -3,7 +3,7 @@ library(tidyverse)
 library(future.apply)
 library(data.table)
 library(duckdb)
-#library(microdatasus)
+
 
 
 #Função para baixar os dbcs
