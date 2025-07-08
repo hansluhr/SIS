@@ -106,9 +106,9 @@ for (uf in ufs_lista) {
     # Cria a tabela no primeiro bloco
     if (!tabela_criada) {
       dbWriteTable(
-        con,
-        name = "sih",
-        value = tmp,
+        con, #Conexão com a database
+        name = "sih", #Tabela na database que desejo preencher
+        value = tmp, #Nome da tabela utilizada como input. Desejo subir essa tabela.
         overwrite = TRUE,
         temporary = FALSE)
       
@@ -133,9 +133,9 @@ for (uf in ufs_lista) {
       
       # Insere os dados
       dbWriteTable(
-        con,
-        name = "sih",
-        value = tmp,
+        con, #Conexão com a database
+        name = "sih", #Tabela na database que desejo preencher
+        value = tmp, #Nome da tabela utilizada como input. Desejo subir essa tabela.
         append = TRUE,
         temporary = FALSE)
     }
