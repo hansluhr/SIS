@@ -85,6 +85,3 @@ baixar_cnes <- function(anos, meses, ufs = "ALL", destino = "dados_sihsus/") {
   
   message("\n✅ Todos os downloads concluídos!")
 }
-
-
-
