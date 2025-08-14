@@ -16,7 +16,7 @@ rm(baixar_arquivos_RD)
 con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb", read_only = FALSE)
 
 #Tratamento dos dbcs - SIH. Coloca labels e municípios
-source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIH/criacao_base_sih_labels.R")
+source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIH/funcao_base_sih_labels.R")
 
 #Variáveis excluídas. Estão zeradas.
 vars_excluir <- c("GESTOR_DT","VAL_SADT","VAL_RN","VAL_ACOMP","VAL_ORTP",
