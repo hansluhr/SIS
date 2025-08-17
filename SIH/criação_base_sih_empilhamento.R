@@ -13,7 +13,7 @@ baixar_arquivos_RD(anos = c(2008,2024) , meses = c(1:12), ufs = c("AC","AP","TO"
 rm(baixar_arquivos_RD)
 
 #Abre conexão com a database
-con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb", read_only = FALSE)
+con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_08_abr_25.duckdb", read_only = FALSE)
 
 #Tratamento dos dbcs - SIH. Coloca labels e municípios
 source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIH/funcao_base_sih_labels.R")
@@ -153,7 +153,38 @@ tictoc::toc()
 
 
 
+
+# Rotina de atualização da base SIH ---------------------------------------
+Sys.setenv(LANG = "en")
+library(tidyverse)
+library(future.apply)
+library(data.table)
+library(duckdb)
+
+#Abre conexão com a database
+con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_08_abr_25.duckdb", read_only = FALSE)
 data <- tbl(con, "sih")
+
+
+#Ano e mês da última atualização.
+last_year_month <- data |>
+  select(ano_mes_cmpt) |>
+  mutate(ano_mes_cmpt = ano_mes_cmpt |> as.Date() ) |>
+  distinct(ano_mes_cmpt) |> arrange( desc(ano_mes_cmpt) ) |> first() |> collect() |> pull() 
+
+
+Preciso transformar essa informação para ela entrar na função de baixar e tratar os dbcs
+
+
+
+
+data |> filter(ano_mes_cmpt == last_year_month ) 
+  select(ano_mes_cmpt) |>
+  mutate(mes_)
+
+
+
+
 data |> colnames()
 
 glimpse(data)

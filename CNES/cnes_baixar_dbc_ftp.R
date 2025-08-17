@@ -2,7 +2,7 @@ library(RCurl)
 library(stringr)
 library(digest)
 
-baixar_cnes <- function(anos, meses, ufs = "ALL", destino = "dados_sihsus/") {
+baixar_cnes <- function(anos, meses, ufs = "ALL", destino ) {
   
   #Criar diretório de destino se não existir
   if (!dir.exists(destino)) dir.create(destino, recursive = TRUE)

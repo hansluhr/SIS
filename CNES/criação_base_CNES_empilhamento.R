@@ -6,21 +6,21 @@ library(duckdb)
 
 
 #Função para baixar os dbcs
-#source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIS/CNES/sih_baixar_dbc_ftp.R")
+#source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIS/CNES/cnes_baixar_dbc_ftp.R")
 source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/CNES/cnes_baixar_dbc_ftp.R")
 
+#Pasta onde os arquivos DBCs do CNES estabelecimentos serão salvos.
+caminho_dbc <- "C:/Users/gabli/Desktop/r/CNES/dbc"
+
 #Baxiar arquivos dbcs do CNES Estabelecimentos
-baixar_cnes(anos = c(2024:2025) , meses = c(1:12), ufs = 'ALL', 
-            destino = "C:/Users/gabli/Desktop/r/CNES/dbc"); gc()
+baixar_cnes(anos = c(2008:2025) , meses = c(1:12), ufs = 'AC', 
+            destino = caminho_dbc); gc()
 rm(baixar_cnes)
 
 
-#Pasta com arquivos dbcs
-pasta_dbc <- "C:/Users/gabli/Desktop/r/CNES/dbc"
-
-# Lista todos os arquivos .dbc
+#Lista todos os arquivos .dbc
 arquivos_dbc <- list.files(
-  path = pasta_dbc,
+  path = caminho_dbc,
   pattern = "\\.dbc$",
   full.names = TRUE)
 
@@ -37,7 +37,12 @@ cnes <- data.table::rbindlist(
     message("Importando: ", basename(arq) )
     read.dbc::read.dbc(arq) |> data.table::setDT() } ),
   
-    use.names = TRUE, fill = TRUE) |> clean_names(); gc()
+    use.names = TRUE, fill = TRUE) |> janitor::clean_names(); gc()
+
+
+# ### Remover arquivos dbcs
+# unlink(arquivos_dbc)
+
 
 rm(arquivos_dbc,pasta_dbc)
 #Finaliza.
@@ -45,9 +50,29 @@ rm(arquivos_dbc,pasta_dbc)
 tictoc::toc()
 
 
+
+
+
+
+cnes |>
+  count(cnes, sort = TRUE)
+
+
+
+
+
+
+
+
+
+
 library(tidyverse)
 library(janitor)
 load("C:/Users/gabli/Desktop/cnes.RData")
+
+
+
+
 
 
 
