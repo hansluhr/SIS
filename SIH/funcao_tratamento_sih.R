@@ -1299,3 +1299,37 @@ tratar_sih <- function(data) {
  }
 
 
+empilhar_sih <- function(arquivo, 
+                         variaveis = NULL, #Variáveis que desejo manter. NULL seleciona todas as variáveis não excluidas.
+                         excluir = vars_excluir) {
+  message("Importando: ", arquivo)
+  dados <- read.dbc::read.dbc(arquivo) |> setDT()
+  
+  #Excluir variáveis sem preenchimento\Zeradas
+  vars_excluir <- intersect(toupper(vars_excluir), names(dados))
+  if (length(vars_excluir) > 0) {
+    dados[, (vars_excluir) := NULL]
+  }
+  
+  #Selecionar variáveis desejadas. Mantém variáveis disponíveis se não indicar nenhuma variável. 
+  if (!is.null(variaveis)) {
+    vars_sel <- intersect(variaveis, names(dados))
+    dados <- dados[, ..vars_sel]
+  }
+  
+  #Nos dados de 2013 precisa renomar variável de dado secundário
+  #Se o nome do arquivo contém "13", renomeia a variável diag_secun
+  if (stringr::str_detect(arquivo, "13") && "DIAG_SECUN" %in% names(dados)) {
+    dados <- dados |> rename(DIAGSEC1 = DIAG_SECUN)
+  }
+  
+  #Em 2014 a variável diagsec1 é introduzida, mas não é utilizada. 100% missing 
+  #Como diagnóstico secundário ainda é utilizado diag_secun. 
+  #Vou excluir diagsec, pois não é utilizada e renomear diag_secun para diagsec1. 
+  if (stringr::str_detect(arquivo, "14")) {
+    if ("DIAGSEC1" %in% names(dados)) dados <- dados |> select(-DIAGSEC1)
+    if ("DIAG_SECUN" %in% names(dados)) dados <- dados |> rename(DIAGSEC1 = DIAG_SECUN)
+  }
+  
+  return(dados)
+}
