@@ -7,22 +7,32 @@ library(duckdb)
 
 
 #Função para baixar os dbcs
-source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIH/sih_baixar_dbc_ftp.R")
-baixar_arquivos_RD(anos = c(2008,2024) , meses = c(1:12), ufs = c("AC","AP","TO"), 
-                   destino = "C:/Users/gabli/Desktop/r/SIH/dbc")
+#source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIH/sih_baixar_dbc_ftp.R")
+#Chamar função para importar arquivos DBCs do FTP DataSuS 
+source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/sih_baixar_dbc_ftp.R")
+
+#Pasta onde os arquivos DBCs do SIH serão salvos.
+caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
+
+baixar_arquivos_RD(anos = c(2025) , meses = c(1,2,3), ufs = c("AC","AP","TO"), 
+                   destino = caminho_dbc)
 rm(baixar_arquivos_RD)
 
-#Abre conexão com a database
-con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_08_abr_25.duckdb", read_only = FALSE)
+#Abre conexão com a database. Este arquivo armazena a base SIH.
+con <- dbConnect(duckdb::duckdb(), 
+                 dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb",
+                 read_only = FALSE)
 
-#Tratamento dos dbcs - SIH. Coloca labels e municípios
-source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIH/funcao_base_sih_labels.R")
+#Tratamento dos dbcs - SIH. 
+
+source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_tratamento_sih.R")
+
+
 
 #Variáveis excluídas. Estão zeradas.
 vars_excluir <- c("GESTOR_DT","VAL_SADT","VAL_RN","VAL_ACOMP","VAL_ORTP",
                   "VAL_SANGUE","VAL_SADTSR","VAL_TRANSP","VAL_OBSANG","VAL_PED1AC","RUBRICA",
                   "NUM_PROC","TOT_PT_SP","CPF_AUT","GESTOR_CPF","INFEHOSP")
-
 
 #Função para importar, filtrar e selecionar variáveis
 empilhar_sih <- function(arquivo, 
@@ -79,7 +89,7 @@ for (uf in ufs_lista) {
   
   #Lista com caminho dos dbcs
   ufs_dbc <- list.files(
-    path = "C:/Users/gabli/Desktop/r/SIH/dbc", #Onde estão os dbcs
+    path = caminho_dbc, #Onde estão os dbcs
     full.names = TRUE,
     pattern = paste0(".*RD", uf) )
   
@@ -147,9 +157,12 @@ for (uf in ufs_lista) {
 
 #Finaliza
 plan(sequential) #Resetar plano sequencial ao final
-rm(empilhar_sih, vars_excluir, uf, ufs_dbc, ufs_lista, blocos, bloco, colunas_sih,
-   tabela_criada,ufs_em_blocos,tratar_sih); gc()
+rm(caminho_dbc, empilhar_sih, vars_excluir, uf, ufs_dbc, ufs_lista, blocos, bloco, colunas_sih,
+   tabela_criada,ufs_em_blocos,tratar_sih, novas_colunas); gc()
 tictoc::toc()
+
+
+
 
 
 

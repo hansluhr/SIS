@@ -1299,6 +1299,8 @@ tratar_sih <- function(data) {
  }
 
 
+
+# Função utilizada para empilhar o SIH ------------------------------------
 empilhar_sih <- function(arquivo, 
                          variaveis = NULL, #Variáveis que desejo manter. NULL seleciona todas as variáveis não excluidas.
                          excluir = vars_excluir) {
