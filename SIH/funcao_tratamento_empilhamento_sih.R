@@ -2,6 +2,7 @@
 #Precisa adicionar 
 #CBO
 
+# Função de tratamento do SIH ---------------------------------------------
 tratar_sih <- function(data) {
   
   #Transformando variáveis categóricas em character.

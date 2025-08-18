@@ -5,15 +5,13 @@ library(data.table)
 library(duckdb)
 
 
-
-#Função para baixar os dbcs
-#source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIH/sih_baixar_dbc_ftp.R")
+# Rotina de criação da base SIH -------------------------------------------
 #Chamar função para importar arquivos DBCs do FTP DataSuS 
 source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/sih_baixar_dbc_ftp.R")
 
 #Pasta onde os arquivos DBCs do SIH serão salvos.
 caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
-
+#Baixar arquivos dbcs SIH
 baixar_dbc_sih(anos = c(2025), 
                    meses = c(1,2,3), 
                    ufs = c("AC","AP","TO"), 
@@ -22,10 +20,10 @@ rm(baixar_dbc_sih)
 
 #Abre conexão com a database. Este arquivo armazena a base SIH.
 con <- dbConnect(duckdb::duckdb(), 
-                 dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb",
+                 dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb", #Nome do database que armazena o SIH
                  read_only = FALSE)
 
-#Importação da função de tratamento e empilhamto SIH
+#Importação função de tratamento e empilhamto SIH
 source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_tratamento_empilhamento_sih.R")
 
 #Variáveis excluídas. Estão zeradas.
@@ -136,6 +134,12 @@ library(tidyverse)
 library(future.apply)
 library(data.table)
 library(duckdb)
+
+
+#Essa rotina atualiza base existente do SIH. 
+
+
+
 
 #Abre conexão com a database
 con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_08_abr_25.duckdb", read_only = FALSE)
