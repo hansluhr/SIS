@@ -32,7 +32,7 @@ download.file(
   destfile = destino,
   mode = "wb")
 
-# 6) Lê diretamente o arquivo tb_procedimento.txt de dentro do zip
+#Lê o arquivo tb_procedimento.txt de dentro do zip
 procedimentos <- read.delim(
   unz(destino, "tb_procedimento.txt"),
   header = FALSE,
@@ -52,7 +52,10 @@ procedimentos <- read.delim(
       str_to_title() |> #Primeira letra maiúscula
       
       forcats::as_factor() ) |> #Transforma em factor.
-  dplyr::select(-c(resto,cod_proc) ) 
+  dplyr::select(-c(resto,cod_proc) ) |>
+  data.table::setDT()
+rm(list = setdiff(ls() ,c("procedimentos") ))
+
 
 
 
