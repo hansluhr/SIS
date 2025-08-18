@@ -14,61 +14,24 @@ source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/sih_b
 #Pasta onde os arquivos DBCs do SIH serão salvos.
 caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
 
-baixar_arquivos_RD(anos = c(2025) , meses = c(1,2,3), ufs = c("AC","AP","TO"), 
+baixar_dbc_sih(anos = c(2025), 
+                   meses = c(1,2,3), 
+                   ufs = c("AC","AP","TO"), 
                    destino = caminho_dbc)
-rm(baixar_arquivos_RD)
+rm(baixar_dbc_sih)
 
 #Abre conexão com a database. Este arquivo armazena a base SIH.
 con <- dbConnect(duckdb::duckdb(), 
                  dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb",
                  read_only = FALSE)
 
-#Tratamento dos dbcs - SIH. 
-
-source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_tratamento_sih.R")
-
-
+#Importação da função de tratamento e empilhamto SIH
+source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_tratamento_empilhamento_sih.R")
 
 #Variáveis excluídas. Estão zeradas.
 vars_excluir <- c("GESTOR_DT","VAL_SADT","VAL_RN","VAL_ACOMP","VAL_ORTP",
                   "VAL_SANGUE","VAL_SADTSR","VAL_TRANSP","VAL_OBSANG","VAL_PED1AC","RUBRICA",
                   "NUM_PROC","TOT_PT_SP","CPF_AUT","GESTOR_CPF","INFEHOSP")
-
-#Função para importar, filtrar e selecionar variáveis
-empilhar_sih <- function(arquivo, 
-                        variaveis = NULL, #Variáveis que desejo manter. NULL seleciona todas as variáveis não excluidas.
-                        excluir = vars_excluir) {
-  message("Importando: ", arquivo)
-  dados <- read.dbc::read.dbc(arquivo) |> setDT()
-  
-  #Excluir variáveis sem preenchimento\Zeradas
-  vars_excluir <- intersect(toupper(vars_excluir), names(dados))
-  if (length(vars_excluir) > 0) {
-    dados[, (vars_excluir) := NULL]
-  }
-  
-  #Selecionar variáveis desejadas. Mantém variáveis disponíveis se não indicar nenhuma variável. 
-  if (!is.null(variaveis)) {
-    vars_sel <- intersect(variaveis, names(dados))
-    dados <- dados[, ..vars_sel]
-  }
-  
-  #Nos dados de 2013 precisa renomar variável de dado secundário
-  #Se o nome do arquivo contém "13", renomeia a variável diag_secun
-  if (stringr::str_detect(arquivo, "13") && "DIAG_SECUN" %in% names(dados)) {
-    dados <- dados |> rename(DIAGSEC1 = DIAG_SECUN)
-  }
-  
-  #Em 2014 a variável diagsec1 é introduzida, mas não é utilizada. 100% missing 
-  #Como diagnóstico secundário ainda é utilizado diag_secun. 
-  #Vou excluir diagsec, pois não é utilizada e renomear diag_secun para diagsec1. 
-  if (stringr::str_detect(arquivo, "14")) {
-    if ("DIAGSEC1" %in% names(dados)) dados <- dados |> select(-DIAGSEC1)
-    if ("DIAG_SECUN" %in% names(dados)) dados <- dados |> rename(DIAGSEC1 = DIAG_SECUN)
-  }
-  
-  return(dados)
-}
 
 
 #UFs para empilhar. Colocar todas as UFs desejadas.

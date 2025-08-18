@@ -2,7 +2,7 @@ library(RCurl)
 library(stringr)
 library(digest)
 
-baixar_arquivos_RD <- function(anos, meses, ufs = "ALL", destino = "dados_sihsus/") {
+baixar_dbc_sih <- function(anos, meses, ufs = "ALL", destino = "dados_sihsus/") {
   
   # Criar diretório de destino se não existir
   if (!dir.exists(destino)) dir.create(destino, recursive = TRUE)
