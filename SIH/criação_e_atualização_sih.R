@@ -143,7 +143,8 @@ library(duckdb)
 
 
 #Abre conexão com a database
-con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_08_abr_25.duckdb", read_only = FALSE)
+con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabriel.accioly/Desktop/r/FioCruz/bases/sih/sih_08_abr_25.duckdb", 
+                 read_only = FALSE)
 data <- tbl(con, "sih")
 
 
