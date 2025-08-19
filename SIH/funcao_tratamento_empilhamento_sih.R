@@ -1259,7 +1259,7 @@ tratar_sih <- function(data) {
         forcats::as_factor() ) |> #Transforma em factor.
     dplyr::select(-c(resto,cod_proc) ) |>
     data.table::setDT()
-rm(list = setdiff( c("ftp_base", "destino", "arquivos", "procedimentos") , c("data") ))  
+
   
 #left_joit label de procedimento solicitado
 data[procedimentos, def_proc_solic := i.proc, on = .(PROC_SOLIC = cod)] 
@@ -1268,7 +1268,7 @@ data[procedimentos, def_proc_rea   := i.proc, on = .(PROC_REA = cod)]
 
   
   
-  
+rm(list = setdiff( c("ftp_base", "destino", "arquivos", "procedimentos") , c("data") ))  
   
   
   
