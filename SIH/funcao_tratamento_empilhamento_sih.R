@@ -1203,6 +1203,15 @@ tratar_sih <- function(data) {
 #     rename(proc = value) |>
 #     mutate(proc = proc |> str_to_title() |> as_factor() )
   # source("C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIS/SIH/funcao_cod_procedimentos_SUS.R")  
+
+  
+  FAZER 
+  
+  
+  
+  
+  
+  
 #Importando pacotes
   library(RCurl)
   library(stringr)

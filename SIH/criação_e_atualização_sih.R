@@ -123,7 +123,8 @@ rm(caminho_dbc, empilhar_sih, vars_excluir, uf, ufs_dbc, ufs_lista, blocos, bloc
 tictoc::toc()
 
 
-
+dbDisconnect(con)
+rm(list=ls()); gc()
 
 
 
