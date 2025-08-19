@@ -7,7 +7,6 @@ library(janitor)
 sim <- fetch_datasus(year_start = 2008, year_end = 2023,
                       information_system = "SIM-DO") %>% clean_names()
 
-
 # Tratamento dos microdados -----------------------------------------------
 #Adicionar intenção, instrumento e local do incidente.
 sim %>% 
