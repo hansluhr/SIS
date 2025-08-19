@@ -54,7 +54,8 @@ procedimentos <- read.delim(
       forcats::as_factor() ) |> #Transforma em factor.
   dplyr::select(-c(resto,cod_proc) ) |>
   data.table::setDT()
-rm(list = setdiff(ls() ,c("procedimentos") ))
+ 
+rm(list = setdiff(c(ftp_base,destino,arquivos) ,c("procedimentos") ))
 
 
 
