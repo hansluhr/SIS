@@ -1206,7 +1206,7 @@ tratar_sih <- function(data) {
 #     data.table::setDT()
   
 #Importação de função com código de    
-source("C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIS/SIH/funcao_cod_procedimentos_SUS.R")
+source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_cod_procedimentos_SUS.R")
  
    #left_joit label de procedimento solicitado
   data[procedimentos, def_proc_solic := i.proc, on = .(PROC_SOLIC = cod)] 

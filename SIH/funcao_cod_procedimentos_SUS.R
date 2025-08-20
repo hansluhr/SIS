@@ -39,7 +39,7 @@ procedimentos <- read.delim(
   encoding = "latin1",
   col.names = c("cod_proc") ) |>
   dplyr::mutate(
-    cod = str_sub(cod_proc, 1, 10) |> forcats::as_factor(),      #Pega os 10 primeiros dígitos do código. No dbcs do sih o código do procedimento está com 9 dígitos
+    cod = str_sub(cod_proc, 1, 10) |> as.integer(),      #Pega os 10 primeiros dígitos do código. No dbcs do sih o código do procedimento está com 9 dígitos
     resto  = str_sub(cod_proc, 11),         # Extrai o texto a partir do 11º dígito.
     #remove tudo a partir de: [espaços]* + dígito + letra(s) + muitos dígitos
     proc = resto |>
@@ -56,7 +56,7 @@ procedimentos <- read.delim(
   data.table::setDT()
  
 #rm(list = setdiff( c(ftp_base,destino,arquivos), c("procedimentos") ))
-rm(list=setdiff(ls(), "procedimentos"))
+#rm(list=setdiff(ls(), "procedimentos"))
 
 
 
