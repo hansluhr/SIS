@@ -1202,7 +1202,8 @@ tratar_sih <- function(data) {
 # procedimentos <- fread("C:/Users/gabli/Desktop/r/SIH/bases_auxiliares/TB_SIGTAB.csv", sep = ";") |>
 #     rename(proc = value) |>
 #     mutate(proc = proc |> str_to_title() |> as_factor() )
-
+# data <- read.dbc::read.dbc("C:/Users/gabli/Desktop/r/SIH/dbc/RDTO2502.dbc") |>
+#     data.table::setDT()
   
 #Importação de função com código de    
 source("C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIS/SIH/funcao_cod_procedimentos_SUS.R")
@@ -1211,7 +1212,7 @@ source("C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIS/SIH/funcao_cod_procediment
   data[procedimentos, def_proc_solic := i.proc, on = .(PROC_SOLIC = cod)] 
   #left_joit label de procedimento realizado
   data[procedimentos, def_proc_rea   := i.proc, on = .(PROC_REA = cod)]
-rm(list = setdiff( c("ftp_base", "destino", "arquivos", "procedimentos") , c("data") ))   
+#rm(list = setdiff( c("ftp_base", "destino", "arquivos", "procedimentos") , c("data","tabela_criada") ))   
  
   
    

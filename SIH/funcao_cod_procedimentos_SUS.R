@@ -55,8 +55,8 @@ procedimentos <- read.delim(
   dplyr::select(-c(resto,cod_proc) ) |>
   data.table::setDT()
  
-rm(list = setdiff(c(ftp_base,destino,arquivos) ,c("procedimentos") ))
-
+#rm(list = setdiff( c(ftp_base,destino,arquivos), c("procedimentos") ))
+rm(list=setdiff(ls(), "procedimentos"))
 
 
 

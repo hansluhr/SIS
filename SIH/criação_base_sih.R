@@ -18,6 +18,8 @@ baixar_dbc_sih(anos = c(2025),
                    destino = caminho_dbc)
 rm(baixar_dbc_sih)
 
+
+caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
 #Abre conexão com a database. Este arquivo armazena a base SIH.
 con <- dbConnect(duckdb::duckdb(), 
                  dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb", #Nome do database que armazena o SIH
@@ -128,3 +130,11 @@ rm(list=ls()); gc()
 
 
 
+
+#Abre conexão com a database
+con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop\r/SIH/duckdb/sih_teste.duckdb", 
+                 read_only = FALSE)
+data <- tbl(con, "sih")
+
+data |>
+  count(def_proc_rea, sort = TRUE)
