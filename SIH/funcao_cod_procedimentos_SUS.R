@@ -7,17 +7,17 @@ ftp_base <- "ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads/"
 
 #Lista de todos os arquivos no FTP
 arquivos <- getURL(
-  ftp_base, 
+  ftp_base,
   dirlistonly = TRUE,
-  ftp.use.epsv = FALSE) |> 
-  str_split("\r?\n") |> 
+  ftp.use.epsv = FALSE) |>
+  str_split("\r?\n") |>
   unlist()
 
-#Quero a tabela de procedimentos. 
+#Quero a tabela de procedimentos.
 #O arquivo começa com TabelaUnificada_. Faço um filtro para manter arquivos começanco com TabelaUnificada_
 arquivos <- arquivos[str_detect(arquivos, "^TabelaUnificada_.*\\.zip$")]
 
-#Ordenação. O mais novo aparece primeiro. 
+#Ordenação. O mais novo aparece primeiro.
 #A data de upload aparece no nome do arquivo. Faz sentido fazer isso.
 arquivos <- sort(arquivos, decreasing = TRUE)
 
@@ -39,7 +39,7 @@ procedimentos <- read.delim(
   encoding = "latin1",
   col.names = c("cod_proc") ) |>
   dplyr::mutate(
-    cod = str_sub(cod_proc, 1, 9) |> as.integer(),      #Pega os 9 primeiros dígitos do código. No dbcs do sih o código do procedimento está com 9 dígitos
+    cod = str_sub(cod_proc, 1, 10) |> forcats::as_factor(),      #Pega os 10 primeiros dígitos do código. No dbcs do sih o código do procedimento está com 9 dígitos
     resto  = str_sub(cod_proc, 11),         # Extrai o texto a partir do 11º dígito.
     #remove tudo a partir de: [espaços]* + dígito + letra(s) + muitos dígitos
     proc = resto |>
