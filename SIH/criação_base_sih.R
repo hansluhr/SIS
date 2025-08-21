@@ -25,6 +25,9 @@ con <- dbConnect(duckdb::duckdb(),
                  dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb", #Nome do database que armazena o SIH
                  read_only = FALSE)
 
+#Importação da tabela procedimentos
+source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_cod_procedimentos_SUS.R")
+
 #Importação função de tratamento e empilhamto SIH
 source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_tratamento_empilhamento_sih.R")
 
