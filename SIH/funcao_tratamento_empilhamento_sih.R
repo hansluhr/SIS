@@ -1276,7 +1276,7 @@ tratar_sih <- function(data) {
   #Renomear colunas de residência
   setnames(data,
            old = c("name_muni", "MUNIC_RES", "code_state", "abbrev_state", "name_state", "name_region"),
-           new = c("munic_resd", "cod_munic_resd", "code_state_resd", "abbrev_state_resd", "uf_resd", "region_resd"))
+           new = c("def_munic_resd", "cod_munic_resd", "code_state_resd", "abbrev_state_resd", "def_uf_resd", "region_resd"))
 
   #left_join com município de internação
   data <- merge(
@@ -1297,7 +1297,7 @@ tratar_sih <- function(data) {
   #Renomear colunas de internação
   setnames(data,
            old = c("name_muni", "MUNIC_MOV", "code_state", "abbrev_state", "name_state", "name_region"),
-           new = c("munic_int", "cod_munic_int", "code_state_int", "abbrev_state_int", "uf_int", "region_int"))
+           new = c("def_munic_int", "cod_munic_int", "code_state_int", "abbrev_state_int", "def_uf_int", "region_int"))
 
   data <- tibble::as_tibble(data) 
   data <- droplevels(data.table::as.data.table(data))
