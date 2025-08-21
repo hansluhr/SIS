@@ -1,7 +1,4 @@
 
-#Precisa adicionar 
-#CBO
-
 # Função de tratamento do SIH ---------------------------------------------
 tratar_sih <- function(data) {
   
@@ -1206,13 +1203,17 @@ tratar_sih <- function(data) {
 #     data.table::setDT()
   
 #Importação de função com código de    
-source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_cod_procedimentos_SUS.R")
+# source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_cod_procedimentos_SUS.R")
  
+  #A importação da tabela com procediemtnos é feita através de source na rotina de criação da base.
+  
+  
+  
    #left_joit label de procedimento solicitado
   data[procedimentos, def_proc_solic := i.proc, on = .(PROC_SOLIC = cod)] 
   #left_joit label de procedimento realizado
   data[procedimentos, def_proc_rea   := i.proc, on = .(PROC_REA = cod)]
-#rm(list = setdiff( c("ftp_base", "destino", "arquivos", "procedimentos") , c("data","tabela_criada") ))   
+  #rm(list = setdiff( c("ftp_base", "destino", "arquivos", "procedimentos") , c("data","tabela_criada") ))   
  
   
    
