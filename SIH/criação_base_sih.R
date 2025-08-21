@@ -26,10 +26,15 @@ con <- dbConnect(duckdb::duckdb(),
                  read_only = FALSE)
 
 #Importação da tabela procedimentos
-source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_cod_procedimentos_SUS.R")
+source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_cod_procedimentos_SUS.R")
+
+#Importação da tabela de municípios
+source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
+
 
 #Importação função de tratamento e empilhamto SIH
 source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_tratamento_empilhamento_sih.R")
+
 
 #Variáveis excluídas. Estão zeradas.
 vars_excluir <- c("GESTOR_DT","VAL_SADT","VAL_RN","VAL_ACOMP","VAL_ORTP",
@@ -146,6 +151,8 @@ data |>
   filter(is.na(def_proc_rea) )
 
 
-
+data |>
+  count(munic_int, sort = TRUE) |>
+  filter(is.na(munic_int))
 
 
