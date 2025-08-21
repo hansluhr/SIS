@@ -120,8 +120,9 @@ for (uf in ufs_lista) {
 
 #Finaliza
 plan(sequential) #Resetar plano sequencial ao final
-rm(caminho_dbc, empilhar_sih, vars_excluir, uf, ufs_dbc, ufs_lista, blocos, bloco, colunas_sih,
-   tabela_criada,ufs_em_blocos,tratar_sih, novas_colunas); gc()
+rm(list = setdiff(ls(), c("con") ) ); gc()
+# rm(caminho_dbc, empilhar_sih, vars_excluir, uf, ufs_dbc, ufs_lista, blocos, bloco, colunas_sih,
+#    tabela_criada,ufs_em_blocos,tratar_sih, novas_colunas); gc()
 tictoc::toc()
 
 
@@ -134,7 +135,14 @@ rm(list=ls()); gc()
 #Abre conexão com a database
 con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop\r/SIH/duckdb/sih_teste.duckdb", 
                  read_only = FALSE)
-data <- tbl(con, "sih")
+data <- 
+  tbl(con, "sih")
 
 data |>
-  count(def_proc_rea, sort = TRUE)
+  count(def_proc_rea, sort = TRUE) |>
+  filter(is.na(def_proc_rea) )
+
+
+
+
+
