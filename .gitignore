@@ -5,3 +5,6 @@
 Bases/sih/dbc/
 *dbc
 *duckdb
+Bases/sih/duckdb/
+*dbc
+*duckdb
