@@ -26,7 +26,7 @@ con <- dbConnect(duckdb::duckdb(),
                  read_only = FALSE)
 
 #Importação da tabela procedimentos
-source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_cod_procedimentos_SUS.R")
+source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_cod_procedimentos_SUS.R")
 
 #Importação da tabela de municípios
 source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
