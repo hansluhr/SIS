@@ -99,7 +99,7 @@ tratar_sih <- function(data) {
   }
     
     #EscolarIDADE
-    if("ESC" %in% names(data) ) {
+    if("INSTRU" %in% names(data) ) {
     data[, def_ESC := as_factor( fcase(
       INSTRU == "1", "Analfabeto",
       INSTRU == "2", "1º Grau",
