@@ -18,7 +18,7 @@ source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotin
 baixar_dbc_sih(anos = c(2025), 
                    meses = c(1,2,3), 
                    ufs = c("AC","AP","TO"), 
-                   destino = here::here("Bases/dbc") )
+                   destino = here::here("Bases/sih/dbc") )
 rm(baixar_dbc_sih)
 
 
