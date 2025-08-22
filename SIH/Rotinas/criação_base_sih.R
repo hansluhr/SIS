@@ -5,17 +5,20 @@ library(data.table)
 library(duckdb)
 
 
+
+here::i_am("SIH/Rotinas/criação_base_sih.R")
+
 # Rotina de criação da base SIH -------------------------------------------
 #Chamar função para importar arquivos DBCs do FTP DataSuS 
-source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/sih_baixar_dbc_ftp.R")
+source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas/sih_baixar_dbc_ftp.R")
 
 #Pasta onde os arquivos DBCs do SIH serão salvos.
-caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
+#caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
 #Baixar arquivos dbcs SIH
 baixar_dbc_sih(anos = c(2025), 
                    meses = c(1,2,3), 
                    ufs = c("AC","AP","TO"), 
-                   destino = caminho_dbc)
+                   destino = here::here("Bases/dbc") )
 rm(baixar_dbc_sih)
 
 
