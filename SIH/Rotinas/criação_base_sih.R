@@ -4,8 +4,6 @@ library(future.apply)
 library(data.table)
 library(duckdb)
 
-
-
 here::i_am("SIH/Rotinas/criação_base_sih.R")
 
 # Rotina de criação da base SIH -------------------------------------------
@@ -15,28 +13,39 @@ source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotin
 #Pasta onde os arquivos DBCs do SIH serão salvos.
 #caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
 #Baixar arquivos dbcs SIH
-baixar_dbc_sih(anos = c(2025), 
-                   meses = c(1,2,3), 
+baixar_dbc_sih(anos = c(2008:2025), 
+                   meses = c(1:12), 
                    ufs = c("AC","AP","TO"), 
                    destino = here::here("Bases/sih/dbc") )
 rm(baixar_dbc_sih)
 
 
-caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
+#caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
 #Abre conexão com a database. Este arquivo armazena a base SIH.
 con <- dbConnect(duckdb::duckdb(), 
-                 dbdir = "C:/Users/gabli/Desktop/r/SIH/duckdb/sih_teste.duckdb", #Nome do database que armazena o SIH
+                 dbdir = here::here("Bases/sih/duckdb/sih_teste.duckdb"), #Nome do database que armazena o SIH
                  read_only = FALSE)
 
 #Importação da tabela procedimentos
-source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_cod_procedimentos_SUS.R")
+#getURL(url = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_cod_procedimentos_SUS.R")
+
+url <- "https://raw.githubusercontent.com/hansluhr/SIS/main/procedimentos.xlsx"
+# Pasta temporária para armazenar
+destfile <- tempfile(fileext = ".xlsx")
+# Download
+download.file(url, destfile, mode = "wb")
+# Ler o Excel
+procedimentos <- readxl::read_excel(destfile)
+rm(list = setdiff(ls(), c("procedimentos" ) ) )
+
+
 
 #Importação da tabela de municípios
 source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
 
 
 #Importação função de tratamento e empilhamto SIH
-source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/funcao_tratamento_empilhamento_sih.R")
+source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas/funcao_tratamento_empilhamento_sih.R")
 
 
 #Variáveis excluídas. Estão zeradas.
@@ -63,7 +72,7 @@ for (uf in ufs_lista) {
   
   #Lista com caminho dos dbcs
   ufs_dbc <- list.files(
-    path = caminho_dbc, #Onde estão os dbcs
+    path = here::here("Bases/sih/dbc"), #Onde estão os dbcs
     full.names = TRUE,
     pattern = paste0(".*RD", uf) )
   
@@ -149,13 +158,20 @@ con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop\r/SIH/duckdb/
 data <- 
   tbl(con, "sih")
 
-data |>
-  count(def_proc_rea, sort = TRUE) |>
-  filter(is.na(def_proc_rea) )
-
 
 data |>
-  count(munic_int, sort = TRUE) |>
-  filter(is.na(munic_int))
+  glimpse()
 
+data |> skimr::skim()
 
+data |>
+  count(def_proc_rea, sort = TRUE) |>  
+  filter(is.na(def_proc_rea) ) 
+
+data |>
+  count(def_munic_int, sort = TRUE) |>
+  filter(is.na(def_munic_int))
+
+data |>
+  select(everything()) %>%  #replace to your needs
+  summarize(across(everything(), ~ sum(is.na(.))))
