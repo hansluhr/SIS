@@ -153,16 +153,24 @@ rm(list=ls()); gc()
 
 
 #Abre conexão com a database
-con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop\r/SIH/duckdb/sih_teste.duckdb", 
+con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIS/Bases/sih/duckdb/sih_08_abr_25.duckdb", 
                  read_only = FALSE)
 data <- 
   tbl(con, "sih")
 
 
+
+
+
+
+data |>
+  #summarise(x = sum(is.na(regct) )/n() )
+  count(def_regct, sort = TRUE)
+
+
 data |>
   glimpse()
 
-data |> skimr::skim()
 
 data |>
   count(def_proc_rea, sort = TRUE) |>  
