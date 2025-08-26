@@ -57,7 +57,7 @@ procedimento_zip <- function(arquivo) {
         #fallback: se não houver esse marcador, cortar antes de blocos de 10+ dígitos
         (\(x) ifelse(x == resto, stringr::str_replace(resto, "\\d{10,}.*$", ""), x))() |>
         
-        stringrstr_trim() |> #Remove espaçoes excedentes.
+        stringr::str_trim() |> #Remove espaçoes excedentes.
         
         stringr::str_to_title() |> #Primeira letra maiúscula
         
