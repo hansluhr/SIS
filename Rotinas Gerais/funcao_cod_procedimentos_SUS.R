@@ -1,4 +1,4 @@
-# Importando pacotes
+#Importa pacotes
 library(RCurl)
 library(stringr)
 
@@ -77,7 +77,7 @@ procedimentos <- lapply(arquivos,
   data.table::rbindlist()
 
 # Remove duplicados, mantendo sempre o mais recente por `cod`
-setorder(procedimentos, cod, -versao)   # ordena por cod e versão desc
+data.table::setorder(procedimentos, cod, -versao_cod_proc)   #ordena por cod e versão desc
 procedimentos <- procedimentos[!duplicated(cod)]
 
 
