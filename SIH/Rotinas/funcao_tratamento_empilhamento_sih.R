@@ -76,14 +76,13 @@ tratar_sih <- function(data) {
     PROC_SOLIC = as.integer( as.character( PROC_SOLIC ) ),
     PROC_REA  = as.integer( as.character( PROC_REA ) ) ) ]
 
-  #Idade
+  #Sexo
   if ("SEXO" %in% names(data)) {
     data[,  def_SEXO := as_factor( fcase(
       SEXO == "1", "Homem",
       SEXO %in% c("2", "3"), "Mulher",
       SEXO %in% c("0","9"), "Label não definido", default = as.character(SEXO) ) ) ]
-    
-  }
+    }
   
 
   #Raça\COR
@@ -98,7 +97,7 @@ tratar_sih <- function(data) {
       RACA_COR %in% c("0","99"), "Label não definido", default = as.character(RACA_COR) ) ) ]
   }
     
-    #EscolarIDADE
+    #Escolaridade
     if("INSTRU" %in% names(data) ) {
     data[, def_ESC := as_factor( fcase(
       INSTRU == "1", "Analfabeto",
@@ -118,7 +117,7 @@ tratar_sih <- function(data) {
   }
   
   
-  #Marca UTI. Tipo de UCI utilizada pelo paciente.  
+  #Marca UTI. Indica o tipo de UTI utilizada pelo paciente.  
   if("MARCA_UTI" %in% names(data) ) {
   data[,  
   def_MARCA_UTI := as_factor( fcase(
