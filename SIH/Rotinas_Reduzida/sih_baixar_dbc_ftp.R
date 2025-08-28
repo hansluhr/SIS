@@ -2,7 +2,14 @@ library(RCurl)
 library(stringr)
 library(digest)
 
-baixar_dbc_sih <- function(anos, meses, ufs = "ALL", destino = "dados_sihsus/") {
+baixar_dbc_sih <- function(anos,
+                           meses,
+                           ufs = "ALL",
+                           destino = "dados_sihsus/",
+                           tipo = c("reduzida", "rejeitada")) {
+  
+  # Match.arg garante que só aceite valores válidos
+  tipo <- match.arg(tipo)
   
   # Criar diretório de destino se não existir
   if (!dir.exists(destino)) dir.create(destino, recursive = TRUE)
@@ -31,8 +38,13 @@ baixar_dbc_sih <- function(anos, meses, ufs = "ALL", destino = "dados_sihsus/") 
     
     for (ano in anos_str) {
       for (mes in meses_str) {
+        
+        # Define prefixo dependendo do tipo
+        prefixo <- ifelse(tipo == "reduzida", "RD", "ER")
+        
         # Criar padrão de busca para os arquivos daquela UF, ano e mês
-        padrao <- paste0("^RD", uf, ano, mes, "\\.dbc$")
+        padrao <- paste0("^", prefixo, uf, ano, mes, "\\.dbc$")
+        
         arquivos_filtrados <- lista_arquivos[str_detect(lista_arquivos, padrao)]
         
         if (length(arquivos_filtrados) == 0) {
@@ -80,5 +92,3 @@ baixar_dbc_sih <- function(anos, meses, ufs = "ALL", destino = "dados_sihsus/") 
   
   message("\n✅ Todos os downloads concluídos!")
 }
-
-
