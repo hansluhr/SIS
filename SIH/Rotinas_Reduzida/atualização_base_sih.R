@@ -19,12 +19,18 @@ data <- tbl(con, "sih")
 #Eu quero o último ano mês de computação de cada uf de internação
 data |>
   mutate(ano_mes_cmpt = ano_mes_cmpt |> as.Date() )  |>
-  group_by(uf_int) |>
+  group_by(def_uf_int) |>
   summarise(date = max(ano_mes_cmpt) ) |> arrange(date)
   
 Atualizar:
   Todos: maio e junho
   Acre: abril, maio e junh
+  
+  Preciso criar segurança para evitar atualizações desnecessárias.
+  Ao empilhar novos dbcs, o salvameento acontece.
+  
+  
+  
 
 source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas/sih_baixar_dbc_ftp.R")
 #Baixar arquivos dbcs SIH
@@ -149,25 +155,30 @@ tictoc::toc()
 
 
 
+library(conflicted)
+library(duckplyr)
+conflict_prefer("filter", "dplyr")
+library(duckdb)
+
+#Essa rotina atualiza base existente do SIH. 
+here::i_am("SIH/Rotinas/criação_base_sih.R")
+#Abre conexão com a database
+con <- dbConnect(duckdb::duckdb(), 
+                 dbdir = here::here("Bases/sih/duckdb/sih_teste.duckdb"), 
+                 read_only = FALSE)
 data <- tbl(con, "sih")
 
-data |>
-  count(ano_mes_cmpt)
+
+
+
+dbDisconnect(con)
+rm(list=ls()); gc()
 
 
 
 
-dbWriteTable(
-  con,
-  name = "sih",
-  value = novos_dados,
-  append = TRUE,     # 👈 empilha
-  overwrite = FALSE, # não sobrescreve a tabela
-  temporary = FALSE
-)
-  
-  
-  
+
+
 
 
 #Ano e mês da última atualização.
@@ -236,5 +247,3 @@ https://duckplyr.tidyverse.org/
   https://duckplyr.tidyverse.org/articles/limits.html
 
 
-dbDisconnect(con)
-rm(list=ls()); gc()
