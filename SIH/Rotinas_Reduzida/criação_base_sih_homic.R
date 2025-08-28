@@ -3,9 +3,6 @@ source(file = "C:/Users/gabli/Dropbox/Ipea/Atlas/Rotinas/SIH/sih_baixar_dbc_ftp3
 baixar_arquivos_RD(anos = 2024, meses = c(1:3), ufs = "RJ", destino = "C:/Users/gabli/Desktop/r/SIH/dbc")
 rm(baixar_arquivos_RD)
 
-#Baixar 2024??
-
-
 #Importarção e agregação de arquivos dbcs
 library(tidyverse)
 library(janitor)
