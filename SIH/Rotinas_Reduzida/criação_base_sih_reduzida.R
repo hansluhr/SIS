@@ -27,9 +27,9 @@ con <- dbConnect(duckdb::duckdb(),
                  read_only = FALSE)
 
 #Importação da tabela procedimentos
-#getURL(url = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_cod_procedimentos_SUS.R")
+#source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_cod_procedimentos_SUS.R")
 
-url <- "https://raw.githubusercontent.com/hansluhr/SIS/main/procedimentos.xlsx"
+url <- "https://raw.githubusercontent.com/hansluhr/SIS/main/Bases%20Gerais/procedimentos_sus.xlsx"
 # Pasta temporária para armazenar
 destfile <- tempfile(fileext = ".xlsx")
 # Download
