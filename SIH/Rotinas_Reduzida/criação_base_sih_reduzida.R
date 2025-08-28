@@ -72,7 +72,7 @@ for (uf in ufs_lista) {
   
   #Lista com caminho dos dbcs
   ufs_dbc <- list.files(
-    path = here::here("Bases/sih/dbc"), #Onde estão os dbcs
+    path = here::here("Bases/sih/dbc_reduzida"), #Onde estão os dbcs
     full.names = TRUE,
     pattern = paste0(".*RD", uf) )
   
