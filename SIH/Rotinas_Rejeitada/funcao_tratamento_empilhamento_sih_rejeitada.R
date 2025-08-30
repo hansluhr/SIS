@@ -44,31 +44,27 @@ tratar_sih_rejeitada <- function(data) {
     
 
 # Atribuição label erros da aih -------------------------------------------
-
+  
     
-     #COLOCAR MENSAGEM INDICANDO DOWNLOADO COM SUCESSO. 
-     
-    destfile <- tempfile(fileext = ".xlsx")
-    #Arquivo temporário
+  destfile <- tempfile(fileext = ".xlsx")
+  #Base códigos de rejeição AIH.
    download.file(url = "https://raw.githubusercontent.com/hansluhr/SIS/main/Bases%20Gerais/aih_erros.xlsx",
                 destfile, 
                  mode = "wb") 
-   
+#Tratamento da base códigos de rejeição AIH.
 erros <- readxl::read_excel(path = destfile ) |>
      janitor::clean_names() |> 
      select(!c(id), def_erro = descricao_erro)
 rm(destfile)
 
-
- #left_join com o código de rejeição da AIH.
+#left_join com o código de rejeição da AIH.
     data <- 
       merge(x = data,
             y = erros,
             by.x = "CO_ERRO",
             by.y = "cod_erro",
             all.x = TRUE)
-    
-    
+  
 # Atribuição de Municípios --------------------------------------------------------------
   
    #Importação da tabela de municípios
