@@ -12,7 +12,7 @@ source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotin
 
 #Pasta onde os arquivos DBCs do SIH serão salvos.
 #Baixar arquivos dbcs SIH
-baixar_dbc_sih(anos = c(2025), 
+baixar_dbc_sih(anos = c(2008:2025), 
                    meses = c(1:12), 
                    ufs = c("AC"), 
                    destino = here::here("Bases/sih/dbc_reduzida"),
