@@ -4,42 +4,38 @@ library(future.apply)
 library(data.table)
 library(duckdb)
 
+#Pasta do projeto onde a rotina utilizada está armazenada.
 here::i_am("SIH/Rotinas_Rejeitada/criação_base_sih_rejeitada.R")
 
 # Rotina de criação da base SIH -------------------------------------------
-#Chamar função para importar arquivos DBCs do FTP DataSuS 
+# #Chamar função para importar arquivos DBCs do FTP DataSuS 
 source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_comuns_sih/sih_baixar_dbc_ftp.R")
-
-#Baixar arquivos dbcs das AIHs rejeitadas com código de erro. 
-baixar_dbc_sih(anos = c(2008:2025), 
-               meses = c(1:12), 
-               ufs = c("AC"), #UFs de interesse.
-               destino = here::here("Bases/sih/dbc_rejeitada"), #Pasta destino dos dbcs 
+# 
+#Baixar arquivos dbcs das AIHs rejeitadas com código de erro.
+baixar_dbc_sih(anos = c(2008:2025),
+               meses = c(1:12),
+               ufs = c("AP"), #UFs de interesse.
+               destino = here::here("Bases/sih/dbc_rejeitada"), #Pasta destino dos dbcs
                tipo  = "rejeitada") #Tipo de AIH de interesse
 rm(baixar_dbc_sih)
 
 
-#Abre conexão com a database. Este arquivo armazena a base SIH.
-con <- dbConnect(duckdb::duckdb(), 
-                 dbdir = here::here("Bases/sih/duckdb/sih_rejeitada.duckdb"), #Nome do database que armazena o SIH
-                read_only = FALSE)
+# #Abre conexão com a database. Este arquivo armazena a base SIH.
+# con <- dbConnect(duckdb::duckdb(), 
+#                  dbdir = here::here("Bases/sih/duckdb/sih_rejeitada.duckdb"), #Nome do database que armazena o SIH
+#                 read_only = FALSE)
 
 
 #Importação da tabela de municípios
 #source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
 
-
 #Importação função de tratamento e empilhamto SIH
 source(file = "C:/Users/gabli/Desktop/r/SIS/SIH/Rotinas_Rejeitada/funcao_tratamento_empilhamento_sih_rejeitada.R")
 
-
-#Variáveis excluídas. Sem utilidade.
-vars_excluir <- c("SEQUENCIA", "REMESSA", "UF_RES")
-
 #UFs para empilhar. Colocar todas as UFs desejadas.
-ufs_lista <- c("AC","AP","TO")
+ufs_lista <- c("AC","TO")
 #Dentre as UFs desejadas, àquelas para empilhar em blocos. Por causa da limitação de memória.
-ufs_em_blocos <- c("AP")
+ufs_em_blocos <- c("TO")
 
 
 #Inicializa controle de colunas
@@ -72,57 +68,64 @@ for (uf in ufs_lista) {
   #Para UFs que serão empilhadas por parte.
   for (bloco in blocos) {
     
-    tmp <- data.table::rbindlist(
-      future_lapply(bloco, empilhar_sih),
+    tmp <- 
+      data.table::rbindlist(
+        
+      future_lapply(bloco, importar_sih, 
+                    #Variáveis excluídas. Sem utilidade ou redundante
+                    vars_excluir <- c("SEQUENCIA", "REMESSA", "UF_RES") ),
+      
       use.names = TRUE, fill = TRUE ) |>
+      
       tratar_sih_rejeitada() |>
+      
       janitor::clean_names()
-    
-    # Cria a tabela no primeiro bloco
-    if (!tabela_criada) {
-      dbWriteTable(
-        con, #Conexão com a database
-        name = "sih_rejeitada", #Tabela na database que desejo preencher
-        value = tmp, #Nome da tabela utilizada como input. Desejo subir essa tabela.
-        overwrite = TRUE,
-        temporary = FALSE)
-      
-      colunas_sih <- names(tmp)
-      tabela_criada <- TRUE
-      
-    } 
-    else 
-    {
-      # Detecta e adiciona colunas novas
-      novas_colunas <- setdiff(names(tmp), colunas_sih)
-      
-      if (length(novas_colunas) > 0) {
-        message("📌 Novas colunas detectadas: ", paste(novas_colunas, collapse = ", "))
-        
-        for (col in novas_colunas) {
-          dbExecute(con, sprintf("ALTER TABLE sih_rejeitada ADD COLUMN %s TEXT", col))
-        }
-        
-        colunas_sih <- union(colunas_sih, novas_colunas)
-      }
-      
-      # Insere os dados
-      dbWriteTable(
-        con, #Conexão com a database
-        name = "sih_rejeitada", #Tabela na database que desejo preencher
-        value = tmp, #Nome da tabela utilizada como input. Desejo subir essa tabela.
-        append = TRUE,
-        temporary = FALSE)
-    }
-    
-    rm(tmp); gc()
+    # 
+    # # Cria a tabela no primeiro bloco
+    # if (!tabela_criada) {
+    #   dbWriteTable(
+    #     con, #Conexão com a database
+    #     name = "sih_rejeitada", #Tabela na database que desejo preencher
+    #     value = tmp, #Nome da tabela utilizada como input. Desejo subir essa tabela.
+    #     overwrite = TRUE,
+    #     temporary = FALSE)
+    #   
+    #   colunas_sih <- names(tmp)
+    #   tabela_criada <- TRUE
+    #   
+    # } 
+    # else 
+    # {
+    #   # Detecta e adiciona colunas novas
+    #   novas_colunas <- setdiff(names(tmp), colunas_sih)
+    #   
+    #   if (length(novas_colunas) > 0) {
+    #     message("📌 Novas colunas detectadas: ", paste(novas_colunas, collapse = ", "))
+    #     
+    #     for (col in novas_colunas) {
+    #       dbExecute(con, sprintf("ALTER TABLE sih_rejeitada ADD COLUMN %s TEXT", col))
+    #     }
+    #     
+    #     colunas_sih <- union(colunas_sih, novas_colunas)
+    #   }
+    #   
+    #   # Insere os dados
+    #   dbWriteTable(
+    #     con, #Conexão com a database
+    #     name = "sih_rejeitada", #Tabela na database que desejo preencher
+    #     value = tmp, #Nome da tabela utilizada como input. Desejo subir essa tabela.
+    #     append = TRUE,
+    #     temporary = FALSE)
+    # }
+    print(tmp)
+   # rm(tmp); gc()
   }
 }
 
 
 #Finaliza
 #plan(sequential) #Resetar plano sequencial ao final
-rm(list = setdiff(ls(), c("con") ) ); gc()
+rm(list = setdiff(ls(), c("tmp") ) ); gc()
 tictoc::toc()
 
 
