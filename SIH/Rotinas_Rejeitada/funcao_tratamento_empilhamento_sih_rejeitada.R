@@ -1,7 +1,9 @@
 
 
 # Função de tratamento do SIH ---------------------------------------------
-tratar_sih_rejeitada <- function(data) {
+tratar_sih_rejeitada <- 
+  
+  function(data) {
   
   #Transformando variáveis categóricas em character.
   #Vou padronizar a classe da variável, permitindo empilhar.
@@ -15,8 +17,8 @@ tratar_sih_rejeitada <- function(data) {
     data[, (cols_existentes) := lapply(.SD, as.character), .SDcols = cols_existentes]
   }
   
-   # # #Tratamento de datas
-    data[, `:=`(
+  #Tratamento de datas
+  data[, `:=`(
     DT_INTER = ymd(DT_INTER),
     DT_SAIDA = ymd(DT_SAIDA),
     ANO_MES_CMPT = as.Date(paste(ANO, MES, "01", sep = "-") ) ) ]
@@ -106,10 +108,10 @@ rm(destfile)
     dplyr::relocate(CO_ERRO, .before = def_erro)
   
   
-  data <- tibble::as_tibble(data) 
-  data <- droplevels(data.table::as.data.table(data))
-  data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
-                                                    FUN = stringi::stri_unescape_unicode) ) )
+  # data <- tibble::as_tibble(data)
+  # data <- droplevels(data.table::as.data.table(data))
+  # data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
+  #                                                   FUN = stringi::stri_unescape_unicode) ) )
   
 }
 
