@@ -14,7 +14,7 @@ source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotin
 #Baixar arquivos dbcs das AIHs rejeitadas com código de erro.
 baixar_dbc_sih(anos = c(2008:2025),
                meses = c(1:12),
-               ufs = c("AP"), #UFs de interesse.
+               ufs = c("ALL"), #UFs de interesse.
                destino = here::here("Bases/sih/dbc_rejeitada"), #Pasta destino dos dbcs
                tipo  = "rejeitada") #Tipo de AIH de interesse
 rm(baixar_dbc_sih)
@@ -30,12 +30,13 @@ con <- dbConnect(duckdb::duckdb(),
 #source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
 
 #Importação função de tratamento e empilhamto SIH
-source(file = "C:/Users/gabli/Desktop/r/SIS/SIH/Rotinas_Rejeitada/funcao_tratamento_empilhamento_sih_rejeitada.R")
+source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_Rejeitada/funcao_tratamento_empilhamento_sih_rejeitada.R")
 
 #UFs para empilhar. Colocar todas as UFs desejadas.
-ufs_lista <- c("AC","AP")
+ufs_lista <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", 
+               "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
 #Dentre as UFs desejadas, àquelas para empilhar em blocos. Por causa da limitação de memória.
-ufs_em_blocos <- c("TO")
+ufs_em_blocos <- c("BA","MG","PB","RJ","SP")
 
 
 #Inicializa controle de colunas
