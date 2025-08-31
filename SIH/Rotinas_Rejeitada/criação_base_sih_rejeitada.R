@@ -9,15 +9,15 @@ here::i_am("SIH/Rotinas_Rejeitada/criação_base_sih_rejeitada.R")
 
 # Rotina de criação da base SIH -------------------------------------------
 # #Chamar função para importar arquivos DBCs do FTP DataSuS 
-source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_comuns_sih/sih_baixar_dbc_ftp.R")
-# 
-#Baixar arquivos dbcs das AIHs rejeitadas com código de erro.
-baixar_dbc_sih(anos = c(2008:2025),
-               meses = c(1:12),
-               ufs = c("ALL"), #UFs de interesse.
-               destino = here::here("Bases/sih/dbc_rejeitada"), #Pasta destino dos dbcs
-               tipo  = "rejeitada") #Tipo de AIH de interesse
-rm(baixar_dbc_sih)
+# source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_comuns_sih/sih_baixar_dbc_ftp.R")
+# # 
+# #Baixar arquivos dbcs das AIHs rejeitadas com código de erro.
+# baixar_dbc_sih(anos = c(2008:2025),
+#                meses = c(1:12),
+#                ufs = c("ALL"), #UFs de interesse.
+#                destino = here::here("Bases/sih/dbc_rejeitada"), #Pasta destino dos dbcs
+#                tipo  = "rejeitada") #Tipo de AIH de interesse
+# rm(baixar_dbc_sih)
 
 
 #Abre conexão com a database. Este arquivo armazena a base SIH.
@@ -30,13 +30,14 @@ con <- dbConnect(duckdb::duckdb(),
 #source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
 
 #Importação função de tratamento e empilhamto SIH
-source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_Rejeitada/funcao_tratamento_empilhamento_sih_rejeitada.R")
+source("C:/Users/gabli/Desktop/r/SIS/SIH/Rotinas_Rejeitada/funcao_tratamento_empilhamento_sih_rejeitada.R")
 
 #UFs para empilhar. Colocar todas as UFs desejadas.
-ufs_lista <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", 
-               "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
+# ufs_lista <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", 
+#                "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
+ufs_lista <- c("AC","AP")
 #Dentre as UFs desejadas, àquelas para empilhar em blocos. Por causa da limitação de memória.
-ufs_em_blocos <- c("BA","MG","PB","RJ","SP")
+ufs_em_blocos <- c("TO")
 
 
 #Inicializa controle de colunas
@@ -70,6 +71,7 @@ for (uf in ufs_lista) {
   for (bloco in blocos) {
 
     tmp <-
+      #Iportação e empilhamento dos dbcs e exclusão de variáveis.
       data.table::rbindlist(
 
       future_lapply(bloco, importar_sih,
@@ -77,7 +79,7 @@ for (uf in ufs_lista) {
                     vars_excluir <- c("SEQUENCIA", "REMESSA") ),
 
       use.names = TRUE, fill = TRUE ) |>
-
+      #Adicona labels
       tratar_sih_rejeitada() |>
 
       janitor::clean_names()
