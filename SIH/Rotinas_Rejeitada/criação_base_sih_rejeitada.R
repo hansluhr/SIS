@@ -8,43 +8,39 @@ library(duckdb)
 here::i_am("SIH/Rotinas_Rejeitada/criação_base_sih_rejeitada.R")
 
 # Rotina de criação da base SIH -------------------------------------------
-# #Chamar função para importar arquivos DBCs do FTP DataSuS 
-# source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_comuns_sih/sih_baixar_dbc_ftp.R")
-# # 
-# #Baixar arquivos dbcs das AIHs rejeitadas com código de erro.
-# baixar_dbc_sih(anos = c(2008:2025),
+#Chamar função para importar arquivos DBCs do FTP DataSuS 
+#source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_comuns_sih/sih_baixar_dbc_ftp.R")
+
+#Baixar arquivos dbcs das AIHs rejeitadas com código de erro.
+#baixar_dbc_sih(anos = 2011,
 #                meses = c(1:12),
-#                ufs = c("ALL"), #UFs de interesse.
+#                ufs = c("AC"), #UFs de interesse.
 #                destino = here::here("Bases/sih/dbc_rejeitada"), #Pasta destino dos dbcs
 #                tipo  = "rejeitada") #Tipo de AIH de interesse
-# rm(baixar_dbc_sih)
+#rm(baixar_dbc_sih)
 
 
+#Empilhar base SIH Rejeitada. --------------------------------------------
 #Abre conexão com a database. Este arquivo armazena a base SIH.
 con <- dbConnect(duckdb::duckdb(),
-                 dbdir = here::here("Bases/sih/duckdb/sih_rejeitada.duckdb"), #Nome do database que armazena o SIH
+                 dbdir = here::here("Bases/sih/duckdb/sih_rejeitada.duckdb"), #Nome do database que armazena o SIH?
                 read_only = FALSE)
 
-
-#Importação da tabela de municípios
-#source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
-
-#Importação função de tratamento e empilhamto SIH
-source("C:/Users/gabli/Desktop/r/SIS/SIH/Rotinas_Rejeitada/funcao_tratamento_empilhamento_sih_rejeitada.R")
-
 #UFs para empilhar. Colocar todas as UFs desejadas.
-# ufs_lista <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", 
-#                "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
-ufs_lista <- c("AC","AP")
+ufs_lista <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", 
+                "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
+# ufs_lista <- c("AC","AP")
 #Dentre as UFs desejadas, àquelas para empilhar em blocos. Por causa da limitação de memória.
-ufs_em_blocos <- c("TO")
+ufs_em_blocos <- c("BA","DF","MG","RJ")
 
 
 #Inicializa controle de colunas
 colunas_sih <- NULL
 tabela_criada <- FALSE
+#Importação função de tratamento e empilhamto SIH
+source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_Rejeitada/funcao_tratamento_empilhamento_sih_rejeitada.R")
 
-# Paralelo
+#Paralelo
 #plan(multisession, workers = availableCores() - 2)
 tictoc::tic()
 #Para as UF que desejo empilhar.
@@ -141,19 +137,19 @@ rm(list=ls()); gc()
 data <- 
   tbl(con, "sih_rejeitada")
 
-
 data |>
-  filter(is.na(dt_inter)) |>
+  filter(is.na(def_erro)) |> 
   collect() |> View()
 
 
+  count(ano_cmpt,co_erro) |> arrange(desc(n))
+  collect() |>  View()
 
 
-tmp |>
-  mutate(uf = str_sub(aih, start = 1, end = 2) ) |>
-  count(uf, code_state_int, sort = TRUE)
-  select(uf) |> 
- 
+
+
+
+
   
 
 
