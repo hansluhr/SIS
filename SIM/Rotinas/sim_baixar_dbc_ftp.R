@@ -28,7 +28,7 @@ baixar_dbc_sim <- function(anos,
     arquivos_filtrados <- arquivos[str_detect(arquivos, padrao)]
     
     if (length(arquivos_filtrados) == 0) {
-      message("❌ Nenhum arquivo encontrado para o ano ", ano)
+      message("Nenhum arquivo encontrado para o ano ", ano)
     } else {
       for (arquivo in arquivos_filtrados) {
         url_completa <- paste0(ftp_url, arquivo)
@@ -46,21 +46,21 @@ baixar_dbc_sim <- function(anos,
           if (hash_local == hash_remoto) {
             message("✔ Arquivo já existe e é idêntico: ", arquivo, " (Ignorado)")
           } else {
-            message("🔄 Arquivo diferente detectado! Atualizando: ", arquivo)
+            message("Arquivo diferente detectado! Atualizando: ", arquivo)
             file.copy(temp_file, destino_arquivo, overwrite = TRUE)
           }
           
           unlink(temp_file)
           
         } else {
-          message("📥 Baixando: ", arquivo)
+          message("Baixando: ", arquivo)
           tryCatch(
             {
               download.file(url_completa, destfile = destino_arquivo, mode = "wb")
-              message("✔ Arquivo salvo em: ", destino_arquivo)
+              message("Arquivo salvo em: ", destino_arquivo)
             },
             error = function(e) {
-              message("❌ Erro ao baixar: ", arquivo, " - ", e$message)
+              message("Erro ao baixar: ", arquivo, " - ", e$message)
             }
           )
         }
