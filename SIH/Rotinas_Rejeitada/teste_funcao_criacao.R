@@ -75,5 +75,6 @@ sih_rejeitada <- function(ufs = "all") {
 
 
 
-sih_rejeitada(ufs = c("AC","AP") )
+sih_rejeitada(ufs = c("AC","AP"),
+              vars_excluir = c("SEQUENCIA", "REMESSA") )
 
