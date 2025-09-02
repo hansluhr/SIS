@@ -6,7 +6,7 @@ library(duckdb)
 
 here::i_am("SIH/Rotinas_Reduzida/criação_base_sih.R")
 
-# Rotina de criação da base SIH -------------------------------------------
+# Download dos dbcs SIH reduzida  -------------------------------------------
 #Chamar função para importar arquivos DBCs do FTP DataSuS 
 source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIH/Rotinas_comuns_sih/sih_baixar_dbc_ftp.R")
 
@@ -20,7 +20,9 @@ baixar_dbc_sih(anos = c(2008:2025),
 rm(baixar_dbc_sih)
 
 
-#caminho_dbc <- "C:/Users/gabli/Desktop/r/SIH/dbc"
+# Elaboração da base SIH Reduzida -----------------------------------------
+
+
 #Abre conexão com a database. Este arquivo armazena a base SIH.
 con <- dbConnect(duckdb::duckdb(), 
                  dbdir = here::here("Bases/sih/duckdb/sih_teste.duckdb"), #Nome do database que armazena o SIH
@@ -28,7 +30,6 @@ con <- dbConnect(duckdb::duckdb(),
 
 #Importação da tabela procedimentos
 #source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_cod_procedimentos_SUS.R")
-
 url <- "https://raw.githubusercontent.com/hansluhr/SIS/main/Bases%20Gerais/procedimentos_sus.xlsx"
 # Pasta temporária para armazenar
 destfile <- tempfile(fileext = ".xlsx")
@@ -55,9 +56,10 @@ vars_excluir <- c("GESTOR_DT","VAL_SADT","VAL_RN","VAL_ACOMP","VAL_ORTP",
 
 
 #UFs para empilhar. Colocar todas as UFs desejadas.
-ufs_lista <- c("AC","AP","TO")
+ufs_lista <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", 
+               "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
 #Dentre as UFs desejadas, àquelas para empilhar em blocos. Por causa da limitação de memória.
-ufs_em_blocos <- c("AP")
+ufs_em_blocos <- c("BA","DF","MG","RJ")
 
 
 #Inicializa controle de colunas

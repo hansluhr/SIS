@@ -29,7 +29,6 @@ con <- dbConnect(duckdb::duckdb(),
 #UFs para empilhar. Colocar todas as UFs desejadas.
 ufs_lista <- c("AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", 
                 "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO")
-# ufs_lista <- c("AC","AP")
 #Dentre as UFs desejadas, àquelas para empilhar em blocos. Por causa da limitação de memória.
 ufs_em_blocos <- c("BA","DF","MG","RJ")
 
