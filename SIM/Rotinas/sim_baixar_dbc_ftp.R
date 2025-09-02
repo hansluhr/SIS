@@ -12,7 +12,11 @@ baixar_dbc_sim <- function(anos,
   ftp_url <- "ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DORES/"
   
   # Listar arquivos disponíveis no FTP
-  arquivos <- getURL(ftp_url, ftp.use.epsv = FALSE, dirlistonly = TRUE)
+  arquivos <- getURL(ftp_url, 
+                     ftp.use.epsv = FALSE, 
+                     dirlistonly = TRUE,
+                     timeout = 120, #Tempo para tentar conexão
+                     connecttimeout = 60)
   arquivos <- unlist(strsplit(arquivos, "\r\n"))
   
   # Converter anos para 4 dígitos (já esperado nos arquivos do SIM)
@@ -40,7 +44,11 @@ baixar_dbc_sim <- function(anos,
           
           # Fazer download temporário do arquivo para verificar hash
           temp_file <- tempfile()
-          download.file(url_completa, destfile = temp_file, mode = "wb", quiet = TRUE)
+          download.file(url_completa, 
+                        destfile = temp_file, 
+                        mode = "wb", 
+                        quiet = TRUE,
+                        method = "libcurl")
           hash_remoto <- digest(temp_file, algo = "sha256", file = TRUE)
           
           if (hash_local == hash_remoto) {
@@ -56,7 +64,11 @@ baixar_dbc_sim <- function(anos,
           message("Baixando: ", arquivo)
           tryCatch(
             {
-              download.file(url_completa, destfile = destino_arquivo, mode = "wb")
+              download.file(url_completa, 
+                            destfile = destino_arquivo, 
+                            mode = "wb",
+                            quiet = TRUE,
+                            method = "libcurl")
               message("Arquivo salvo em: ", destino_arquivo)
             },
             error = function(e) {
