@@ -110,8 +110,8 @@ rm(destfile)
   
   # data <- tibble::as_tibble(data)
   # data <- droplevels(data.table::as.data.table(data))
-  # data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
-  #                                                   FUN = stringi::stri_unescape_unicode) ) )
+  data <- suppressWarnings(tibble::as_tibble(lapply(X = data,
+                                                    FUN = stringi::stri_unescape_unicode) ) )
   
 }
 
