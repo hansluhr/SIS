@@ -24,7 +24,7 @@ baixar_dbc_sih <- function(anos,
   #lista com dbcs disponíveis no FTP 
   arquivos <- getURL(ftp_url, #Endereço FTP onde estão os dbcs rejeitados 
                      ftp.use.epsv = FALSE, 
-                     dirlistonly = TRUE,
+                     dirlistonly = TRUE, #Lista com somente os diretórios.
                      timeout = 120, #Tempo para tentar conexão
                      connecttimeout = 60)
   #Listagem do todos os dbcs sem informações desnecessárias.
