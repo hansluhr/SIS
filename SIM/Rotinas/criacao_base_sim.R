@@ -30,8 +30,7 @@ con <- dbConnect(duckdb::duckdb(),
 source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
 
 
-#Variáveis zeradas.
-var_excluir <- c("TPASSINA","NUMERODN","ESTABDESCR")
+
 
 sim |>
   count(CRM, sort = TRUE)
@@ -41,6 +40,12 @@ sim |>
 
 library(read.dbc)
 library(data.table)
+
+rm(list = ls()); gc()
+#Variáveis zeradas.
+vars_excluir <- c("TPASSINA","NUMERODN","ESTABDESCR")
+source("C:/Users/gabli/Desktop/r/SIS/SIM/Rotinas/funcao_tratar_empilhar_sim.R")
+
 
 # Função para importar e empilhar todos os .dbc de uma pasta
 importar_dbc <- function(pasta) {
@@ -58,21 +63,32 @@ importar_dbc <- function(pasta) {
   message("📂 Encontrados ", length(arquivos), " arquivos .dbc")
   
   # importa todos e empilha
-  dados <- rbindlist(
-    lapply(arquivos, function(arq) {
-      message("📥 Importando: ", basename(arq))
-      as.data.table(read.dbc(arq))
-    }),
-    use.names = TRUE, fill = TRUE
-  )
-  
+  dados <- 
+    data.table::rbindlist(
+      future_lapply(arquivos, empilhar_sim),
+      use.names = TRUE, fill = TRUE ) |>
+    tratar_sim() |>
+    janitor::clean_names()
+    
   message("✅ Importação concluída! Total de registros: ", nrow(dados))
   return(dados)
 }
 
 
 sim <- importar_dbc("C:/Users/gabli/Desktop/r/SIS/Bases/sim/dbc")
-
+glimpse(sim)
 
 sim |>
   summarise(across(everything(), ~ mean(is.na(.x) ) ) )
+
+
+sim |>
+  filter(!is.na(CAUSAMAT)) |>
+  view()
+
+sim |> colnames() |> as_tibble() |> filter(!str_starts(value, "DT"))
+
+
+# var_char <-
+  
+ cat( paste0('"', names(sim)[!str_starts(names(sim), "DT")], '"', collapse = ", ") )
