@@ -33,14 +33,22 @@ tratar_sim <- function(data) {
   #    , (grep("^DT", names(dt), value = TRUE)) := lapply(.SD, ymd),
   #    .SDcols = patterns("^DT")
   #  ]
-  #  
+  
+
+# Transformações utilizando mutate ----------------------------------------
   data |> 
-  mutate(
-    #Causa e loca do óbito.
+
+    #Rename do código munic de resdiência. Útil para criar variável com o nome padrão de resd
+    rename(codmunresd = codmunres ) |>
+    
+    mutate(
+    
     causa_letra = substr(causabas,1,1),
     causa_num = as.numeric(substr(causabas,2,3)),
-    local_obito = as.numeric(substr(causabas,4,4)),
-    #Idades                          
+    local_incd = as.numeric(substr(causabas,4,4)),
+
+# Idade ------------------------------------------------------------------
+    #Idade                          
     idade = as.double(as.character(idade)),
     #Idade desconhecida
     idade = case_when(idade == 999 | idade == 0  ~ as.double(NA), TRUE ~ idade),
@@ -48,6 +56,9 @@ tratar_sim <- function(data) {
     idade = case_when(idade > 0 & idade <= 400  ~ 0, TRUE ~ idade),
     #Idade em anos
     idade = case_when(idade>400 & idade <999 ~ idade -400, TRUE ~ idade),
+    
+
+# Intenção da causa externa -----------------------------------------------
     #Intenção
     intencao = as.factor(case_when(
       ###acidente(==1)
@@ -162,8 +173,8 @@ tratar_sim <- function(data) {
         #/*Complica??es de assist?ncia m?dica e cir?rgica + ... + Seq?elas de causas externas de morbidade e de mortalidade*/
         causa_letra  == "Y" & causa_num > 39 & causa_num < 90 ~ "Outros")), 
     
-    
-    ###Instrumento (Dicion?rio: 1=Envenenamento; 2=Enforcamento; 3=Afogamento; 4=PAF; 5=Impacto; 6=Fogo; 7=Perfurante; 8=Contundente; 9=Desconhecido; 10=veiculo)
+
+# Instrumento causa externa -----------------------------------------------
     instrumento = as.factor(case_when(
       #Envenenamento (==1) 
       causa_letra  == "X" & causa_num > 39  & causa_num < 50 | # /*Acidente envenenamento*/
@@ -189,8 +200,8 @@ tratar_sim <- function(data) {
         causa_letra  == "X" & causa_num > 71 & causa_num < 75 |  #/*Self harm - PAF*/
         causa_letra  == "X" & causa_num > 92 & causa_num < 96 |  #/*ag. - PAF*/
         causa_letra  == "Y" & causa_num > 21 & causa_num < 25 |  #/*Ind. - PAF*/
-        causa_letra  == "Y" & causa_num ==35 &  local_obito == 0 ~ "PAF",  #/*h_legal - PAF*/
-      #causa_letra  == "Y" & causa_num ==35 &  local_obito == 1 - Foi para instrumento fogo
+        causa_letra  == "Y" & causa_num ==35 &  local_incd == 0 ~ "PAF",  #/*h_legal - PAF*/
+      #causa_letra  == "Y" & causa_num ==35 &  local_incd == 1 - Foi para instrumento fogo
       
       #Impacto (==5) - Olhar acidente impacto
       causa_letra  == "W" & causa_num < 25 | # /Acidente: Queda de altura + atingido por objeto + esmagado por objeto*/ 
@@ -210,15 +221,15 @@ tratar_sim <- function(data) {
         causa_letra  == "X" & causa_num > 75 & causa_num < 78 |  #/*Self harm de fuma?a, fogo, chamas, vapor*/ 
         causa_letra  == "X" & causa_num > 96 & causa_num < 99 |  #/*Ag. de fuma?a, fogo, chamas, vapor */ 
         causa_letra  == "Y" & causa_num > 25 & causa_num < 28 |  #/*Ind. de fuma?a, fogo, chamas, vapor */ 
-        causa_letra  == "Y" & causa_num == 35 & local_obito ==2 |  #/*h_legal involvendo fuma?a*/
-        causa_letra  == "Y" & causa_num ==35 &  local_obito == 1 ~ "Fogo", # /*h_legal involvendo explos?o*/
+        causa_letra  == "Y" & causa_num == 35 & local_incd ==2 |  #/*h_legal involvendo fuma?a*/
+        causa_letra  == "Y" & causa_num ==35 &  local_incd == 1 ~ "Fogo", # /*h_legal involvendo explos?o*/
       
       #Perfurante (==7) 
       causa_letra  == "X" & causa_num ==78 |  #/*self objeto afiado*/ 
         causa_letra  == "X" & causa_num ==99 |  #/*ag. objeto afiado*/ 
         causa_letra  == "Y" & causa_num ==28 |  #/*Ind. objeto afiado*/ 
         causa_letra  == "W" & causa_num > 24 & causa_num < 27 |  #/*Acidente objeto afiado. Estava indo para indeterminado*/ 
-        causa_letra  == "Y" & causa_num == 35 & local_obito ==4 ~ "Perfurante", #/*h_legal objeto afiado*/
+        causa_letra  == "Y" & causa_num == 35 & local_incd ==4 ~ "Perfurante", #/*h_legal objeto afiado*/
       
       #Contundente (==8) 
       causa_letra  == "W" & causa_num ==51 |  #/*Acidente - Colis?o entre duas pessoas*/ 
@@ -227,21 +238,126 @@ tratar_sim <- function(data) {
         causa_letra  == "Y" & causa_num > 03 & causa_num < 06 |  #/*Ag. por meio de for?a corporal + Ag. sexual por meio de for?a f?sica*/ 
         causa_letra  == "W" & causa_num == 50 |  #/*Acidente - Golpe, pancada, ponta p?*/
         causa_letra  == "Y" & causa_num == 29 |  #/*Ind. Objento contundente*/ 
-        causa_letra  == "Y" & causa_num == 35 & local_obito ==3 ~ "Contundente", #/*h_legal objeto contundente*/ 
+        causa_letra  == "Y" & causa_num == 35 & local_incd ==3 ~ "Contundente", #/*h_legal objeto contundente*/ 
       
       #Desconhecido (==9) A segunga categoria cont?m neglig?ncia que n?o ? desconhecida. Cad? acidente
       causa_letra  == "X" & causa_num > 82 & causa_num < 85 |  #/*self. Outros meios especificados + self outros meios n?o especificados*/
         causa_letra  == "Y" & causa_num > 05 & causa_num < 10 |  #/*Ag. Neglig?ncia + Ag. Outros maus tratos + Ag. Outros meios especificados + Ag. outros meios n?o especificados*/
         causa_letra  == "Y" & causa_num > 32 & causa_num < 35 |  #/*Ind. Outros fatos ou eventos espcificados + fatos ou eventos n?o espcificados*/
-        causa_letra  == "Y" & causa_num == 35 & local_obito ==5 |  #/*h_legal Execu??o legal - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
-        causa_letra  == "Y" & causa_num == 35 & local_obito == 6 |  #/*h_legal Execu??o legal por outros meios especificados - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
-        causa_letra  == "Y" & causa_num == 35 & local_obito ==7 |  #/*h_legal Execu??o legal por meios n?o especificados - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
+        causa_letra  == "Y" & causa_num == 35 & local_incd ==5 |  #/*h_legal Execu??o legal - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
+        causa_letra  == "Y" & causa_num == 35 & local_incd == 6 |  #/*h_legal Execu??o legal por outros meios especificados - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
+        causa_letra  == "Y" & causa_num == 35 & local_incd ==7 |  #/*h_legal Execu??o legal por meios n?o especificados - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
         causa_letra  == "Y" & causa_num == 36 | # /*Opera??es de guerra*/
         causa_letra  == "X" & causa_num > 57 & causa_num < 60 ~ "Desconhecido", #/*Acidente instrumento desconhecido. Categoria inseriada, n?o estava na rotina.*/
       
-      #veículo (==10) 1.Acidente 2.Homicídio (y03, impacto) , 3.Indeterminado (y32,impacto) 4.Suicídio(x82,impacto)
+      #veículo 1.Acidente 2.Homicídio (y03, impacto) , 3.Indeterminado (y32,impacto) 4.Suicídio(x82,impacto)
       causa_letra  == "V" & causa_num > 0 | causa_letra  == "Y" & causa_num == 03 | 
-      causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo") ) )
+      causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo") ), 
+
+      #Variável de intencionalidades para facilitar contagens.
+      intencao_homic = case_when(intencao %in% c("Homicídio","h_legal") ~ "Homicídio",
+                                 .default = intencao),  
+      #Consertando dtobito
+      dtobito = as.numeric(as.character(dtobito)),
+      dtobito = case_when(
+        dtobito == 1996 ~ 1011996,dtobito == 1997 ~ 1011997,dtobito == 1998 ~ 1011998,dtobito == 1999  ~ 1011999,
+        dtobito == 2000 ~ 1012000,dtobito == 2002 ~ 1012002,dtobito == 11996 ~ 1011996,dtobito == 11997 ~ 1011997,
+        dtobito == 11998 ~ 1011998,dtobito == 11999 ~ 1011999,dtobito == 21996 ~ 1021996,dtobito == 21997 ~ 1021997,
+        dtobito == 21998 ~ 1021998,dtobito == 31996 ~ 1031996,dtobito == 31997 ~ 1031997,dtobito == 31998 ~ 1031998,
+        dtobito == 31999 ~ 1031999,dtobito == 41996 ~ 1041996,dtobito == 41997 ~ 1041997,dtobito == 41998 ~ 1041998,
+        dtobito == 41999 ~ 1041999,dtobito == 51996 ~ 1051996,dtobito == 51997 ~ 1051997,dtobito == 51998 ~ 1051998,
+        dtobito == 51999 ~ 1061999,dtobito == 61996 ~ 1061996,dtobito == 61997 ~ 1061997,dtobito == 61998 ~ 1061998,
+        dtobito == 61999 ~ 1061999,dtobito == 71996 ~ 1071996,dtobito == 71997 ~ 1071997,dtobito == 71998 ~ 1071998,
+        dtobito == 71999 ~ 1071999,dtobito == 81996 ~ 1081996,dtobito == 81997 ~ 1081997,dtobito == 81998 ~ 1081998,
+        dtobito == 81999 ~ 1081999,dtobito == 91996 ~ 1091996,dtobito == 91997 ~ 1091997,dtobito == 91998 ~ 1091998,
+        dtobito == 91999 ~ 1091999,dtobito == 101996 ~ 1101996,dtobito == 101997 ~ 1101997,dtobito == 101998 ~ 1101998,
+        dtobito == 101999 ~ 1101999,dtobito == 111996 ~ 1111996,dtobito == 111997 ~ 1111997,dtobito == 111998 ~ 1111998,
+        dtobito == 111999 ~ 1111999,dtobito == 121996 ~ 1121996,dtobito == 121997 ~ 1121997,dtobito == 121998 ~ 1121998,
+        dtobito == 121999 ~ 1121999,dtobito == 21999 ~ 1021999,dtobito == 22000 ~ 1022000, TRUE ~ dtobito),
+
+     #Transformando data de factor para date  
+      across(.cols = starts_with("dt"), .fns = ~ lubridate::dmy(.) ),
+      ano = as.factor(lubridate::year(dtobito)),
+      mes = as.factor( lubridate::month(dtobito,label = TRUE) ),
+      dia = as.factor(lubridate::wday(dtobito,label = TRUE) ), 
+
+      #Código dos municípios de ocorrência e residência com seis dígitos
+      #No microdado do SIM. A partir de 2006 o código do município aparece com 6 dígitos. 
+      #Vou deixar todos os municípios em todos os anos com 6 dígitos.
+      across(.cols =  c(codmunocor, codmunresd), .fns = ~ substr(., start = 1, stop = 6) ), 
+      
+      #Pegar o código da uf de ocorrência e uf de residência
+      across(.cols = c(codmunocor, codmunresd), .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
+             .names = "cod_uf_{str_sub(.col, start = 7, end = 10)}"),
+      
+      #Nome da UF de ocorrência e UF de residência. Utilizar o geobr é melhor?
+      across(.cols = c(cod_uf_ocor, cod_uf_resd),
+             .fns = ~ as.factor(recode(.,
+                                       '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins", 
+                                       '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte", '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas", 
+                                       '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais", '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo", 
+                                       '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul", '50'= "Mato Grosso do Sul",'51'= "Mato Grosso", 
+                                       '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC") ), .names = "uf_{str_sub(.col, start = 8, end = 11)}"),  
+      
+      #Nome da região de ocorrência e região de residência
+      across(.cols = c(uf_ocor, uf_resd),
+             .fns = ~ as.factor(case_when( 
+               #Região Norte
+               . %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima", "Tocantins") ~ "Norte",
+               #Região Nordeste
+               . %in% c("Alagoas","Bahia","Ceará","Maranhão","Paraíba","Pernambuco","Piauí","Rio Grande do Norte","Sergipe") ~ "Nordeste",
+               #Região Centro-Oeste
+               . %in% c("Goiás","Mato Grosso", "Mato Grosso do Sul","Distrito Federal") ~ "Centro Oeste",
+               #Região Sudeste
+               . %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste", TRUE ~ "Sul") ), .names = "reg_{str_sub(.col, start = 4, end = 7)}"), 
+      
+      ###Características do morto
+      ##Escolaridade
+      esc = case_match(.x = esc, "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
+                       "5" ~  "12 anos e mais", NA ~ "Ignorado", .default = "Ignorado") |> as_factor() |>  
+        #Ordem dos Levels de escolaridade
+        fct_relevel("Nenhuma", 
+                    "1 a 3 anos",
+                    "4 a 7 anos",
+                    "8 a 11 anos",
+                    "12 anos e mais",
+                    "Ignorado"),
+      #Sexo
+      sexo = case_match(.x = sexo,"9" ~ "Ignorado", "0" ~ "Ignorado", "1" ~ "Homem", "2" ~ "Mulher",
+                        .default = "Ignorado") |> as_factor(),
+      
+      #Raça\cor
+      racacor = case_match(.x = racacor, "1" ~ "Branca", "2" ~ "Preta", "3" ~ "Amarela", "4" ~ "Parda", "5" ~ "Indigena",
+                           "9" ~ "Ignorado", .default = "Ignorado" ) |> as_factor(),
+      #Estado Civil
+      estciv = case_match(.x = estciv, "1" ~"Solteiro", 
+                          "2" ~ "Casado", "3" ~ "Viúvo", "4" ~ "Divorciado", "5" ~ "União Estável", "9" ~ "Ignorado",
+                          "0" ~ "Ignorado", .default = "Ignorado" ) |> as_factor(),
+      
+      #Local do incidente - Variável criada
+      local_incd = recode(local_incd,"0" = "Residencial", "1"= "Hab. Coletiva", "2"="Área de administração pública*", 
+                           "3"="Esportiva", "4"="Rua/Estrada", "5"="Comercial", "6"="Industrial",  
+                           "7"= "Fazenda", "8"="Outros", "9"= "Ignorado" ),
+      
+      #Preenchimento dos NAs.
+      local_incd = replace_na(local_incd,"Ignorado"), #NA deveria ser missing.
+      
+      #Local de óbito de intervenção legal é rua/estrada
+      
+      local_incd = as.factor(case_when(
+        #Em intervenção legal o terceiro dígito não é o local. Vou assumir rua\estrada.
+        intencao == "h_legal" ~ "Rua/Estrada",
+        #Local de óbito de acidente de transporte V01-V99. O terceiro dígito não é local do incidente.
+        intencao == "Acidente" & instrumento == "Veículo" ~ "Rua/Estrada", 
+        #Y06.- Negligência e abandono ou Y07.- Outras síndromes de maus tratos. Residência?
+        TRUE ~ local_incd) ) ) |>
+  #Local de óbito de Y06 e Y07 Negligência, Abandono e maus tratos. Olhei as idades e não parece ser abandono de criança.
+  #Olhar o keep. Autoria conhecida pode ser residência. desconhecida rua\estrada
+  #Instrumento missing. Ao excluir intencao outros não deve existir instrumento NA.
+  #instrumento = replace_na(instrumento,"Desconhecido").
+  #Exclusão de variáveis não utilizadas ------------------------------------
+  select(!c(causa_letra,causa_num) )
+    
   
   
   ######################################################################################################################
