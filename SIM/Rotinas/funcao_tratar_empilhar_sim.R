@@ -60,7 +60,7 @@ tratar_sim <- function(data) {
 
 # Intenção da causa externa -----------------------------------------------
     #Intenção
-    intencao = as.factor(case_when(
+    intencao = case_when(
       ###acidente(==1)
       #acidente-envenenamento
       (causa_letra  == "X" & causa_num > 39 & causa_num < 50)  |
@@ -171,11 +171,11 @@ tratar_sim <- function(data) {
         #/*Excesso de esfor?os, viagens e priva??es*/
         causa_letra  == "X" & causa_num > 49 & causa_num < 58 | 
         #/*Complica??es de assist?ncia m?dica e cir?rgica + ... + Seq?elas de causas externas de morbidade e de mortalidade*/
-        causa_letra  == "Y" & causa_num > 39 & causa_num < 90 ~ "Outros")), 
+        causa_letra  == "Y" & causa_num > 39 & causa_num < 90 ~ "Outros") |> as_factor(), 
     
 
 # Instrumento causa externa -----------------------------------------------
-    instrumento = as.factor(case_when(
+    instrumento =  case_when(
       #Envenenamento (==1) 
       causa_letra  == "X" & causa_num > 39  & causa_num < 50 | # /*Acidente envenenamento*/
         causa_letra  == "X" & causa_num > 59 & causa_num < 70 |  #/*Self harm envenenamento*/
@@ -252,11 +252,11 @@ tratar_sim <- function(data) {
       
       #veículo 1.Acidente 2.Homicídio (y03, impacto) , 3.Indeterminado (y32,impacto) 4.Suicídio(x82,impacto)
       causa_letra  == "V" & causa_num > 0 | causa_letra  == "Y" & causa_num == 03 | 
-      causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo") ), 
+      causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo") |> as_factor(), 
 
       #Variável de intencionalidades para facilitar contagens.
       intencao_homic = case_when(intencao %in% c("Homicídio","h_legal") ~ "Homicídio",
-                                 .default = intencao),  
+                                 .default = intencao) |> as_factor(),  
       #Consertando dtobito
       dtobito = as.numeric(as.character(dtobito)),
       dtobito = case_when(
