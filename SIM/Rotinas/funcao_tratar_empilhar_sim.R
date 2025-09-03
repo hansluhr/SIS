@@ -18,36 +18,238 @@ tratar_sim <- function(data) {
     data[, (cols_existentes) := lapply(.SD, as.character), .SDcols = cols_existentes]
   }
   
-  #Transformação de idade e datas.
-  data[
-    #Transforma idade de factor para  integer
-    , IDADE := as.double(as.character(IDADE))
-  ][
-    #Substitui código de idade pela real idade.
-    , IDADE := fcase(
-    IDADE %in% c(0, 999), NA_real_,       # Idade desconhecida
-    IDADE > 0 & IDADE <= 400, 0,          # Menor de 1 ano
-    IDADE > 400 & IDADE < 999, IDADE - 400, # Idade em anos
-    default = IDADE  )                       # Caso contrário mantém
-   ][
-     , (grep("^DT", names(dt), value = TRUE)) := lapply(.SD, ymd),
-     .SDcols = patterns("^DT")
-   ]
-   
+  # #Transformação de idade e datas.
+  # data[
+  #   #Transforma idade de factor para  integer
+  #   , IDADE := as.double(as.character(IDADE))
+  # ][
+  #   #Substitui código de idade pela real idade.
+  #   , IDADE := fcase(
+  #   IDADE %in% c(0, 999), NA_real_,       # Idade desconhecida
+  #   IDADE > 0 & IDADE <= 400, 0,          # Menor de 1 ano
+  #   IDADE > 400 & IDADE < 999, IDADE - 400, # Idade em anos
+  #   default = IDADE  )                       # Caso contrário mantém
+  #  ][
+  #    , (grep("^DT", names(dt), value = TRUE)) := lapply(.SD, ymd),
+  #    .SDcols = patterns("^DT")
+  #  ]
+  #  
+  data |> 
+  mutate(
+    #Causa e loca do óbito.
+    causa_letra = substr(causabas,1,1),
+    causa_num = as.numeric(substr(causabas,2,3)),
+    local_obito = as.numeric(substr(causabas,4,4)),
+    #Idades                          
+    idade = as.double(as.character(idade)),
+    #Idade desconhecida
+    idade = case_when(idade == 999 | idade == 0  ~ as.double(NA), TRUE ~ idade),
+    #Menor de 1 ano
+    idade = case_when(idade > 0 & idade <= 400  ~ 0, TRUE ~ idade),
+    #Idade em anos
+    idade = case_when(idade>400 & idade <999 ~ idade -400, TRUE ~ idade),
+    #Intenção
+    intencao = as.factor(case_when(
+      ###acidente(==1)
+      #acidente-envenenamento
+      (causa_letra  == "X" & causa_num > 39 & causa_num < 50)  |
+        #acidente-enforcamento
+        (causa_letra  == "W" & causa_num > 74 & causa_num < 77) | #/*Certo*/
+        #acidente-afogamento
+        (causa_letra  == "W" & causa_num > 64 & causa_num < 75) | #/*Certo*/
+        #acidente-impacto /*Queda*/
+        (causa_letra  == "W" & causa_num < 25 | 
+           causa_letra  == "W" & causa_num >26 & causa_num < 32 | 
+           causa_letra  == "W" & causa_num >34 & causa_num < 44 | 
+           causa_letra  == "W" & causa_num == 49) |
+        #acidente-fogo
+        (causa_letra  == "X" & causa_num < 10) | 
+        #acidente-contundente
+        (causa_letra  == "W" & causa_num == 51 | causa_letra  == "W" & causa_num == 50) |
+        #acidente-veiculo
+        (causa_letra  == "V" &  causa_num > 0) | # /*Certo*/
+        #acidente-PAF
+        (causa_letra  == "W" & causa_num > 31 & causa_num < 35)  | #/*Estava em Indeterminado*/
+        #Acidente - Perfurante   
+        (causa_letra  == "W" & causa_num > 24 & causa_num < 27)  | #/*Estava em Indeterminado*/
+        #Acidente - Desconhecido /*X:59 é acidentes não especificados e pode contem homicídio mal registrado, visto no artigo sobre qualidade da declarações de óbito em SP.*/
+        (causa_letra  == "X" & causa_num > 57 & causa_num < 60) ~ "Acidente", #/*Categoria inseriada, x58-x59 estavam em intencao outros.*/
+      
+      
+      ##Sucidídio
+      #suicidio-envenenamento
+      (causa_letra  == "X" & causa_num > 59 & causa_num < 70) | # /*Certo*/
+        #suicidio-enforcamento
+        (causa_letra  == "X" & causa_num == 70) | # /*Certo*/
+        #suicidio-afogamento
+        (causa_letra  == "X" & causa_num == 71) | #/*Certo*/
+        #suicidio-PAF
+        (causa_letra  == "X" & causa_num > 71 & causa_num < 75) | # /*Certo*/
+        #suicidio-impacto/ve?culo
+        (causa_letra  == "X" & causa_num == 75 | causa_letra  == "X" & causa_num > 79 & causa_num < 83) | #/*Certo*/
+        #suicidio-fogo
+        (causa_letra  == "X" & causa_num > 75 & causa_num < 78) | # /*Certo*/
+        #suicidio-perfurante
+        (causa_letra  == "X" & causa_num ==78)  | #/*Certo*/
+        #suicidio-contundente
+        (causa_letra  == "X" & causa_num ==79) | #/*Certo*/
+        #suicidio-desconhecido
+        (causa_letra  == "X" & causa_num > 82 & causa_num < 85) ~ "Suicídio",
+      
+      
+      ##homicidio (==3)
+      #homicidio-envenenamento
+      (causa_letra  == "X" & causa_num > 84 & causa_num < 91) | # /*Certo*/
+        #homicidio-enforcamento
+        (causa_letra  == "X" & causa_num == 91) | #/*Certo*/
+        #homicidio-afogamento
+        (causa_letra  == "X" & causa_num == 92) | #/*Certo*/
+        #homicidio-PAF
+        (causa_letra  == "X" & causa_num > 92 & causa_num < 96) | #/*Certo*/
+        #homicidio-impacto/Ve?culo
+        (causa_letra  == "X" & causa_num == 96 | 
+           causa_letra  == "Y" & causa_num > 0 & causa_num < 04) | #/*Ve?culo aqui*/
+        #homicidio-fogo
+        (causa_letra  == "X" & causa_num > 96 & causa_num < 99) | # /*Certo*/
+        #homicidio-perfurante
+        (causa_letra  == "X" & causa_num == 99) | #/*Certo*/
+        #homicidio-contundente
+        (causa_letra  == "Y" & causa_num == 0 | 
+           causa_letra  == "Y" & causa_num > 03 & causa_num < 06) | # /*Certo*/
+        #homicidio-desconhecido
+        (causa_letra  == "Y" & causa_num > 05 & causa_num < 10) ~ "Homicídio",
+      
+      
+      #indeterminado (==4)
+      #indeterminado-envenenamento
+      (causa_letra  == "Y" & causa_num > 09 & causa_num < 20) | #/*Certo*/
+        #indeterminado-enforcamento
+        (causa_letra  == "Y" & causa_num == 20) | #/*Certo*/
+        #indeterminado-afogamento
+        (causa_letra  == "Y" & causa_num == 21) | #/*Certo*/
+        #indeterminado-PAF
+        (causa_letra  == "Y" & causa_num > 21 & causa_num < 25) | 
+        #indeterminado-impacto/Ve?culo
+        (causa_letra  == "Y" & causa_num == 25 | causa_letra  == "Y" & causa_num == 30 | 
+           causa_letra  == "Y" & causa_num == 31 | causa_letra  == "Y" & causa_num == 32) | #/*Ve?culo aqui*/
+        #indeterminado-fogo
+        (causa_letra  == "Y" & causa_num > 25 & causa_num < 28) | #/*Certo*/
+        #indeterminado-perfurante
+        (causa_letra  == "Y" & causa_num == 28) | #/*| causa_letra  == "W" & causa_num > 24 & causa_num < 27 Foi para Acidente perfurante*/
+        #indeterminado-contundente
+        (causa_letra  == "Y" & causa_num == 29) | #/*Certo*/
+        #indeterminado-desconhecido
+        causa_letra  == "Y" & causa_num > 32 & causa_num < 35 ~ "Indeterminado", 
+      
+      #h_legal (==6) interven??es legais e execuexecu??eses legais. Essa categoria n?o entrar? no Mlogit, ? apenas para validar o total de ?bitos
+      causa_letra  == "Y" & causa_num == 35 | causa_letra  == "Y" & causa_num == 36 ~ "h_legal",
+      
+      #outros (==7) Essa categoria nao entrara no Mlogit, ? apenas para validar o total de ?bitos
+      #/*Penetra??o de corpo estranho no ou atrav?s de olho ou orif?cio natural + Penetra??o de corpo ou objeto estranho atrav?s da pele + Contato com agulha hipod?rmica*/
+      causa_letra  == "W" & causa_num > 43 & causa_num < 47  | 
+        #/* Esmagado, empurrado ou pisoteado por multid?o ou debandada em massa de pessoas + ... + Afogamento e submers?o durante banho em banheira*/
+        causa_letra  == "W" & causa_num > 51 & causa_num < 66  |
+        #/* Risco a respira??o devido a desmoronamento, queda de terra e de outras subst?ncias + ... + Exposi??o ? corrente el?trica, ? radia??o e ?s temperaturas e press?es extremas do ambiente*/ 
+        causa_letra  == "W" & causa_num > 76  | 
+        #/*Contato com uma fonte de calor ou com subst?ncias quentes + Contato com animais e plantas venenosos + Exposi??o ?s for?as da natureza*/
+        causa_letra  == "X" & causa_num > 09 & causa_num < 40 | 
+        #/*X:59 ? acidentes n?o especificados e pode contem homic?dio mal registrado, visto no artigo sobre qualidade da declara??o de ?bito em SP.*/
+        #/*x58-x59 foi para acidente de instrumento desconhecido*/
+        #/*Excesso de esfor?os, viagens e priva??es + Exposi??o acidental a outros fatores e aos n?o especificados - */
+        causa_letra  == "X" & causa_num > 49 & causa_num < 60 | 
+        #/*Excesso de esfor?os, viagens e priva??es*/
+        causa_letra  == "X" & causa_num > 49 & causa_num < 58 | 
+        #/*Complica??es de assist?ncia m?dica e cir?rgica + ... + Seq?elas de causas externas de morbidade e de mortalidade*/
+        causa_letra  == "Y" & causa_num > 39 & causa_num < 90 ~ "Outros")), 
+    
+    
+    ###Instrumento (Dicion?rio: 1=Envenenamento; 2=Enforcamento; 3=Afogamento; 4=PAF; 5=Impacto; 6=Fogo; 7=Perfurante; 8=Contundente; 9=Desconhecido; 10=veiculo)
+    instrumento = as.factor(case_when(
+      #Envenenamento (==1) 
+      causa_letra  == "X" & causa_num > 39  & causa_num < 50 | # /*Acidente envenenamento*/
+        causa_letra  == "X" & causa_num > 59 & causa_num < 70 |  #/*Self harm envenenamento*/
+        causa_letra  == "X" & causa_num > 84 & causa_num < 91 |  #/*Ag. envenenamento*/
+        causa_letra  == "Y" & causa_num > 09 & causa_num < 20 ~ "Envenenamento",       #/*Ind. envenenamento*/
+      
+      #Enforcamento (==2) Tudo Certo
+      causa_letra  == "W" & causa_num > 74 & causa_num < 77 |  #/*Acidente enforcamento*/
+        causa_letra  == "X" & causa_num == 70 |  #/*Self harm enforcamento*/
+        causa_letra  == "X" & causa_num == 91 |  #/*Ag. enforcamento*/
+        causa_letra  == "Y" & causa_num == 20 ~ "Enforcamento", #/*Ind. Enforcamento*/ 
+      
+      
+      #Afogamento (==3) Por que afogamento de intencao outros? (Categoria Sequelas?)
+      causa_letra  == "W" & causa_num > 64 & causa_num < 75 | # /*Acidente afogamento*/
+        causa_letra  == "X" & causa_num == 71 |  # /*Self harm afogamento*/
+        causa_letra  == "X" & causa_num == 92 |  # /Ag. afogamento*/
+        causa_letra  == "Y" & causa_num == 21 ~ "Afogamento", # /*Ind. afogamento*/
+      
+      #PAF (==4) - N?o tem acidente por arma de fogo
+      causa_letra  == "W" & causa_num > 31 & causa_num < 35 | #Acidente - PAF*/
+        causa_letra  == "X" & causa_num > 71 & causa_num < 75 |  #/*Self harm - PAF*/
+        causa_letra  == "X" & causa_num > 92 & causa_num < 96 |  #/*ag. - PAF*/
+        causa_letra  == "Y" & causa_num > 21 & causa_num < 25 |  #/*Ind. - PAF*/
+        causa_letra  == "Y" & causa_num ==35 &  local_obito == 0 ~ "PAF",  #/*h_legal - PAF*/
+      #causa_letra  == "Y" & causa_num ==35 &  local_obito == 1 - Foi para instrumento fogo
+      
+      #Impacto (==5) - Olhar acidente impacto
+      causa_letra  == "W" & causa_num < 25 | # /Acidente: Queda de altura + atingido por objeto + esmagado por objeto*/ 
+        causa_letra  == "W" & causa_num >26 & causa_num < 32 |  #/*2Acidente: Contato com objetos*/ 
+        causa_letra  == "W" & causa_num >34 & causa_num < 44 |  #/*3Acidente: Explos?o + fogos + Exposi??o a jato press?o, barulho e vibra??o*/ 
+        causa_letra  == "W" & causa_num ==49 |  #/*Acidente: Exposi??o for?a mec indeterminada.*/ 
+        causa_letra  == "X" & causa_num == 75 |  #/*Self harm: Explos?o*/ 
+        causa_letra  == "X" & causa_num > 79 & causa_num < 82 |  #/*Self harm: Queda + deitar na frente de objeto movendo.*/ 
+        causa_letra  == "X" & causa_num ==96 |  #/*Agress?o mat explossivo*/ 
+        causa_letra  == "Y" & causa_num > 0 & causa_num < 03 |  #/*Ag. empurado de altura + colocado na frente de objeto movendo.*/ 
+        causa_letra  == "Y" & causa_num == 25 |  #/*Ind. Explos?o*/ 
+        causa_letra  == "Y" & causa_num == 30 |  #/*Ind. Queda altura indet*/ 
+        causa_letra  == "Y" & causa_num == 31 ~ "Impacto",  #/*Ind. Queda + deitar na frente de objeto movendo indet.*/
+      
+      #Fogo (==6) 
+      causa_letra  == "X" & causa_num < 10 |  #/*Acidente Exposi??o a fuma?a, fogo e chamas*/  
+        causa_letra  == "X" & causa_num > 75 & causa_num < 78 |  #/*Self harm de fuma?a, fogo, chamas, vapor*/ 
+        causa_letra  == "X" & causa_num > 96 & causa_num < 99 |  #/*Ag. de fuma?a, fogo, chamas, vapor */ 
+        causa_letra  == "Y" & causa_num > 25 & causa_num < 28 |  #/*Ind. de fuma?a, fogo, chamas, vapor */ 
+        causa_letra  == "Y" & causa_num == 35 & local_obito ==2 |  #/*h_legal involvendo fuma?a*/
+        causa_letra  == "Y" & causa_num ==35 &  local_obito == 1 ~ "Fogo", # /*h_legal involvendo explos?o*/
+      
+      #Perfurante (==7) 
+      causa_letra  == "X" & causa_num ==78 |  #/*self objeto afiado*/ 
+        causa_letra  == "X" & causa_num ==99 |  #/*ag. objeto afiado*/ 
+        causa_letra  == "Y" & causa_num ==28 |  #/*Ind. objeto afiado*/ 
+        causa_letra  == "W" & causa_num > 24 & causa_num < 27 |  #/*Acidente objeto afiado. Estava indo para indeterminado*/ 
+        causa_letra  == "Y" & causa_num == 35 & local_obito ==4 ~ "Perfurante", #/*h_legal objeto afiado*/
+      
+      #Contundente (==8) 
+      causa_letra  == "W" & causa_num ==51 |  #/*Acidente - Colis?o entre duas pessoas*/ 
+        causa_letra  == "X" & causa_num ==79 |  #/*self por objeto contundente*/ 
+        causa_letra  == "Y" & causa_num ==0 |  #/*ag. por objeto contundente*/ 
+        causa_letra  == "Y" & causa_num > 03 & causa_num < 06 |  #/*Ag. por meio de for?a corporal + Ag. sexual por meio de for?a f?sica*/ 
+        causa_letra  == "W" & causa_num == 50 |  #/*Acidente - Golpe, pancada, ponta p?*/
+        causa_letra  == "Y" & causa_num == 29 |  #/*Ind. Objento contundente*/ 
+        causa_letra  == "Y" & causa_num == 35 & local_obito ==3 ~ "Contundente", #/*h_legal objeto contundente*/ 
+      
+      #Desconhecido (==9) A segunga categoria cont?m neglig?ncia que n?o ? desconhecida. Cad? acidente
+      causa_letra  == "X" & causa_num > 82 & causa_num < 85 |  #/*self. Outros meios especificados + self outros meios n?o especificados*/
+        causa_letra  == "Y" & causa_num > 05 & causa_num < 10 |  #/*Ag. Neglig?ncia + Ag. Outros maus tratos + Ag. Outros meios especificados + Ag. outros meios n?o especificados*/
+        causa_letra  == "Y" & causa_num > 32 & causa_num < 35 |  #/*Ind. Outros fatos ou eventos espcificados + fatos ou eventos n?o espcificados*/
+        causa_letra  == "Y" & causa_num == 35 & local_obito ==5 |  #/*h_legal Execu??o legal - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
+        causa_letra  == "Y" & causa_num == 35 & local_obito == 6 |  #/*h_legal Execu??o legal por outros meios especificados - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
+        causa_letra  == "Y" & causa_num == 35 & local_obito ==7 |  #/*h_legal Execu??o legal por meios n?o especificados - N?o ? desconhecido, mas deve ser zero. Pena de morte*/
+        causa_letra  == "Y" & causa_num == 36 | # /*Opera??es de guerra*/
+        causa_letra  == "X" & causa_num > 57 & causa_num < 60 ~ "Desconhecido", #/*Acidente instrumento desconhecido. Categoria inseriada, n?o estava na rotina.*/
+      
+      #veículo (==10) 1.Acidente 2.Homicídio (y03, impacto) , 3.Indeterminado (y32,impacto) 4.Suicídio(x82,impacto)
+      causa_letra  == "V" & causa_num > 0 | causa_letra  == "Y" & causa_num == 03 | 
+      causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo") ) )
+  
+  
   ######################################################################################################################
 
     # #Correções nos códigos do DF. Existem códigos das regiões administrativas. Conserta para código do DF.
     # MUNIC_MOV = fifelse(startsWith(as.character(MUNIC_MOV), "53"), "530010", as.character(MUNIC_MOV)),
     # MUNIC_RES = fifelse(startsWith(as.character(MUNIC_RES), "53"), "530010", as.character(MUNIC_RES)),
-    
-  # #Sexo
-  # if ("SEXO" %in% names(data)) {
-  #   data[,  def_SEXO := as_factor( fcase(
-  #     SEXO == "1", "Homem",
-  #     SEXO %in% c("2", "3"), "Mulher",
-  #     SEXO %in% c("0","9"), "Label não definido", default = as.character(SEXO) ) ) ]
-  # }
-  # 
+
   
   # #ICSAP: Identificação por CID
   # if("DIAG_PRINC" %in% names(data) ) {
@@ -336,7 +538,7 @@ empilhar_sim <- function(arquivo,
                          variaveis = NULL, #Variáveis que desejo manter. NULL seleciona todas as variáveis não excluidas.
                          excluir = vars_excluir) {
   message("Importando: ", arquivo)
-  dados <- read.dbc::read.dbc(arquivo) |> setDT()
+  dados <- read.dbc::read.dbc(arquivo) |> janitor::clean_names()
   
   #Excluir variáveis sem preenchimento\Zeradas
   vars_excluir <- intersect(toupper(vars_excluir), names(dados))
