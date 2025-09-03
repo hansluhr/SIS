@@ -1,0 +1,354 @@
+
+# Função de tratamento do SIH ---------------------------------------------
+tratar_sim <- function(data) {
+  
+  #Transformando variáveis categóricas em character.
+  #Vou padronizar a classe da variável, permitindo empilhar.
+  #Algumas variáveis trocam de classe, transformar todas em character permite
+  #empilhar. Estou transformando em character todas as variáveis, exceto variáveis 
+  #iniciando em DT e idades. 
+  # vars_char <- names(data)[!stringr::str_starts(names(data), "DT")]
+  
+  vars_char <- names(data)[
+    !stringr::str_starts(names(data), "DT") & names(data) != "IDADE" & names(data) != "IDADEMAE"]
+  
+  #Transformando variáveis de interesse para character.
+  cols_existentes <- intersect(vars_char, names(data))
+  if (length(cols_existentes) > 0) {
+    data[, (cols_existentes) := lapply(.SD, as.character), .SDcols = cols_existentes]
+  }
+  
+  #Transformação de idade e datas.
+  data[
+    #Transforma idade de factor para  integer
+    , IDADE := as.double(as.character(IDADE))
+  ][
+    #Substitui código de idade pela real idade.
+    , IDADE := fcase(
+    IDADE %in% c(0, 999), NA_real_,       # Idade desconhecida
+    IDADE > 0 & IDADE <= 400, 0,          # Menor de 1 ano
+    IDADE > 400 & IDADE < 999, IDADE - 400, # Idade em anos
+    default = IDADE  )                       # Caso contrário mantém
+   ][
+     , (grep("^DT", names(dt), value = TRUE)) := lapply(.SD, ymd),
+     .SDcols = patterns("^DT")
+   ]
+   
+  ######################################################################################################################
+
+    # #Correções nos códigos do DF. Existem códigos das regiões administrativas. Conserta para código do DF.
+    # MUNIC_MOV = fifelse(startsWith(as.character(MUNIC_MOV), "53"), "530010", as.character(MUNIC_MOV)),
+    # MUNIC_RES = fifelse(startsWith(as.character(MUNIC_RES), "53"), "530010", as.character(MUNIC_RES)),
+    
+  # #Sexo
+  # if ("SEXO" %in% names(data)) {
+  #   data[,  def_SEXO := as_factor( fcase(
+  #     SEXO == "1", "Homem",
+  #     SEXO %in% c("2", "3"), "Mulher",
+  #     SEXO %in% c("0","9"), "Label não definido", default = as.character(SEXO) ) ) ]
+  # }
+  # 
+  
+  # #ICSAP: Identificação por CID
+  # if("DIAG_PRINC" %in% names(data) ) {
+  #   data[,
+  #        ICSAP := as_factor( fcase(
+  #          DIAG_PRINC %in% c("A370", "A378", "A379", "A360", "A361", "A363", "A369", "A33", "A34", "A35", "B06", "B052", "A950", "A959", "B161", "B162", "B169", "G000",
+  #                            "A170", "A171", "A172", "A173", "A174", "A175", "A176", "A177", "A178", "A179", "A190", "A191", "A192", "A198", "A199",
+  #                            "A150", "A151", "A152", "A153", "A160", "A161", "A162", "A154", "A155", "A156", "A157", "A158", "A159", "A163", "A164", "A165",
+  #                            "A166", "A167", "A168", "A169", "A180", "A181", "A182", "A183", "A184", "A185", "A186", "A187", "A188", "I00", "I010", "I011",
+  #                            "I012", "I018", "I019", "I020", "I029", "A511", "A512", "A513", "A514", "A515", "A519", "A520", "A521", "A522", "A523",
+  #                            "A527", "A528", "A529", "A530", "A539", "B500", "B509", "B518", "B519", "B520", "B528", "B53", "B54", "B260", "B268", "B269",
+  #                            "B770", "B778", "B779"), "cidgrupo1",
+  #          
+  #          DIAG_PRINC %in% c("E86", "A00", "A010", "A020", "A021", "A029", "A039", "A040",
+  #                            "A041", "A042", "A044", "A046", "A047", "A048", "A049",
+  #                            "A050", "A054", "A058", "A059", "A060", "A064", "A068", "A069",
+  #                            "A071", "A073", "A078", "A079", "A080", "A083", "A084", "A085", "A09"), "cidgrupo2",
+  #          
+  #          DIAG_PRINC %in% c("D500", "D501", "D508", "D509"), "cidgrupo3",
+  #          
+  #          DIAG_PRINC %in% c("E40", "E41", "E42", "E43", "E440", "E441", "E45", "E46", "E500", "E508", "E51", "E52",
+  #                            "E539", "E54", "E55", "E56", "E57", "E58", "E59", "E60", "E61", "E62", "E638", "E64"), "cidgrupo4",
+  #          
+  #          DIAG_PRINC %in% c("H660", "H661", "H662", "H663", "H664", "H669", "J00",
+  #                            "J010", "J018", "J019", "J029", "J030", "J038", "J039", "J060", "J068", "J069", "J31"), "cidgrupo5",
+  #          
+  #          DIAG_PRINC %in% c("J13", "J14", "J153", "J154", "J158", "J159", "J181"), "cidgrupo6",
+  #          
+  #          DIAG_PRINC %in% c("J45", "J46"), "cidgrupo7",
+  #          
+  #          DIAG_PRINC %in% c("J200", "J201", "J203", "J205", "J209", "J210", "J218", "J219", "J40", "J410", "J411",
+  #                            "J418", "J42", "J43", "J47", "J44", "J450", "J451", "J458", "J459"), "cidgrupo8",
+  #          
+  #          DIAG_PRINC %in% c("I10", "I110", "I119"), "cidgrupo9",
+  #          
+  #          DIAG_PRINC %in% c("I200", "I201", "I208", "I209"), "cidgrupo10",
+  #          
+  #          DIAG_PRINC %in% c("I500", "I501", "I509", "J81"), "cidgrupo11",
+  #          
+  #          DIAG_PRINC %in% c("I63", "I64", "I65", "I66", "I67", "I69"), "cidgrupo12",
+  #          
+  #          DIAG_PRINC %in% c("E100", "E101", "E110", "E111", "E140", "E141", "E102", "E103", "E104", "E105", "E106", "E107", "E108", "E109",
+  #                            "E112", "E113", "E114", "E115", "E116", "E117", "E118", "E119", "E121", "E125", "E126", "E127", "E128", "E129", "E130", "E131",
+  #                            "E132", "E133", "E135", "E136", "E137", "E138", "E139", "E142", "E143", "E144", "E145", "E146", "E147", "E148", "E149"), "cidgrupo13",
+  #          
+  #          DIAG_PRINC %in% c("G400", "G401", "G402", "G403", "G404", "G405", "G406", "G407", "G408", "G409", "G41"), "cidgrupo14",
+  #          
+  #          DIAG_PRINC %in% c("N10", "N11", "N12", "N300", "N301", "N302", "N303", "N304", "N308", "N309", "N340", "N341", "N342", "N343", "N390"), "cidgrupo15",
+  #          
+  #          DIAG_PRINC %in% c("A446", "L01", "L020", "L021", "L022", "L023", "L024", "L028", "L029", "L030", "L031",
+  #                            "L032", "L033", "L038", "L039", "L040", "L041", "L042", "L043", "L048", "L049", "L080", "L088", "L089"), "cidgrupo16",
+  #          
+  #          DIAG_PRINC %in% c("N700", "N701", "N709", "N710", "N719", "N72", "N730", "N732", "N733", "N734", "N735",
+  #                            "N736", "N738", "N739", "N750", "N751", "N758", "N760", "N762", "N764", "N766", "N768"), "cidgrupo17",
+  #          
+  #          DIAG_PRINC %in% c("K25", "K26", "K27", "K28", "K920", "K921", "K922"), "cidgrupo18",
+  #          
+  #          DIAG_PRINC %in% c("O23", "A500", "A501", "A502", "A503", "A504", "A505", "A506", "A507", "A509", "P35"), "cidgrupo19", default = "Outros") ) ]
+  # }
+  # 
+  # #Nacionalidade
+  # if("NACIONAL" %in% names(data) ) {
+  #   data[,
+  #        def_NACIONAL := as_factor(fcase(
+  #          NACIONAL == "170" , "Abissinia",NACIONAL == "171" , "Acores",
+  #          NACIONAL == "172" , "Afar frances", NACIONAL == "241" , "Afeganistao",
+  #          NACIONAL == "093" ,  "Albania",  NACIONAL == "030" , "Alemanha",
+  #          NACIONAL == "174" , "Alto volta", NACIONAL == "094" ,  "Andorra",
+  #          NACIONAL == "175" , "Angola", NACIONAL == "334" , "Antartica francesa",
+  #          NACIONAL == "337" , "Antartico argentino",NACIONAL == "333" , "Antartico britanico, territorio",
+  #          NACIONAL == "336" , "Antartico chileno", NACIONAL == "338" , "Antartico noruegues",
+  #          NACIONAL == "028" ,  "Antigua e. dep. barbuda", NACIONAL == "029" , "Antilhas holandesas",
+  #          NACIONAL == "339" , "Apatrida", NACIONAL == "242" , "Arabia saudita",
+  #          NACIONAL == "176" , "Argelia", NACIONAL == "021" , "Argentina",
+  #          NACIONAL == "347" , "Armenia", NACIONAL == "289" , "Arquipelago de bismark",
+  #          NACIONAL == "175" , "Angola", NACIONAL == "285" , "Arquipelago manahiki",
+  #          NACIONAL == "286" , "Arquipelago midway", NACIONAL == "033" , "Aruba",
+  #          NACIONAL == "175" , "Angola", NACIONAL == "198" , "Ascensao e tristao da cunha,is",
+  #          NACIONAL == "287" , "Ashmore e cartier", NACIONAL == "288" , "Australia",
+  #          NACIONAL == "095" ,  "Austria", NACIONAL == "138" , "Azerbaijao",
+  #          NACIONAL == "243" , "Bahrein", NACIONAL == "342" , "Bangladesh",
+  #          NACIONAL == "044" ,  "Barbados", NACIONAL == "139" , "Bashkista",
+  #          NACIONAL == "177" , "Bechuanalandia", NACIONAL == "031" , "Belgica",
+  #          NACIONAL == "046" ,  "Belize", NACIONAL == "178" , "Benin",
+  #          NACIONAL == "083" ,  "Bermudas", NACIONAL == "246" , "Bhutan",
+  #          NACIONAL == "244" , "Birmania", NACIONAL == "022" ,  "Bolivia", NACIONAL == "134" , "Bosnia herzegovina",
+  #          NACIONAL == "179" , "Botsuana", NACIONAL == "010" , "Brasil",
+  #          NACIONAL == "245" , "Brunei", NACIONAL == "096" , "Bulgaria",
+  #          NACIONAL == "238" , "Burkina fasso", NACIONAL == "180" , "Burundi",
+  #          NACIONAL == "141" , "Buryat", NACIONAL == "343" , "Cabo verde", NACIONAL == "181" , "Camaroes",
+  #          NACIONAL == "034" ,  "Canada", NACIONAL == "142" , "Carelia", NACIONAL ==  "247" , "Catar",
+  #          NACIONAL == "143" , "Cazaquistao", NACIONAL ==  "248" , "Ceilao",
+  #          NACIONAL == "182" , "Ceuta e melilla", NACIONAL == "183" , "Chade",
+  #          NACIONAL == "144" , "Chechen ingusth", NACIONAL == "023" , "Chile",
+  #          NACIONAL == "042" ,  "China", NACIONAL == "249" , "China (taiwan)",
+  #          NACIONAL == "097" ,  "Chipre", NACIONAL == "145" , "Chuvash", NACIONAL == "275" , "Cingapura",
+  #          NACIONAL == "026" ,  "Colombia", NACIONAL == "040" , "Comunidade das bahamas",
+  #          NACIONAL == "054" ,  "Comunidade dominicana", NACIONAL == "185" , "Congo",
+  #          NACIONAL == "043" ,  "Coreia", NACIONAL == "186" , "Costa do marfim",
+  #          NACIONAL == "051" ,  "Costa rica", NACIONAL == "250" , "Coveite",
+  #          NACIONAL == "130" , "Croacia", NACIONAL == "052" , "Cuba", NACIONAL == "053" , "Curacao",
+  #          NACIONAL == "146" , "Dagesta", NACIONAL == "187" , "Daome",
+  #          NACIONAL == "340" , "Dependencia de ross", NACIONAL == "098" , "Dinamarca",
+  #          NACIONAL == "188" , "Djibuti", NACIONAL ==  "099" , "Eire",
+  #          NACIONAL == "251" , "Emirados arabes unidos", NACIONAL == "027" , "Equador",
+  #          NACIONAL == "100" , "Escocia", NACIONAL == "136" , "Eslovaquia",
+  #          NACIONAL == "132" , "Eslovenia", NACIONAL == "035" , "Espanha",
+  #          NACIONAL == "129" , "Estado da cidade do vaticano",
+  #          NACIONAL == "057" ,  "Estados assoc. das antilhas",
+  #          NACIONAL == "036" ,  "Estados unidos da america (eua)",
+  #          NACIONAL == "147" , "Estonia", NACIONAL == "190" , "Etiopia",
+  #          NACIONAL == "252" , "Filipinas", NACIONAL == "102" , "Finlandia", NACIONAL == "037" , "Franca",
+  #          NACIONAL == "192" , "Gambia", NACIONAL == "193" , "Gana", NACIONAL == "194" , "Gaza",
+  #          NACIONAL == "148" , "Georgia", NACIONAL == "103" , "Gibraltar",
+  #          NACIONAL == "149" , "Gorno altai", NACIONAL == "032" , "Gra-bretanha",
+  #          NACIONAL == "059"  , "Granada", NACIONAL == "104" , "Grecia", NACIONAL == "084" , "Groenlandia",
+  #          NACIONAL == "292" , "Guam", NACIONAL == "061" , "Guatemala",
+  #          NACIONAL == "087" , "Guiana francesa", NACIONAL == "195" , "Guine",
+  #          NACIONAL == "344" , "Guine bissau", NACIONAL == "196" , "Guine equatorial",
+  #          NACIONAL == "105" , "Holanda", NACIONAL == "064" , "Honduras",
+  #          NACIONAL == "063" , "Honduras britanicas", NACIONAL == "253" , "Hong-kong",
+  #          NACIONAL == "106" , "Hungria", NACIONAL == "254" , "Iemen",
+  #          NACIONAL == "345" , "Iemen do sul", NACIONAL == "197" , "Ifni",
+  #          NACIONAL == "300" , "Ilha johnston e sand", NACIONAL == "069" , "Ilha milhos",
+  #          NACIONAL == "293" , "Ilhas baker", NACIONAL == "107" , "Ilhas baleares",
+  #          NACIONAL == "199" , "Ilhas canarias", NACIONAL == "294" , "Ilhas cantao e enderburg",
+  #          NACIONAL == "295" , "Ilhas carolinas", NACIONAL == "297" , "Ilhas christmas",
+  #          NACIONAL == "184" , "Ilhas comores", NACIONAL == "290" , "Ilhas cook",
+  #          NACIONAL == "108" , "Ilhas cosmoledo (lomores)",
+  #          NACIONAL == "117" , "Ilhas de man", NACIONAL == "109" , "Ilhas do canal",
+  #          NACIONAL == "296" , "Ilhas do pacifico", NACIONAL == "058" , "Ilhas falklands",
+  #          NACIONAL == "101" , "Ilhas faroes", NACIONAL == "298" , "Ilhas gilbert",
+  #          NACIONAL == "060" , "Ilhas guadalupe", NACIONAL == "299" , "Ilhas howland e jarvis",
+  #          NACIONAL == "301" , "Ilhas kingman reef", NACIONAL == "305" , "Ilhas macdonal e heard",
+  #          NACIONAL == "302" , "Ilhas macquaire", NACIONAL == "067" , "Ilhas malvinas",
+  #          NACIONAL == "303" , "Ilhas marianas", NACIONAL == "304" , "Ilhas marshall",
+  #          NACIONAL == "306" , "Ilhas niue", NACIONAL == "307" , "Ilhas norfolk",
+  #          NACIONAL == "315" , "Ilhas nova caledonia", NACIONAL == "318" , "Ilhas novas hebridas",
+  #          NACIONAL == "308" , "Ilhas palau", NACIONAL == "320" , "Ilhas pascoa",
+  #          NACIONAL == "321" , "Ilhas pitcairin", NACIONAL == "309" , "Ilhas salomao",
+  #          NACIONAL == "326" , "Ilhas santa cruz", NACIONAL == "065" , "Ilhas serranas",
+  #          NACIONAL == "310" , "Ilhas tokelau", NACIONAL == "080" , "Ilhas turca",
+  #          NACIONAL == "047" , "Ilhas turks e caicos", NACIONAL == "082" , "Ilhas virgens americanas",
+  #          NACIONAL == "081" , "Ilhas virgens britanicas",
+  #          NACIONAL == "311" , "Ilhas wake", NACIONAL == "332" , "Ilhas wallis e futuna",
+  #          NACIONAL == "255" , "India", NACIONAL ==  "256" , "Indonesia",
+  #          NACIONAL == "110" , "Inglaterra", NACIONAL == "257" , "Ira",
+  #          NACIONAL == "258" , "Iraque", NACIONAL == "112" , "Irlanda",
+  #          NACIONAL == "111" , "Irlanda do norte",
+  #          NACIONAL == "113" , "Islandia", NACIONAL == "259" , "Israel",
+  #          NACIONAL == "039" , "Italia", NACIONAL == "114" , "Iugoslavia",
+  #          NACIONAL == "066" , "Jamaica", NACIONAL == "041" , "Japao",
+  #          NACIONAL == "260" , "Jordania",
+  #          NACIONAL == "150" , "Kabardino balkar", NACIONAL == "312" , "Kalimatan",
+  #          NACIONAL == "151" , "Kalmir", NACIONAL == "346" , "Kara kalpak",
+  #          NACIONAL == "152" , "Karachaevocherkess", NACIONAL == "153" , "Khakass",
+  #          NACIONAL == "261" , "Kmer/camboja", NACIONAL == "154" , "Komi",
+  #          NACIONAL == "262" , "Kuwait", NACIONAL == "263" , "Laos",
+  #          NACIONAL == "200" , "Lesoto", NACIONAL == "155" , "Letonia",
+  #          NACIONAL == "264" , "Libano",
+  #          NACIONAL == "201" , "Liberia", NACIONAL == "202" , "Libia",
+  #          NACIONAL == "115" , "Liechtenstein",
+  #          NACIONAL == "156" , "Lituania", NACIONAL == "116" , "Luxemburgo",
+  #          NACIONAL == "265" , "Macau", NACIONAL == "205" , "Madagascar",
+  #          NACIONAL == "203" , "Madeira", NACIONAL == "266" , "Malasia",
+  #          NACIONAL == "204" , "Malawi",
+  #          NACIONAL == "267" , "Maldivas", NACIONAL == "206" , "Mali",
+  #          NACIONAL == "157" , "Mari", NACIONAL ==  "207" , "Marrocos",
+  #          NACIONAL == "068" , "Martinica",
+  #          NACIONAL == "268" , "Mascate", NACIONAL == "208" , "Mauricio",
+  #          NACIONAL == "209" , "Mauritania",NACIONAL ==  "085" , "Mexico",
+  #          NACIONAL == "284" , "Mianma", NACIONAL == "210" , "Mocambique",
+  #          NACIONAL == "158" , "Moldavia", NACIONAL == "118" , "Monaco", NACIONAL == "269" , "Mongolia",
+  #          NACIONAL == "070" , "Monte serrat", NACIONAL == "137" , "Montenegro",
+  #          NACIONAL == "240" , "Namibia", NACIONAL == "314" , "Nauru",
+  #          NACIONAL == "270" , "Nepal", NACIONAL == "211" , "Nguane",
+  #          NACIONAL == "071" , "Nicaragua",
+  #          NACIONAL == "213" , "Nigeria", NACIONAL == "119" , "Noruega",
+  #          NACIONAL == "316" , "Nova guine",
+  #          NACIONAL == "317" , "Nova zelandia", NACIONAL == "271" , "Oman",
+  #          NACIONAL == "159" , "Ossetia setentrional", NACIONAL == "121" , "Pais de gales",
+  #          NACIONAL == "122" , "Paises baixos", NACIONAL == "272" , "Palestina",
+  #          NACIONAL == "072" , "Panama", NACIONAL == "073" , "Panama(zona do canal)",
+  #          NACIONAL == "214" , "Papua nova guine", NACIONAL == "273" , "Paquistao",
+  #          NACIONAL == "024" , "Paraguai", NACIONAL == "089" , "Peru",
+  #          NACIONAL == "322" , "Polinesia francesa", NACIONAL ==  "123" , "Polonia",
+  #          NACIONAL == "074" , "Porto rico", NACIONAL == "045" , "Portugal",
+  #          NACIONAL == "215" , "Pracas norte africanas", NACIONAL == "216" , "Protetor do sudoeste africano",
+  #          NACIONAL == "217" , "Quenia", NACIONAL == "160" , "Quirguistao",
+  #          NACIONAL == "075" , "Quitasueno", NACIONAL == "189" , "Republica arabe do egito",
+  #          NACIONAL == "218" , "Republica centro africana",
+  #          NACIONAL == "173" , "Republica da africa do sul", NACIONAL == "140" , "Republica da bielorrussia",
+  #          NACIONAL == "133" , "Republica da macedonia", NACIONAL == "56" , "Republica de el salvador",
+  #          NACIONAL == "291" , "Republica de fiji", NACIONAL == "120" , "Republica de malta",
+  #          NACIONAL == "191" , "Republica do gabao", NACIONAL == "062" , "Republica do haiti",
+  #          NACIONAL == "212" , "Republica do niger", NACIONAL == "055" , "Republica dominicana",
+  #          NACIONAL == "088" , "Republica guiana", NACIONAL == "135" , "Republica tcheca",
+  #          NACIONAL == "020" , "Reservado", NACIONAL == "048" , "Reservado",
+  #          NACIONAL == "049" , "Reservado", NACIONAL == "050" , "Reservado",
+  #          NACIONAL == "219" , "Reuniao", NACIONAL == "220" , "Rodesia (zimbabwe)",
+  #          NACIONAL == "124" , "Romenia", NACIONAL == "076" , "Roncador",
+  #          NACIONAL == "221" , "Ruanda", NACIONAL == "274" , "Ruiquiu,is",
+  #          NACIONAL == "348" , "Russia", NACIONAL == "222" , "Saara espanhol",
+  #          NACIONAL == "323" , "Sabah", NACIONAL == "324" , "Samoa americana",
+  #          NACIONAL == "325" , "Samoa ocidental", NACIONAL == "125" , "San marino",
+  #          NACIONAL == "223" , "Santa helena", NACIONAL == "077" , "Santa lucia",
+  #          NACIONAL == "078" , "Sao cristovao", NACIONAL == "224" , "Sao tome e principe",
+  #          NACIONAL == "079" , "Sao vicente", NACIONAL == "327" , "Sarawak",
+  #          NACIONAL == "349" , "Senegal", NACIONAL == "276" , "Sequin",
+  #          NACIONAL == "226" , "Serra leoa", NACIONAL == "131" , "Servia",
+  #          NACIONAL == "225" , "Seychelles",
+  #          NACIONAL == "277" , "Siria", NACIONAL == "227" , "Somalia, republica",
+  #          NACIONAL == "278" , "Sri-lanka", NACIONAL == "086" , "St. pierre et miquelon",
+  #          NACIONAL == "228" , "Suazilandia", NACIONAL == "229" , "Sudao",
+  #          NACIONAL == "126" , "Suecia", NACIONAL == "038" , "Suica",
+  #          NACIONAL == "090" , "Suriname", NACIONAL == "127" , "Svalbard e Jan Maye",
+  #          NACIONAL == "161" , "Tadjiquistao", NACIONAL == "279" , "Tailandia",
+  #          NACIONAL == "230" , "Tanganica", NACIONAL == "350" , "Tanzania",
+  #          NACIONAL == "162" , "Tartaria", NACIONAL == "128" , "Tchecoslovaquia",
+  #          NACIONAL == "335" , "Terr. antartico da australia",
+  #          NACIONAL == "341" , "Terras austrais", NACIONAL == "231" , "Territ. britanico do oceano indico",
+  #          NACIONAL == "328" , "Territorio de cocos", NACIONAL == "319" , "Territorio de papua",
+  #          NACIONAL == "329" , "Timor", NACIONAL == "233" , "Togo", NACIONAL == "330" , "Tonga",
+  #          NACIONAL == "232" , "Transkei", NACIONAL == "280" , "Tregua, estado",
+  #          NACIONAL == "091" , "Trinidad e tobago", NACIONAL == "234" , "Tunisia",
+  #          NACIONAL == "163" , "Turcomenistao", NACIONAL ==  "281" , "Turquia",
+  #          NACIONAL == "331" , "Tuvalu", NACIONAL == "164" , "Tuvin",
+  #          NACIONAL == "165" , "Ucrania", NACIONAL == "166" , "Udmurt", NACIONAL == "235" , "Uganda",
+  #          NACIONAL == "167" , "Uniao sovietica", NACIONAL == "025" , "Uruguai",
+  #          NACIONAL == "168" , "Uzbequistao", NACIONAL == "092" , "Venezuela",
+  #          NACIONAL == "282" , "Vietna do norte",NACIONAL ==  "283" , "Vietna do sul",
+  #          NACIONAL == "169" , "Yakut", NACIONAL == "236" , "Zaire",
+  #          NACIONAL == "237" , "Zambia", NACIONAL == "239" , "Zimbabwe", default = as.character(NACIONAL) ) ) ]
+  # }
+  # 
+  # 
+ 
+  # #Municípios --------------------------------------------------------------
+# 
+#     #left_Join com município de residência
+#   data <- merge(
+#     x = data,
+#     y = munics,
+#     by.x = "MUNIC_RES",
+#     by.y = "code_muni",
+#     all.x = TRUE,
+#     suffixes = c("", "_resd")
+#   )
+#   
+#   #Renomear colunas de residência
+#   setnames(data,
+#            old = c("name_muni", "MUNIC_RES", "code_state", "abbrev_state", "name_state", "name_region"),
+#            new = c("def_munic_resd", "cod_munic_resd", "code_state_resd", "abbrev_state_resd", "def_uf_resd", "region_resd"))
+#   
+#   #left_join com município de internação
+#   data <- merge(
+#     x = data,
+#     y = munics,
+#     by.x = "MUNIC_MOV",
+#     by.y = "code_muni",
+#     all.x = TRUE,
+#     suffixes = c("", "_int")
+#   )
+#   
+#   #Renomear variáveis
+#   setnames(data,
+#            old = c("NASC", "ESPEC", "PROC_SOLIC", "PROC_REA", "INSTRU"),
+#            new = c("DT_NASC", "COD_ESPEC", "COD_PROC_SOLIC", "COD_PROC_REA", "ESC"))
+#   
+#   #Renomear colunas de internação
+#   setnames(data,
+#            old = c("name_muni", "MUNIC_MOV", "code_state", "abbrev_state", "name_state", "name_region"),
+#            new = c("def_munic_int", "cod_munic_int", "code_state_int", "abbrev_state_int", "def_uf_int", "region_int"))
+#   
+  # data <- tibble::as_tibble(data) 
+  # data <- droplevels(data.table::as.data.table(data))
+  # data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
+  #                                                   FUN = stringi::stri_unescape_unicode)))
+  
+}
+
+
+
+# Função utilizada para empilhar o SIH ------------------------------------
+empilhar_sim <- function(arquivo, 
+                         variaveis = NULL, #Variáveis que desejo manter. NULL seleciona todas as variáveis não excluidas.
+                         excluir = vars_excluir) {
+  message("Importando: ", arquivo)
+  dados <- read.dbc::read.dbc(arquivo) |> setDT()
+  
+  #Excluir variáveis sem preenchimento\Zeradas
+  vars_excluir <- intersect(toupper(vars_excluir), names(dados))
+  if (length(vars_excluir) > 0) {
+    dados[, (vars_excluir) := NULL]
+  }
+  
+  #Selecionar variáveis desejadas. Mantém variáveis disponíveis se não indicar nenhuma variável. 
+  if (!is.null(variaveis)) {
+    vars_sel <- intersect(variaveis, names(dados))
+    dados <- dados[, ..vars_sel]
+  }
+  
+    return(dados)
+}
