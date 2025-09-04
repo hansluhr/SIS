@@ -22,6 +22,9 @@ tratar_sim <- function(data) {
 # Transformações utilizando mutate ----------------------------------------
   data |> 
 
+    #Rename do código munic de resdiência. Útil para criar variável com o nome padrão de resd
+    rename(codmunresd = codmunres) |>
+    
     mutate(
     
     causa_letra = substr(causabas,1,1),
@@ -152,7 +155,10 @@ tratar_sim <- function(data) {
         #/*Excesso de esfor?os, viagens e priva??es*/
         causa_letra  == "X" & causa_num > 49 & causa_num < 58 | 
         #/*Complica??es de assist?ncia m?dica e cir?rgica + ... + Seq?elas de causas externas de morbidade e de mortalidade*/
-        causa_letra  == "Y" & causa_num > 39 & causa_num < 90 ~ "Outros") |> as_factor(), 
+        causa_letra  == "Y" & causa_num > 39 & causa_num < 90 ~ "Outros",
+      
+        #Outras intenções são causa natural
+        .default = "Natural") |> as_factor(), 
     
 
 # Instrumento causa externa -----------------------------------------------
@@ -235,11 +241,13 @@ tratar_sim <- function(data) {
       causa_letra  == "V" & causa_num > 0 | causa_letra  == "Y" & causa_num == 03 | 
       causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo") |> as_factor(), 
 
-      #Variável de intencionalidades para facilitar contagens.
+      # # #Variável de intencionalidades para facilitar contagens.
       intencao_homic = case_when(intencao %in% c("Homicídio","h_legal") ~ "Homicídio",
-                                 .default = intencao) |> as_factor(),  
+                                 .default = intencao) |> as_factor(),
+
       #Consertando dtobito
       dtobito = as.numeric(as.character(dtobito)),
+
       dtobito = case_when(
         dtobito == 1996 ~ 1011996,dtobito == 1997 ~ 1011997,dtobito == 1998 ~ 1011998,dtobito == 1999  ~ 1011999,
         dtobito == 2000 ~ 1012000,dtobito == 2002 ~ 1012002,dtobito == 11996 ~ 1011996,dtobito == 11997 ~ 1011997,
@@ -254,39 +262,48 @@ tratar_sim <- function(data) {
         dtobito == 91999 ~ 1091999,dtobito == 101996 ~ 1101996,dtobito == 101997 ~ 1101997,dtobito == 101998 ~ 1101998,
         dtobito == 101999 ~ 1101999,dtobito == 111996 ~ 1111996,dtobito == 111997 ~ 1111997,dtobito == 111998 ~ 1111998,
         dtobito == 111999 ~ 1111999,dtobito == 121996 ~ 1121996,dtobito == 121997 ~ 1121997,dtobito == 121998 ~ 1121998,
-        dtobito == 121999 ~ 1121999,dtobito == 21999 ~ 1021999,dtobito == 22000 ~ 1022000, TRUE ~ dtobito),
+        dtobito == 121999 ~ 1121999,dtobito == 21999 ~ 1021999,dtobito == 22000 ~ 1022000, .default = dtobito),
 
-     #Transformando data de factor para date  
+     #Transformando as data para a classe date  
       across(.cols = starts_with("dt"), .fns = ~ lubridate::dmy(.) ),
-      ano = as.factor(lubridate::year(dtobito)),
-      mes = as.factor( lubridate::month(dtobito,label = TRUE) ),
-      dia = as.factor(lubridate::wday(dtobito,label = TRUE) ), 
+
+     #Criando variáveis relacionadas a data.
+      ano = lubridate::year(dtobito) |> as_factor(),
+      mes = lubridate::month(dtobito,label = TRUE) |> as_factor(),
+      dia = lubridate::wday(dtobito,label = TRUE) |> as_factor(), 
        
       
       #Código dos municípios de ocorrência e residência com seis dígitos
       #No microdado do SIM. A partir de 2006 o código do município aparece com 6 dígitos. 
       #Vou deixar todos os municípios em todos os anos com 6 dígitos.
       across(.cols =  c(codmunnatu, #Código município de naturalidade do falecido. 
-                        codmunres,  #Código município de residência
+                        codmunresd,  #Código município de residência
                         codmunocor), #Código município de ocorrência.
              .fns = ~ substr(., start = 1, stop = 6) ), 
       
-      #Pegar o código da uf de ocorrência e uf de residência
-      across(.cols = c(codmunocor, codmunresd), .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
+      #Pegar o código da uf de ocorrência, uf de residência e uf de naturalidade
+      across(.cols = c(codmunocor, codmunresd, codmunnatu), .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
+             #Extração do nome a partir do 7º e até 10º dígito do nome das variáveis de origem. 
              .names = "cod_uf_{str_sub(.col, start = 7, end = 10)}"),
       
       #Nome da UF de ocorrência e UF de residência. Utilizar o geobr é melhor?
-      across(.cols = c(cod_uf_ocor, cod_uf_resd),
-             .fns = ~ as.factor(recode(.,
-                                       '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins", 
-                                       '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte", '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas", 
-                                       '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais", '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo", 
-                                       '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul", '50'= "Mato Grosso do Sul",'51'= "Mato Grosso", 
-                                       '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC") ), .names = "uf_{str_sub(.col, start = 8, end = 11)}"),  
-      
+      across(.cols = c(cod_uf_ocor, cod_uf_resd, cod_uf_natu),
+             .fns = ~  recode(.,
+                                       '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", 
+                                       '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins", 
+                                       '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte", 
+                                       '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas", 
+                                       '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais", 
+                                       '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo", 
+                                       '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul", 
+                                       '50'= "Mato Grosso do Sul",'51'= "Mato Grosso", 
+                                       '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC", .missing = "Missing") |> as_factor(), 
+             .names = "def_uf_{str_sub(.col, start = 8, end = 11)}"),  
+       
       #Nome da região de ocorrência e região de residência
-      across(.cols = c(uf_ocor, uf_resd),
-             .fns = ~ as.factor(case_when( 
+      across(.cols = c(def_uf_ocor, def_uf_resd, def_uf_natu),
+             
+             .fns = ~ case_when(
                #Região Norte
                . %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima", "Tocantins") ~ "Norte",
                #Região Nordeste
@@ -294,12 +311,18 @@ tratar_sim <- function(data) {
                #Região Centro-Oeste
                . %in% c("Goiás","Mato Grosso", "Mato Grosso do Sul","Distrito Federal") ~ "Centro Oeste",
                #Região Sudeste
-               . %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste", TRUE ~ "Sul") ), .names = "reg_{str_sub(.col, start = 4, end = 7)}"), 
+               . %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste", 
+               #Região Sul
+               . %in% c("Paraná", "Rio Grande do Sul", "Santa Catarina" ) ~ "Sul",
+               
+               .default ="Missing") |> as_factor(), 
+             
+             .names = "def_reg_{str_sub(.col, start = 8, end = 11)}"),
       
       ###Características do morto
       ##Escolaridade
-      esc = case_match(.x = esc, "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
-                       "5" ~  "12 anos e mais", NA ~ "Ignorado", .default = "Ignorado") |> as_factor() |>  
+      def_esc = case_match(.x = esc, "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
+                       "5" ~  "12 anos e mais", NA ~ "Missing", .default = "Ignorado") |> as_factor() |>  
         #Ordem dos Levels de escolaridade
         fct_relevel("Nenhuma", 
                     "1 a 3 anos",
@@ -308,38 +331,39 @@ tratar_sim <- function(data) {
                     "12 anos e mais",
                     "Ignorado"),
       #Sexo
-      sexo = case_match(.x = sexo,"9" ~ "Ignorado", "0" ~ "Ignorado", "1" ~ "Homem", "2" ~ "Mulher",
-                        .default = "Ignorado") |> as_factor(),
+      def_sexo = case_match(.x = sexo, "1" ~ "Homem", "2" ~ "Mulher",
+                        NA ~ "Missing", .default = "Ignorado") |> as_factor(),
       
       #Raça\cor
-      racacor = case_match(.x = racacor, "1" ~ "Branca", "2" ~ "Preta", "3" ~ "Amarela", "4" ~ "Parda", "5" ~ "Indigena",
-                           "9" ~ "Ignorado", .default = "Ignorado" ) |> as_factor(),
+      def_racacor = case_match(.x = racacor, "1" ~ "Branca", "2" ~ "Preta", "3" ~ "Amarela",
+                           "4" ~ "Parda", "5" ~ "Indigena", NA ~ "Missing", .default = "Ignorado" ) |> as_factor(),
       #Estado Civil
-      estciv = case_match(.x = estciv, "1" ~"Solteiro", 
-                          "2" ~ "Casado", "3" ~ "Viúvo", "4" ~ "Divorciado", "5" ~ "União Estável", "9" ~ "Ignorado",
-                          "0" ~ "Ignorado", .default = "Ignorado" ) |> as_factor(),
+      def_estciv = case_match(.x = estciv, "1" ~"Solteiro", 
+                          "2" ~ "Casado", "3" ~ "Viúvo", "4" ~ "Divorciado", "5" ~ "União Estável", 
+                          NA ~ "Missing", .default = "Ignorado" ) |> as_factor(),
       
       #Local do incidente - Variável criada
-      local_incd = recode(local_incd,"0" = "Residencial", "1"= "Hab. Coletiva", "2"="Área de administração pública*", 
-                           "3"="Esportiva", "4"="Rua/Estrada", "5"="Comercial", "6"="Industrial",  
-                           "7"= "Fazenda", "8"="Outros", "9"= "Ignorado" ),
-      
-      #Preenchimento dos NAs.
-      local_incd = replace_na(local_incd,"Ignorado"), #NA deveria ser missing.
+      local_incd = case_match(.x = local_incd,
+                           0 ~ "Residencial", 1 ~ "Hab. Coletiva", 2 ~ "Área de administração pública*", 
+                           3 ~ "Esportiva", 4 ~ "Rua/Estrada", 5 ~ "Comercial", 6 ~ "Industrial",  
+                           7 ~ "Fazenda", 8 ~ "Outros", NA ~ "Missing", .default = "Ignorado") |> as_factor(),
       
       #Local de óbito de intervenção legal é rua/estrada
-      
-      local_incd = as.factor(case_when(
+      local_incd = case_when(
+        #Óbitos por causa natural não indicam local do incidente
+        intencao == "Natural" ~ "Natural",
         #Em intervenção legal o terceiro dígito não é o local. Vou assumir rua\estrada.
         intencao == "h_legal" ~ "Rua/Estrada",
         #Local de óbito de acidente de transporte V01-V99. O terceiro dígito não é local do incidente.
         intencao == "Acidente" & instrumento == "Veículo" ~ "Rua/Estrada", 
         #Y06.- Negligência e abandono ou Y07.- Outras síndromes de maus tratos. Residência?
-        TRUE ~ local_incd) ) ) |>
+        TRUE ~ local_incd) ) |>
   #Local de óbito de Y06 e Y07 Negligência, Abandono e maus tratos. Olhei as idades e não parece ser abandono de criança.
   #Olhar o keep. Autoria conhecida pode ser residência. desconhecida rua\estrada
   #Instrumento missing. Ao excluir intencao outros não deve existir instrumento NA.
   #instrumento = replace_na(instrumento,"Desconhecido").
+    
+    
   #Exclusão de variáveis não utilizadas ------------------------------------
   select(!c(causa_letra,causa_num) )
     
@@ -591,8 +615,7 @@ tratar_sim <- function(data) {
   # #Municípios --------------------------------------------------------------
 # 
    
-  #Rename do código munic de resdiência. Útil para criar variável com o nome padrão de resd
-  # rename(codmunresd = codmunres ) |>
+
     
   
 #     #left_Join com município de residência
