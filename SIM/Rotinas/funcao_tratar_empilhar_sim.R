@@ -319,17 +319,36 @@ tratar_sim <- function(data) {
              
              .names = "def_reg_{str_sub(.col, start = 8, end = 11)}"),
       
-      ###Características do morto
-      #Escolaridade em anos
-      def_esc = case_match(.x = esc, "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
-                       "5" ~  "12 anos e mais", NA ~ "Missing", .default = "Ignorado") |> as_factor() |>  
-        #Ordem dos Levels de escolaridade
-        fct_relevel("Nenhuma", 
-                    "1 a 3 anos",
-                    "4 a 7 anos",
-                    "8 a 11 anos",
-                    "12 anos e mais",
-                    "Ignorado"),
+      #Escolaridade em anos (esc)
+      #Escolaridade da mãe em anos (escmae)
+      across(.cols = c(esc, escmae),
+             .fns = ~ 
+             case_match(
+            .x = ., 
+            "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", 
+            "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
+            "5" ~  "12 anos e mais", NA ~ "Missing", .default = "Ignorado",
+            #Transformando em factor e atribuindo ordem.
+            .ptype = factor(levels = c("Nenhuma", "1 a 3 anos", "4 a 7 anos",
+                            "8 a 11 anos", "12 anos e mais", "Missing", "Ignorado"), ordered = TRUE ) ) ),
+
+       #Escolaridade em anos
+      # def_esc = case_match(.x = esc, "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
+      #                  "5" ~  "12 anos e mais", NA ~ "Missing", .default = "Ignorado") |> as_factor() |>  
+      #   #Ordem dos Levels de escolaridade
+      #   fct_relevel("Nenhuma", 
+      #               "1 a 3 anos",
+      #               "4 a 7 anos",
+      #               "8 a 11 anos",
+      #               "12 anos e mais",
+      #               "Ignorado"),
+      # 
+      # 
+      #  #Escolaridade da mãe em anos.
+      #  def_escmae 
+
+
+
 
        #Escolaridade 2010. Nível da última série concluída pelo falecido 
        def_esc2010 = case_match(.x = esc2010,
@@ -344,7 +363,26 @@ tratar_sim <- function(data) {
                   "Fundamental II (5ª a 8ª série)","Médio (antigo 2º Grau)",
                   "Superior incompleto", "Superior completo", "Missing", "Ignorado"), ordered = TRUE) ),
 
-      #Sexo
+
+
+
+       # #Escolaridade da mãe. Nível da última série concluída pela mãe 
+       # def_escmae2010 = case_match(.x = esc2010,
+       #                   "0" ~  "Sem escolaridade", "1" ~  "Fundamental I (1ª a 4ª série)",
+       #                   "2" ~ "Fundamental II (5ª a 8ª série)", "3" ~ "Médio (antigo 2º Grau)",
+       #                   "4" ~  "Superior incompleto", "5" ~  "Superior completo", 
+       #                   NA ~ "Missing", .default = "Ignorado",
+       #                   # #Transformando em factor e atribuindo ordem.                          
+       #                   .ptype = factor(
+       #                     
+       #                     levels = c("Sem escolaridade","Fundamental I (1ª a 4ª série)",
+       #                                "Fundamental II (5ª a 8ª série)","Médio (antigo 2º Grau)",
+       #                                "Superior incompleto", "Superior completo", "Missing", "Ignorado"), ordered = TRUE) ),
+
+
+
+
+       #Sexo
       def_sexo = case_match(.x = sexo, "1" ~ "Homem", "2" ~ "Mulher",
                         NA ~ "Missing", .default = "Ignorado") |> as_factor(),
       
@@ -355,6 +393,13 @@ tratar_sim <- function(data) {
       def_estciv = case_match(.x = estciv, "1" ~"Solteiro", 
                           "2" ~ "Casado", "3" ~ "Viúvo", "4" ~ "Divorciado", "5" ~ "União Estável", 
                           NA ~ "Missing", .default = "Ignorado" ) |> as_factor(),
+
+      #Local de ocorrência do óbito
+      def_local_ocor = case_match(.x = lococor, "1" ~ "Hospital", 
+      "2" ~  "Outros Estabelecimentos de Saúde", "3" ~ "Domicílio",
+      "4" ~ "Via Pública", "5" ~  "Outros", "6" ~ "Aldeia Indígena", 
+      NA ~ "Missing", .default = "Ignorado") |> as_factor(),
+
       
       #Local do incidente - Variável criada
       local_incd = case_match(
@@ -386,6 +431,13 @@ tratar_sim <- function(data) {
   
   ######################################################################################################################
 
+   #### Ocupações
+   #### Código do estabelecimento
+  
+  
+  
+  
+  
     # #Correções nos códigos do DF. Existem códigos das regiões administrativas. Conserta para código do DF.
     # MUNIC_MOV = fifelse(startsWith(as.character(MUNIC_MOV), "53"), "530010", as.character(MUNIC_MOV)),
     # MUNIC_RES = fifelse(startsWith(as.character(MUNIC_RES), "53"), "530010", as.character(MUNIC_RES)),
