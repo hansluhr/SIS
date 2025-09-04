@@ -322,67 +322,63 @@ tratar_sim <- function(data) {
       #Escolaridade em anos (esc)
       #Escolaridade da mãe em anos (escmae)
       across(.cols = c(esc, escmae),
-             .fns = ~ 
-             case_match(
-            .x = ., 
+             .fns = ~ case_match(.x = ., 
             "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", 
             "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
             "5" ~  "12 anos e mais", NA ~ "Missing", .default = "Ignorado",
             #Transformando em factor e atribuindo ordem.
             .ptype = factor(levels = c("Nenhuma", "1 a 3 anos", "4 a 7 anos",
-                            "8 a 11 anos", "12 anos e mais", "Missing", "Ignorado"), ordered = TRUE ) ) ),
+                            "8 a 11 anos", "12 anos e mais", "Missing", "Ignorado"), ordered = TRUE ) ),
+      #Atribuição de nome na variável
+      .names = "def_{str_sub(.col)}"),
 
-       #Escolaridade em anos
-      # def_esc = case_match(.x = esc, "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
-      #                  "5" ~  "12 anos e mais", NA ~ "Missing", .default = "Ignorado") |> as_factor() |>  
-      #   #Ordem dos Levels de escolaridade
-      #   fct_relevel("Nenhuma", 
-      #               "1 a 3 anos",
-      #               "4 a 7 anos",
-      #               "8 a 11 anos",
-      #               "12 anos e mais",
-      #               "Ignorado"),
-      # 
-      # 
-      #  #Escolaridade da mãe em anos.
-      #  def_escmae 
-
-
-
-
-       #Escolaridade 2010. Nível da última série concluída pelo falecido 
-       def_esc2010 = case_match(.x = esc2010,
+       #Escolaridade 2010. Nível da última série concluída pelo falecido (esc2010)
+       #Escolaridade  2010.  Nível  da  última  série  concluída  pela  mãe. (escmae2010)
+       across(.cols = c(esc2010, escmae2010), 
+       .fns = ~ case_match(.x = .,
        "0" ~  "Sem escolaridade", "1" ~  "Fundamental I (1ª a 4ª série)",
        "2" ~ "Fundamental II (5ª a 8ª série)", "3" ~ "Médio (antigo 2º Grau)",
        "4" ~  "Superior incompleto", "5" ~  "Superior completo", 
        NA ~ "Missing", .default = "Ignorado",
-       # #Transformando em factor e atribuindo ordem.                          
+       #Transformando em factor e atribuindo ordem.                          
        .ptype = factor(
 
        levels = c("Sem escolaridade","Fundamental I (1ª a 4ª série)",
                   "Fundamental II (5ª a 8ª série)","Médio (antigo 2º Grau)",
                   "Superior incompleto", "Superior completo", "Missing", "Ignorado"), ordered = TRUE) ),
+       #Atribuição de nome na variável
+       .names = "def_{str_sub(.col)}"),
+   
 
+       #Escolaridade do falecido agregada (formulário a partir de 2010). ESCFALAGR1
+       #Escolaridade  da  mãe  agregada  (formulário  a  partir  de  2010). escmaeagr1
+       across(.cols = c(escfalagr1, escmaeagr1), 
+       .fns = ~ case_match(.x = .,
+        "00" ~ "Sem escolaridade", "01" ~  "Fundamental I Incompleto",
+        "02" ~ "Fundamental I Completo", "03" ~ "Fundamental II Incompleto",
+        "04" ~ "Fundamental II Completo", "05" ~  "Ensino Médio Incompleto", 
+        "06" ~ "Ensino Médio Completo", "07" ~ "Superior Incompleto",
+        "08" ~ "Superior Completo", "09" ~ "Ignorado", 
+        "10" ~ "Fundamental I Incompleto ou Inespecífico", 
+        "11" ~ "Fundamental II Incompleto ou Inespecífico",
+        "12" ~  "Ensino Médio Incompleto ou Inespecífico", 
+        NA ~ "Missing", .default = "Ignorado",
+        #Transformando em factor e atribuindo ordem. 
+        .ptype = factor(
+          
+        levels = c("Sem escolaridade", "Fundamental I Incompleto",
+                   "Fundamental I Completo",  "Fundamental II Incompleto",
+                   "Fundamental II Completo", "Ensino Médio Incompleto", 
+                   "Ensino Médio Completo", "Superior Incompleto",
+                   "Superior Completo",  
+                   "Fundamental I Incompleto ou Inespecífico", 
+                   "Fundamental II Incompleto ou Inespecífico",
+                   "Ensino Médio Incompleto ou Inespecífico", 
+                   "Missing", "Ignorado"), ordered = TRUE) ),
+       #Atribuição de nome na variável
+       .names = "def_{str_sub(.col)}"),
 
-
-
-       # #Escolaridade da mãe. Nível da última série concluída pela mãe 
-       # def_escmae2010 = case_match(.x = esc2010,
-       #                   "0" ~  "Sem escolaridade", "1" ~  "Fundamental I (1ª a 4ª série)",
-       #                   "2" ~ "Fundamental II (5ª a 8ª série)", "3" ~ "Médio (antigo 2º Grau)",
-       #                   "4" ~  "Superior incompleto", "5" ~  "Superior completo", 
-       #                   NA ~ "Missing", .default = "Ignorado",
-       #                   # #Transformando em factor e atribuindo ordem.                          
-       #                   .ptype = factor(
-       #                     
-       #                     levels = c("Sem escolaridade","Fundamental I (1ª a 4ª série)",
-       #                                "Fundamental II (5ª a 8ª série)","Médio (antigo 2º Grau)",
-       #                                "Superior incompleto", "Superior completo", "Missing", "Ignorado"), ordered = TRUE) ),
-
-
-
-
-       #Sexo
+     #Sexo
       def_sexo = case_match(.x = sexo, "1" ~ "Homem", "2" ~ "Mulher",
                         NA ~ "Missing", .default = "Ignorado") |> as_factor(),
       
