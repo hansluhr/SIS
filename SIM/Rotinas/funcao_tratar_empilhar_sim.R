@@ -2,13 +2,13 @@
 # Função de tratamento do SIH ---------------------------------------------
 tratar_sim <- function(data) {
   
-  #Transformando variáveis categóricas em character.
+  
   #Vou padronizar a classe da variável, permitindo empilhar.
   #Algumas variáveis trocam de classe, transformar todas em character permite
   #empilhar. Estou transformando em character todas as variáveis, exceto variáveis 
   #iniciando em DT e idades. 
-  # vars_char <- names(data)[!stringr::str_starts(names(data), "DT")]
   
+  #Seleciona as variáveis para transformação vars_char
   vars_char <- names(data)[
     !stringr::str_starts(names(data), "DT") & names(data) != "IDADE" & names(data) != "IDADEMAE"]
   
@@ -17,35 +17,16 @@ tratar_sim <- function(data) {
   if (length(cols_existentes) > 0) {
     data[, (cols_existentes) := lapply(.SD, as.character), .SDcols = cols_existentes]
   }
-  
-  # #Transformação de idade e datas.
-  # data[
-  #   #Transforma idade de factor para  integer
-  #   , IDADE := as.double(as.character(IDADE))
-  # ][
-  #   #Substitui código de idade pela real idade.
-  #   , IDADE := fcase(
-  #   IDADE %in% c(0, 999), NA_real_,       # Idade desconhecida
-  #   IDADE > 0 & IDADE <= 400, 0,          # Menor de 1 ano
-  #   IDADE > 400 & IDADE < 999, IDADE - 400, # Idade em anos
-  #   default = IDADE  )                       # Caso contrário mantém
-  #  ][
-  #    , (grep("^DT", names(dt), value = TRUE)) := lapply(.SD, ymd),
-  #    .SDcols = patterns("^DT")
-  #  ]
-  
+
 
 # Transformações utilizando mutate ----------------------------------------
   data |> 
 
-    #Rename do código munic de resdiência. Útil para criar variável com o nome padrão de resd
-    rename(codmunresd = codmunres ) |>
-    
     mutate(
     
     causa_letra = substr(causabas,1,1),
-    causa_num = as.numeric(substr(causabas,2,3)),
-    local_incd = as.numeric(substr(causabas,4,4)),
+    causa_num = as.numeric(substr(causabas,2,3) ),
+    local_incd = as.numeric(substr(causabas,4,4) ),
 
 # Idade ------------------------------------------------------------------
     #Idade                          
@@ -55,7 +36,7 @@ tratar_sim <- function(data) {
     #Menor de 1 ano
     idade = case_when(idade > 0 & idade <= 400  ~ 0, TRUE ~ idade),
     #Idade em anos
-    idade = case_when(idade>400 & idade <999 ~ idade -400, TRUE ~ idade),
+    idade = case_when(idade > 400 & idade < 999 ~ idade - 400, TRUE ~ idade),
     
 
 # Intenção da causa externa -----------------------------------------------
@@ -280,11 +261,15 @@ tratar_sim <- function(data) {
       ano = as.factor(lubridate::year(dtobito)),
       mes = as.factor( lubridate::month(dtobito,label = TRUE) ),
       dia = as.factor(lubridate::wday(dtobito,label = TRUE) ), 
-
+       
+      
       #Código dos municípios de ocorrência e residência com seis dígitos
       #No microdado do SIM. A partir de 2006 o código do município aparece com 6 dígitos. 
       #Vou deixar todos os municípios em todos os anos com 6 dígitos.
-      across(.cols =  c(codmunocor, codmunresd), .fns = ~ substr(., start = 1, stop = 6) ), 
+      across(.cols =  c(codmunnatu, #Código município de naturalidade do falecido. 
+                        codmunres,  #Código município de residência
+                        codmunocor), #Código município de ocorrência.
+             .fns = ~ substr(., start = 1, stop = 6) ), 
       
       #Pegar o código da uf de ocorrência e uf de residência
       across(.cols = c(codmunocor, codmunresd), .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
@@ -605,6 +590,11 @@ tratar_sim <- function(data) {
  
   # #Municípios --------------------------------------------------------------
 # 
+   
+  #Rename do código munic de resdiência. Útil para criar variável com o nome padrão de resd
+  # rename(codmunresd = codmunres ) |>
+    
+  
 #     #left_Join com município de residência
 #   data <- merge(
 #     x = data,
