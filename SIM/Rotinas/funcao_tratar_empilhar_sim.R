@@ -654,8 +654,6 @@ tratar_sim <- function(data) {
   
   
   
-  
-  
     # #Correções nos códigos do DF. Existem códigos das regiões administrativas. Conserta para código do DF.
     # MUNIC_MOV = fifelse(startsWith(as.character(MUNIC_MOV), "53"), "530010", as.character(MUNIC_MOV)),
     # MUNIC_RES = fifelse(startsWith(as.character(MUNIC_RES), "53"), "530010", as.character(MUNIC_RES)),
