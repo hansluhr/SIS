@@ -375,7 +375,7 @@ tratar_sim <- function(data) {
                    "Fundamental II Incompleto ou Inespecífico",
                    "Ensino Médio Incompleto ou Inespecífico", 
                    "Missing", "Ignorado"), ordered = TRUE) ),
-       #Atribuição de nome na variável
+       #Atribuição de nome na variável (def_nome_da_variável)
        .names = "def_{str_sub(.col)}"),
 
      #Sexo
@@ -413,13 +413,235 @@ tratar_sim <- function(data) {
         #Local de óbito de acidente de transporte V01-V99. O terceiro dígito não é local do incidente.
         intencao == "Acidente" & instrumento == "Veículo" ~ "Rua/Estrada", 
         #Y06.- Negligência e abandono ou Y07.- Outras síndromes de maus tratos. Residência?
-        TRUE ~ local_incd) ) |>
+        TRUE ~ local_incd),
   #Local de óbito de Y06 e Y07 Negligência, Abandono e maus tratos. Olhei as idades e não parece ser abandono de criança.
   #Olhar o keep. Autoria conhecida pode ser residência. desconhecida rua\estrada
   #Instrumento missing. Ao excluir intencao outros não deve existir instrumento NA.
   #instrumento = replace_na(instrumento,"Desconhecido").
+   
+  #1 - Tipo de óbito
+  def_tipobito = case_match(.x = tipobito, 
+                            "1" ~ "Fetal",
+                            "2" ~ "Não Fetal",
+                            NA ~ "Missing",
+                            .default = "Ignorada") |> as_factor(),
+   
+   #32 - Tipo de Gravidez
+   def_gravidez = case_match(.x = gravidez,
+                              "1" ~ "Única",
+                              "2" ~ "Dupla",
+                              "3" ~ "Tripla",
+                              NA ~ "Missing",
+                              .default = "Ignorada") |> as_factor(),
+  #33 - Tipo de Parto 
+  def_parto = case_match(.x = parto,
+                         "1" ~ "Vaginal",
+                         "2" ~ "Cesáreo",
+                         NA ~ "Missing", 
+                         .default = "Ignorado") |> as_factor(),
     
-    
+  #34- Morte em relação ao Parto. Momento do óbito em relação ao parto 
+  def_obitoparto = case_match(.x = obitoparto,
+                              "1" ~ "Antes",
+                              "2" ~ "Durante",
+                              "3" ~ "Depois",
+                              NA ~ "Missing",
+                              .default = "Ignorado") |> as_factor(),
+  
+  #37 - A morte ocorreu. Situação gestacional ou pósgestacional em que ocorreu o óbito  
+  def_tpmorteoco = case_match(.x = tpmorteoco,
+                              "1" ~ "Na Gravidez",
+                              "2" ~ "No Parto",
+                              "3" ~ "No Abortamento",
+                              "4" ~ "Até 42 dias após o término do parto",
+                              "5" ~ "De 43 dias a 1 ano após o término da gestação",
+                              "8" ~ "Não ocorreu nestes períodos",
+                              NA ~ "Missing",
+                              .default = "Ignorado") |> as_factor(),
+
+  #38- Recebeu assist. médica durante a doença que ocasionou a morte?
+  #Se refere ao atendimento médico continuado que o paciente recebeu, ou não, 
+  #durante a enfermidade que ocasionou o óbito  
+   def_assistmed = case_match(.x = assistmed,
+                             "1" ~ "Sim",
+                             "2" ~ "Não",
+                             NA ~ "Missing",
+                             .default = "Ignorado") |> as_factor(),
+
+  #39 - Necrópsia
+  #Refere-se a execução ou não de necropsia para confirmação do diagnóstico  
+  def_necropsia = case_match(.x = necropsia,
+                             "1" ~ "Sim",
+                             "2" ~ "Não",
+                             NA ~ "Missing",
+                             .default = "Ignorado") |> as_factor(),
+
+  #43 - Óbito atestado por Médico
+  def_atestante = case_match(.x = atestante,
+                             "1" ~ "Assistente",
+                             "2" ~ "Substituto",
+                             "3" ~ "IML",
+                             "4" ~ "SVO",
+                             "5" ~ "Outro", 
+                             NA ~ "Missing",
+                             .default = "Ignorado") |> as_factor(),
+  
+  #48 - Tipo. Tipo de morte violenta ou circunstâncias em que se deu a morte não natural
+ def_circobito = case_match(.x = circobito,
+                       "1" ~ "Acidente",
+                       "2" ~ "Suicídio",
+                       "3" ~ "Homicídio",
+                       "4" ~ "Outros",
+                       NA ~ "Missing", 
+                       .default = "Ignorado") |> as_factor(),
+
+  #49 - Acidente do trabalho. Indica se o evento que desencadeou o óbito 
+  #está relacionado ao processo de trabalho 
+  def_acidtrab = case_match(.x = acidtrab,
+                            "1" ~ "Sim",
+                            "2" ~ "Não",
+                            NA ~ "Missing",
+                            .default = "Ignorado") |> as_factor(),
+  
+  #50 - Fonte da Informação. fonte de informação utilizada para o preenchimento dos campos 48 e 49 
+  def_fonte = case_match(.x = fonte,
+                         "1" ~ "Ocorrência Policial",
+                         "2" ~ "Hospital",
+                         "3" ~ "Família",
+                         "4" ~ "Outra", 
+                         NA ~ "Missing", 
+                         .default = "Ignorado") |> as_factor(),
+
+  #Origem 
+  def_origem = case_match(.x = origem,
+                          "1" ~ "Oracle",
+                          "2" ~ "Banco estadual diponibilizado via FTP",
+                          "3" ~ "Banco SEADE", 
+                          NA ~ "Missing", 
+                          .default = "Ignorado") |> as_factor(),
+  #Óbito na gravidez
+  def_obitograv = case_match(.x = obitograv,
+                             "1" ~ "Sim",
+                             "2" ~ "Não",
+                             NA ~ "Missing",
+                             .default = "Ignorado") |> as_factor(),
+
+  #Óbito no puerpério
+  def_obitopuerp = case_match(.x = obitopuerp,
+                              "1" ~ "Até 42 dias após o parto",
+                              "2" ~ "De 43 dias a 1 ano após o parto",
+                              "3" ~ "Não",
+                              NA ~ "Missing", 
+                              .default = "Ignorado") |> as_factor(),
+
+  #Exame. Realização de exame 
+  def_exame = case_match(.x = exame,
+                         "1" ~ "Sim",
+                         "2" ~ "Não", 
+                         NA ~ "Missing",
+                         .default = "Ignorado") |> as_factor(),
+
+  #Cirurgia. Realização de Cirurgia
+  def_cirurgia = case_match(.x = cirurgia,
+                            "1" ~ "Sim",
+                            "2" ~ "Não",
+                            NA ~ "Missing",
+                            .default = "Ignorado") |> as_factor(),
+
+  #Fonte de informação.
+  def_fonteinv = case_match(.x = fonteinv,
+                            "1" ~ "Comitê de Morte Materna e/ou Infantil",
+                            "2" ~ "Visita domiciliar / Entrevista família",
+                            "3" ~ "Estabelecimento de Saúde / Prontuário", 
+                            "4" ~ "Relacionado com outros bancos de dados",
+                            "5" ~ "SVO", 
+                            "6" ~ "IML", 
+                            "7" ~ "Outra Fonte",
+                            "8" ~ "Múltiplas Fontes",
+                            NA ~ "Missing", 
+                            .default = "Ignorado") |> as_factor(),
+
+  #Status de DO Epidemiológica  
+  def_stdoepidem = case_match(.x = stdoepidem,
+                              "1" ~ "Sim",
+                              "0" ~ "Não",
+                              NA ~  "Missing",
+                              .default = "Ignorado") |> as_factor(),
+
+  #Status de DO Nova 
+  def_stdonova = case_match(.x = stdonova,
+                            "1" ~ "Sim",
+                            "0" ~ "Não",
+                            NA ~  "Missing",
+                            .default = "Ignorado") |> as_factor(),
+
+  #Momento da ocorrência do óbito.
+  def_tpobitocor = case_match(.x = tpobitocor,
+                              "1" ~ "Durante a gestação",
+                              "2" ~ "Durante o abortamento",
+                              "3" ~ "Após o abortamento",
+                              "4" ~ "No parto ou até 1 hora após o parto",
+                              "5" ~ "No puerpério  - até 42 dias após o parto",
+                              "6" ~ "Entre 43 dias e até 1 ano após o parto",
+                              "7" ~ "A investigação não identificou o momento do óbito",
+                              "8" ~ "Mais de um ano após o parto",
+                              "9" ~  "óbito não ocorreu nas circunstancias anteriores",
+                              NA ~  "Missing",
+                              .default = "Ignorado") |> as_factor(),
+
+  #Informa se a investigação permitiu o 
+  #resgate de alguma causa de óbito não informado, ou a 
+  #correção de alguma antes informada 
+  def_tpresginfo = case_match(.x = tpresginfo,
+                              "1" ~ "Não acrescentou nem corrigiu informação",
+                              "2" ~ "Sim, permitiu o resgate de novas informações",
+                              "3" ~ "Sim, permitiu a correção de alguma das causas informadas originalmente",
+                              NA ~  "Missing",
+                              .default = "Ignorado") |> as_factor(),
+
+  #Tipo de nível investigador 
+  def_tpnivelinv = case_match(.x = tpnivelinv, 
+                              "E" ~ "Estadual",
+                              "R" ~ "Regional",
+                              "M" ~ "Municipal",
+                              NA ~ "Missing",
+                              .default = "Ignorado") |> as_factor(),
+
+  #Momento do óbito em relação ao parto após investigação  
+  def_morteparto = case_match(.x = morteparto,
+                              "1" ~ "Antes",
+                              "2" ~ "Durante",
+                              "3" ~ "Após",
+                              NA ~ "Missing",
+                              .default = "Ignorado") |> as_factor(),
+  
+  #Indica se houve correção ou  alteração da  causa do óbito após investigação 
+  def_altcausa = case_match(.x = altcausa,
+                            "1" ~ "Sim",
+                            "0" ~ "Não",
+                            NA ~  "Missing",
+                            .default = "Ignorado") |> as_factor(),
+  
+  #Óbito investigado 
+  def_tppos = case_match(.x = tppos,
+                         "1" ~ "Sim",
+                         "0" ~ "Não",
+                         NA ~  "Missing",
+                         .default = "Ignorado") |> as_factor(),  
+
+  #Semanas de gestação (formulário antigo) Faixas de semanas de gestação 
+  def_gestacao = case_match(.x = gestacao,
+                            "1" ~ "Menos de 22 semanas",
+                            "2" ~ "22 a 27 semanas",
+                            "3" ~ "28 a 31 semanas",
+                            "4" ~ "32 a 36 semanas",
+                            "5" ~ "37 a 41 semanas",
+                            "6" ~ "42 e + semanas")
+
+ 
+#fazer across para transformar em factor todas as variáveis começando em def
+  ) |>
+
   #Exclusão de variáveis não utilizadas ------------------------------------
   select(!c(causa_letra,causa_num) )
     
@@ -678,8 +900,8 @@ tratar_sim <- function(data) {
   # #Municípios --------------------------------------------------------------
 # 
    
-
-    
+  #COMUNSVOIM
+    #Município e UF do SVO ou IML
   
 #     #left_Join com município de residência
 #   data <- merge(
