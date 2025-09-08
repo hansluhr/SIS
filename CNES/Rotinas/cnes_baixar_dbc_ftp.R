@@ -28,7 +28,7 @@ baixar_cnes <- function(anos, meses, ufs = "ALL", destino ) {
   
   # Baixar arquivos
   for (uf in ufs) {
-    message("\n🔹 Processando UF: ", uf)
+    message("Processando UF: ", uf)
     
     for (ano in anos_str) {
       for (mes in meses_str) {
@@ -40,7 +40,7 @@ baixar_cnes <- function(anos, meses, ufs = "ALL", destino ) {
         arquivos_filtrados <- lista_arquivos[str_detect(lista_arquivos, padrao)]
         
         if (length(arquivos_filtrados) == 0) {
-          message("❌ Nenhum arquivo encontrado para ", uf, " - ", ano, mes)
+          message("Nenhum arquivo encontrado para ", uf, " - ", ano, mes)
         } else {
           for (arquivo in arquivos_filtrados) {
             #URL do arquivo de interesse
@@ -57,23 +57,23 @@ baixar_cnes <- function(anos, meses, ufs = "ALL", destino ) {
               hash_remoto <- digest(temp_file, algo = "sha256", file = TRUE)
               
               if (hash_local == hash_remoto) {
-                message("✔ Arquivo já existe e é idêntico: ", arquivo, " (Ignorado)")
+                message("Arquivo já existe e é idêntico: ", arquivo, " (Ignorado)")
               } else {
-                message("🔄 Arquivo diferente detectado! Atualizando: ", arquivo)
+                message("Arquivo diferente detectado! Atualizando: ", arquivo)
                 file.copy(temp_file, destino_arquivo, overwrite = TRUE)
               }
               
               unlink(temp_file)  # Remover arquivo temporário
               
             } else {
-              message("📥 Baixando: ", arquivo)
+              message("Baixando: ", arquivo)
               tryCatch(
                 {
                   download.file(url_completa, destfile = destino_arquivo, mode = "wb")
-                  message("✔ Arquivo salvo em: ", destino_arquivo)
+                  message("Arquivo salvo em: ", destino_arquivo)
                 },
                 error = function(e) {
-                  message("❌ Erro ao baixar: ", arquivo, " - ", e$message)
+                  message("Erro ao baixar: ", arquivo, " - ", e$message)
                 }
               )
             }

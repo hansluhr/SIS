@@ -23,7 +23,7 @@ here::i_am("SIH/Rotinas_Rejeitada/criação_base_sih_rejeitada.R")
 #Empilhar base SIH Rejeitada. --------------------------------------------
 #Abre conexão com a database. Este arquivo armazena a base SIH.
 con <- dbConnect(duckdb::duckdb(),
-                 dbdir = here::here("Bases/sih/duckdb/sih_rejeitada.duckdb"), #Nome do database que armazena o SIH?
+                 dbdir = here::here("Bases/sih/duckdb/sih_rejeitada.duckdb"), #Nome do database que armazena o SIH
                 read_only = FALSE)
 
 #UFs para empilhar. Colocar todas as UFs desejadas.
