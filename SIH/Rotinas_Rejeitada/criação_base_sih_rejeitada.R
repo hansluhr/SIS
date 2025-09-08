@@ -137,19 +137,12 @@ data <-
   tbl(con, "sih_rejeitada")
 
 data |>
-  filter(is.na(def_erro)) |> 
+  filter(is.na(def_erro) & def_munic_int == "Rio de Janeiro") |> 
   collect() |> View()
 
 
   count(ano_cmpt,co_erro) |> arrange(desc(n))
   collect() |>  View()
-
-
-
-
-
-
-  
 
 
 data |>
