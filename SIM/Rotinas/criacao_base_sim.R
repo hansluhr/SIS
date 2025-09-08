@@ -22,31 +22,17 @@ rm(baixar_dbc_sim)
 # Elaboração base SIM -----------------------------------------------------
 
 #Abre conexão com a database. Este arquivo armazena a base SIH.
-con <- dbConnect(duckdb::duckdb(), 
-                 dbdir = here::here("Bases/sim/duckdb/sim.duckdb"), #Nome do database que armazena o SIH
-                 read_only = FALSE)
+# con <- dbConnect(duckdb::duckdb(), 
+#                  dbdir = here::here("Bases/sim/duckdb/sim.duckdb"), #Nome do database que armazena o SIH
+#                  read_only = FALSE)
 
 #Importação da tabela de municípios
-source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
+# source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
 
 
-
-
-sim |>
-  count(CRM, sort = TRUE)
-
-
-
-
-library(read.dbc)
-library(data.table)
-
-rm(list = ls()); gc()
 #Variáveis zeradas.
 vars_excluir <- c("TPASSINA","NUMERODN","ESTABDESCR")
 source("C:/Users/gabli/Desktop/r/SIS/SIM/Rotinas/funcao_tratar_empilhar_sim.R")
-
-
 # Função para importar e empilhar todos os .dbc de uma pasta
 importar_dbc <- function(pasta) {
   # lista de arquivos dbc na pasta
@@ -67,28 +53,32 @@ importar_dbc <- function(pasta) {
     data.table::rbindlist(
       future_lapply(arquivos, empilhar_sim),
       use.names = TRUE, fill = TRUE ) |>
-    tratar_sim() |>
-    janitor::clean_names()
+    tratar_sim() 
     
   message("✅ Importação concluída! Total de registros: ", nrow(dados))
   return(dados)
 }
 
 
+
+
+
 sim <- importar_dbc("C:/Users/gabli/Desktop/r/SIS/Bases/sim/dbc")
+rm(list = setdiff(ls(), c("sim","ac") ) ); gc()
+beepr::beep(sound = 1)
 glimpse(sim)
+
+sim |> filter(idade == 0) |> 
+  count(uf_resd)
+
 
 sim |>
   summarise(across(everything(), ~ mean(is.na(.x) ) ) )
 
-
+    
 sim |>
-  filter(!is.na(CAUSAMAT)) |>
-  view()
+  select(dtconcaso) |>
+  filter(!is.na(dtconcaso))
 
-sim |> colnames() |> as_tibble() |> filter(!str_starts(value, "DT"))
-
-
-# var_char <-
-  
- cat( paste0('"', names(sim)[!str_starts(names(sim), "DT")], '"', collapse = ", ") )
+ac <- read.dbc::read.dbc("C:/Users/gabli/Desktop/r/SIS/Bases/sim/dbc/DOAL2023.dbc") |>
+  janitor::clean_names()
