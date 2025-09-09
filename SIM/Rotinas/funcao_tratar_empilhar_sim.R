@@ -1048,10 +1048,25 @@ tratar_sim <- function(data) {
 #Exclusão de variáveis não utilizadas ------------------------------------
 select(!c(causa_letra,causa_num) )
   
+  
+
+# Ocupações ---------------------------------------------------------------
+  #### Ocupações do falecido 
+  ### Ocupações da mae ocupmae
+  
+sim <- 
+    sim |>
+    left_join(x = _, 
+              y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup_mae = def_ocup), 
+              join_by("ocupmae" == "cod") ) |>
+    
+    left_join(x = _, 
+              y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup = def_ocup), 
+              join_by("ocup" == "cod") )
+  
   ######################################################################################################################
 
-   #### Ocupações 
-   ### Ocupações da mae ocupmae
+
    #### Código do estabelecimento
   
   
