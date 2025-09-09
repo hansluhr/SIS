@@ -73,7 +73,7 @@ ocupacao <- lapply(arquivos,
   #Empilhamento da lista.
   data.table::rbindlist() 
 
-ocupacao <- ocupacao %>%
+ocupacao <- ocupacao |>
 #Adicionar cbos que não estão no txt do ftp.
   dplyr::bind_rows(
     dplyr::tibble(
@@ -85,7 +85,7 @@ ocupacao <- ocupacao %>%
                    "ESTUDANTE",
                    "Ignorada"),
       #repete o valor automaticamente
-      versao_cod_proc = first(ocupacao$versao_cod_proc) ) ) |>
+      versao_cod_proc = dplyr::first(ocupacao$versao_cod_proc) ) ) |>
   #Primeira letra maiúscula
   dplyr::mutate(def_ocup = def_ocup |> stringr::str_to_title() )
 
