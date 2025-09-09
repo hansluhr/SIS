@@ -74,7 +74,7 @@ ocupacao <- lapply(arquivos,
 #Remove duplicados, mantendo o mais recente por cod
 data.table::setorder(ocupacao, cod, -versao_cod_proc) #ordena por cod e versão desc
 ocupacao <- ocupacao[!duplicated(cod)]
-
+beepr::beep(sound = 1)
 
 
 
