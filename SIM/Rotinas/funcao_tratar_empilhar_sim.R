@@ -1045,24 +1045,24 @@ tratar_sim <- function(data) {
                                "239" ~ "Zimbabwe", 
                                 NA ~ "Missing",       
                                .default = natural) |> as_factor() ) ) |>
-#Exclusão de variáveis não utilizadas ------------------------------------
-select(!c(causa_letra,causa_num) )
-  
-  
-
+    
+    
+    
 # Ocupações ---------------------------------------------------------------
   #### Ocupações do falecido 
   ### Ocupações da mae ocupmae
-  
-data <- 
-    data |>
-    left_join(x = _, 
+  left_join(x = _, 
               y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup_mae = def_ocup), 
               join_by("ocupmae" == "cod") ) |>
     
     left_join(x = _, 
               y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup = def_ocup), 
-              join_by("ocup" == "cod") )
+              join_by("ocup" == "cod") )   |>
+    
+#Exclusão de variáveis não utilizadas ------------------------------------
+select(!c(causa_letra,causa_num) )
+  
+ 
   
   ######################################################################################################################
 
