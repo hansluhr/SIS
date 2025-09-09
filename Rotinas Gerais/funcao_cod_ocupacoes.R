@@ -1,66 +1,87 @@
 
+#URL do FTP
+ftp_base <- "ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads/"
 
+#Lista de todos os arquivos no FTP
+arquivos <- 
+  RCurl::getURL(
+  ftp_base, #URL do FTP
+  dirlistonly = TRUE,
+  ftp.use.epsv = FALSE) |>
+  stringr::str_split("\r?\n") |>
+  unlist()
 
+#Existem vários arquivos neste ftp. 
+#O arquivo de interesse começa com TabelaUnificada_. 
+#Aqui faço um filtro para manter os arquivos começanco com TabelaUnificada_ e terminando em .zip
+#Neste zip está o arquivo de interesse tb_procedimento.txt
+arquivos <- arquivos[stringr::str_detect(arquivos, "^TabelaUnificada_.*\\.zip$")]
 
+#Vou criar função para auxiliar no empilhamento.
+#A função faz o downlaod e acesso do zip, e seguida faz leitura e tratamento do arquivo tb_procedimento.txt
 
-
-FAZER ROTINA SIMILAR A PROCEDIMENTOS PARA O OCUPAÇÔES.
-
-
-
-
-
-
-
-ac <- read.dbc::read.dbc("C:/Users/gabli/Desktop/r/SIS/Bases/sim/dbc/DOAC2023.dbc") |>
-  clean_names()
-
-
-
-
-sim |>
-  count(ano,natural,cod_uf_natu) |>
-  view()
-
-
-rio::import("C:/Users/gabli/Desktop/tb_ocupacao08.txt")
-
-x <- data.table::fread("C:/Users/gabli/Desktop/tb_ocupacao08.txt",
-                       header = FALSE,
-                       sep = "\t")
-
-y <- data.table::fread("C:/Users/gabli/Desktop/tb_ocupacao25.txt",
-                    header = FALSE,
-               sep = "\t")
-
-
-x <- read.delim(
-  "C:/Users/gabli/Desktop/tb_ocupacao08.txt",
-  header = FALSE,
-  encoding = "latin1",
-  #O arquivo txt contém somente uma coluna
-  #Estou chamando essa coluna de cod_proc
-  col.names = c("cod_proc") ) |>   #Tratamento do tb_procedimento importado 
-  dplyr::mutate(
-    #Separação da coluna cod_proc em código do procedimento e descrição do procedimento 
-    cod = stringr::str_sub(cod_proc, 1, 6), #Pega os 10 primeiros dígitos do código. No dbcs do sih o código do procedimento está com 9 dígitos
-    resto  = stringr::str_sub(cod_proc, 7) |> stringr::str_trim(), .keep = "none")
-
-y <- read.delim(
-  "C:/Users/gabli/Desktop/tb_ocupacao25.txt",
-  header = FALSE,
-  encoding = "latin1",
-  #O arquivo txt contém somente uma coluna
-  #Estou chamando essa coluna de cod_proc
-  col.names = c("cod_proc") ) |>   #Tratamento do tb_procedimento importado 
-  dplyr::mutate(
-    #Separação da coluna cod_proc em código do procedimento e descrição do procedimento 
-    cod = stringr::str_sub(cod_proc, 1, 6), #Pega os 10 primeiros dígitos do código. No dbcs do sih o código do procedimento está com 9 dígitos
-    resto  = stringr::str_sub(cod_proc, 7) |> stringr::str_trim(), .keep = "none")     # Extrai o texto a partir do 11º dígito.
-
+ocupacoes_ftp_zip <- 
+  function(arquivo) {
+  #Informa o arquivo zip importado
+  message("Processando: ", arquivo)
   
+  #Cria pasta destino temporária para arquivo zip importado
+  destino <- file.path(tempdir(), arquivo)
   
+  #Faz download
+  download.file(
+    url = paste0(ftp_base, arquivo), #link do ftp de interesse + arquivo de interesse
+    destfile = destino, #Pasta temporária do zip
+    mode = "wb")
   
+  #Extração da versão do arquivo zip. 
+  #Objeto com a versão do arquivo zip
+  versao <- stringr::str_extract(arquivo, "\\d{6}") |> as.integer()
+  
+  #Lê e trata tb_procedimento.txt
+  dados <- read.delim(
+    unz(destino, "tb_ocupacao.txt"), #Extração do zip.
+    header = FALSE,
+    encoding = "latin1",
+    #O arquivo txt contém somente uma coluna
+    #Estou chamando essa coluna de cod_ocup
+    col.names = c("cod_ocup") ) |> 
+    
+    #Tratamento do tb_ocupacao.txt importado 
+    dplyr::mutate(
+      #Separação da coluna cod_ocup em código do procedimento e descrição do procedimento 
+      #Pega os 6 primeiros dígitos do código. 
+      cod = stringr::str_sub(cod_ocup, 1, 6),
+      #Descrição da ocupação.
+      def_ocup  = stringr::str_sub(cod_ocup, 7) |> 
+      #Remove espaçoes excedentes.  
+      stringr::str_trim() |>
+      #Transforma em factor
+      forcats::as_factor(),
+      #Cria coluna versão
+      versao_cod_proc = versao) |> 
+    dplyr::select(-c(cod_ocup) ) |>
+    data.table::setDT()
+  
+  return(dados)
+}
+
+#Aplica a função para todos os arquivos do fpt e empilha resultados
+ocupacao <- lapply(arquivos, 
+                   ocupacoes_ftp_zip) |> 
+  #Empilhamento da lista.
+  data.table::rbindlist()
+
+#Remove duplicados, mantendo o mais recente por cod
+data.table::setorder(ocupacao, cod, -versao_cod_proc) #ordena por cod e versão desc
+ocupacao <- ocupacao[!duplicated(cod)]
 
 
-full_join(x,y, join_by("cod") ) |> view()
+
+
+
+
+
+
+
+
