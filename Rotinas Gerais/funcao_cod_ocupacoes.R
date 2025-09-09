@@ -71,7 +71,9 @@ ocupacoes_ftp_zip <-
 ocupacao <- lapply(arquivos, 
                    ocupacoes_ftp_zip) |> 
   #Empilhamento da lista.
-  data.table::rbindlist() %>%
+  data.table::rbindlist() 
+
+ocupacao <- ocupacao %>%
 #Adicionar cbos que não estão no txt do ftp.
   bind_rows(
     tibble(
@@ -82,20 +84,10 @@ ocupacao <- lapply(arquivos,
                    "DESEMPREGADO CRONICO OU CUJA OCUPACAO HABITUAL NAO FOI POSSIVEL OBTER",
                    "ESTUDANTE",
                    "Ignorada"),
-      versao_cod_proc = first(ocupacao$versao_cod_proc)  # repete o valor automaticamente
-    )
-  ) 
-
-# #Adicionar Missing quando código for NA. Útil ao fazer o join. 
-# dplyr::add_row(
-#   cod = NA_character_,
-#   def_ocup = "Missing")  
-# 
-# "999993" ~ "APOSENTADO/PENSIONISTA",
-# "999992" ~ "DONA DE CASA",
-# "999994" ~ "DESEMPREGADO CRONICO OU CUJA OCUPACAO HABITUAL NAO FOI POSSIVEL OBTER",
-# "999991" ~ "ESTUDANTE",
-# "998999" ~ "Ignorada" 
+      #repete o valor automaticamente
+      versao_cod_proc = first(ocupacao$versao_cod_proc) ) ) |>
+  #Primeira letra maiúscula
+  mutate(def_ocup = def_ocup |> stringr::str_to_title() )
 
 #Remove duplicados, mantendo o mais recente por cod
 data.table::setorder(ocupacao, cod, -versao_cod_proc) #ordena por cod e versão desc
@@ -104,41 +96,41 @@ beepr::beep(sound = 1)
 
 
 
-
-
-
-# Códigos no Sim que 
-
-#Encontrei os códigos em:
-#https://central3.to.gov.br/arquivo/312288/  
-
-
-
-#
-
-
-ocupacao <- 
-  ocupacao |>
-  mutate(def_ocup = case_match(
-         .x = cod, 
-         "999993" ~ "APOSENTADO/PENSIONISTA",
-         "999992" ~ "DONA DE CASA",
-         "999994" ~ "DESEMPREGADO CRONICO OU CUJA OCUPACAO HABITUAL NAO FOI POSSIVEL OBTER",
-         "999991" ~ "ESTUDANTE",
-         "514210" ~ "Faxineiro", #Parece existir novo cod para faxineiro 514320
-         "223115" ~ "MEDICO CLINICO", #alterada para o código 2251-25
-         "510125" ~ "CHEFE DE COZINHA", #novo 271105 Chefe de cozinha
-         "223130" ~ "MEDICO GENETICISTA", #novo 225175 Médico geneticista
-         "223132" ~ "MEDICO GINECOLOGISTA E OBSTETRA", #novo 2252-50
-         "223153" ~ "MEDICO PSIQUIATRA", #Novo 2251-33                       
-         "223620" ~ "TERAPEUTA OCUPACIONAL", #Novo 2239-05
-         "253120" ~ "ANALISTA DE NEGOCIOS", #Novo 1423-30
-         "991405" ~ "TRABALHADOR DA MANUTENCAO DE EDIFICACOES", #5143-25 
-         .default = def_ocup) )  
-
-
-
-#Alguns códigos de cbos não estão nas tabelas do FTP.
-
+# 
+# 
+# 
+# # Códigos no Sim que 
+# 
+# #Encontrei os códigos em:
+# #https://central3.to.gov.br/arquivo/312288/  
+# 
+# 
+# 
+# #
+# 
+# 
+# ocupacao <- 
+#   ocupacao |>
+#   mutate(def_ocup = case_match(
+#          .x = cod, 
+#          "999993" ~ "APOSENTADO/PENSIONISTA",
+#          "999992" ~ "DONA DE CASA",
+#          "999994" ~ "DESEMPREGADO CRONICO OU CUJA OCUPACAO HABITUAL NAO FOI POSSIVEL OBTER",
+#          "999991" ~ "ESTUDANTE",
+#          "514210" ~ "Faxineiro", #Parece existir novo cod para faxineiro 514320
+#          "223115" ~ "MEDICO CLINICO", #alterada para o código 2251-25
+#          "510125" ~ "CHEFE DE COZINHA", #novo 271105 Chefe de cozinha
+#          "223130" ~ "MEDICO GENETICISTA", #novo 225175 Médico geneticista
+#          "223132" ~ "MEDICO GINECOLOGISTA E OBSTETRA", #novo 2252-50
+#          "223153" ~ "MEDICO PSIQUIATRA", #Novo 2251-33                       
+#          "223620" ~ "TERAPEUTA OCUPACIONAL", #Novo 2239-05
+#          "253120" ~ "ANALISTA DE NEGOCIOS", #Novo 1423-30
+#          "991405" ~ "TRABALHADOR DA MANUTENCAO DE EDIFICACOES", #5143-25 
+#          .default = def_ocup) )  
+# 
+# 
+# 
+# #Alguns códigos de cbos não estão nas tabelas do FTP.
+# 
 
 
