@@ -1054,8 +1054,8 @@ select(!c(causa_letra,causa_num) )
   #### Ocupações do falecido 
   ### Ocupações da mae ocupmae
   
-sim <- 
-    sim |>
+data <- 
+    data |>
     left_join(x = _, 
               y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup_mae = def_ocup), 
               join_by("ocupmae" == "cod") ) |>
