@@ -77,13 +77,16 @@ ocupacao <- ocupacao |>
 #Adicionar cbos que não estão no txt do ftp.
   dplyr::bind_rows(
     dplyr::tibble(
-      cod = c(NA_character_, "999993", "999992", "999994", "999991", "998999"),
+      cod = c(NA_character_, "999993", "999992", "999994", "999991", "998999", "322310",
+              "223610"),
       def_ocup = c("Missing", 
                    "APOSENTADO/PENSIONISTA",
                    "DONA DE CASA",
                    "DESEMPREGADO CRONICO OU CUJA OCUPACAO HABITUAL NAO FOI POSSIVEL OBTER",
                    "ESTUDANTE",
-                   "Ignorada"),
+                   "Ignorada",
+                   "Técnicos em óptica e optometria",
+                   "FONOAUDIOLOGO"),
       #repete o valor automaticamente
       versao_cod_proc = dplyr::first(ocupacao$versao_cod_proc) ) ) |>
   #Primeira letra maiúscula
