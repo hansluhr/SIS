@@ -75,8 +75,8 @@ ocupacao <- lapply(arquivos,
 
 ocupacao <- ocupacao %>%
 #Adicionar cbos que não estão no txt do ftp.
-  bind_rows(
-    tibble(
+  dplyr::bind_rows(
+    dplyr::tibble(
       cod = c(NA_character_, "999993", "999992", "999994", "999991", "998999"),
       def_ocup = c("Missing", 
                    "APOSENTADO/PENSIONISTA",
@@ -87,7 +87,7 @@ ocupacao <- ocupacao %>%
       #repete o valor automaticamente
       versao_cod_proc = first(ocupacao$versao_cod_proc) ) ) |>
   #Primeira letra maiúscula
-  mutate(def_ocup = def_ocup |> stringr::str_to_title() )
+  dplyr::mutate(def_ocup = def_ocup |> stringr::str_to_title() )
 
 #Remove duplicados, mantendo o mais recente por cod
 data.table::setorder(ocupacao, cod, -versao_cod_proc) #ordena por cod e versão desc
