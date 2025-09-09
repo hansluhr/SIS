@@ -1,4 +1,3 @@
-
 #URL do FTP
 ftp_base <- "ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads/"
 
