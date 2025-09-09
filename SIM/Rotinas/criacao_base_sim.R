@@ -20,7 +20,6 @@ rm(baixar_dbc_sim)
 
 
 # Elaboração base SIM -----------------------------------------------------
-
 #Abre conexão com a database. Este arquivo armazena a base SIH.
 # con <- dbConnect(duckdb::duckdb(), 
 #                  dbdir = here::here("Bases/sim/duckdb/sim.duckdb"), #Nome do database que armazena o SIH
@@ -28,6 +27,10 @@ rm(baixar_dbc_sim)
 
 #Importação da tabela de municípios
 # source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
+
+
+
+
 
 
 #Variáveis zeradas.
@@ -64,7 +67,7 @@ importar_dbc <- function(pasta) {
 
 
 sim <- importar_dbc("C:/Users/gabli/Desktop/r/SIS/Bases/sim/dbc")
-rm(list = setdiff(ls(), c("sim","ac") ) ); gc()
+rm(list = setdiff(ls(), c("sim","ocupacao") ) ); gc()
 beepr::beep(sound = 1)
 glimpse(sim)
 
@@ -82,3 +85,20 @@ sim |>
 
 ac <- read.dbc::read.dbc("C:/Users/gabli/Desktop/r/SIS/Bases/sim/dbc/DOAL2023.dbc") |>
   janitor::clean_names()
+
+
+
+sim |>
+  filter(is.na(def_ocup) ) |>
+  count(ano) 
+  arrange(desc(n)) |> 
+
+
+
+
+
+
+sim |>
+  filter(is.na(def_ocup)) |>
+  reframe(x = nchar(ocup)) |>
+  count(x)
