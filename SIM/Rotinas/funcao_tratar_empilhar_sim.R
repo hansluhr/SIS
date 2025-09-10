@@ -22,7 +22,9 @@ tratar_sim <- function(data) {
 # Transformações utilizando mutate ----------------------------------------
   data |> 
 
-    #Rename do código munic de resdiência. Útil para criar variável com o nome padrão de resd
+    #Rename do código munic de resdiência. 
+    #Útil para criar variável com o nome padrão de resd
+    #Rename do código do munic svoiml. faciliar o nome padrão.
     rename(codmunresd = codmunres,
            codmunsvoi = comunsvoim) |>
     
@@ -353,7 +355,6 @@ tratar_sim <- function(data) {
        #Atribuição de nome na variável
        .names = "def_{str_sub(.col)}"),
    
-
        #Escolaridade do falecido agregada (formulário a partir de 2010). ESCFALAGR1
        #Escolaridade  da  mãe  agregada  (formulário  a  partir  de  2010). escmaeagr1
        across(.cols = c(escfalagr1, escmaeagr1), 
@@ -1071,106 +1072,53 @@ tratar_sim <- function(data) {
         .default = def_ocup),
       def_ocup_mae = case_when(
         nchar(as.character(ocupmae)) < 4 ~ "Erro Preenchimento",
-        .default =  def_ocup_mae ) ) |>
+        .default =  def_ocup_mae ),
+# Municípios --------------------------------------------------------------      
+
+#Correção de ids com código de regiões administrativas do Distrito Federal.
+#Vou assumir que ids começando em 53 são do Distrito Federal
+  across( c(codmunresd, codmunocor, codmuncart, codmunnatu, codmunsvoi), ~
+                #Caso id comece em 53, então valor do Distrito Federal 530010
+                case_when(str_sub(., 1, 2) == "53" ~ "530010",
+                          .default = .) |> as_factor() ) )  |> 
+    #Fazendo o join com a base de municípios
+    #Vou pegar o nome dos municípios
+    #Município de residência
+    left_join(x = _,
+              y = select(munics, c(code_muni, name_muni) ) |>
+                rename(def_munic_resd = name_muni), by = join_by("codmunresd" == "code_muni") )  |>
     
+    #Município de ocorrência
+    left_join(x = _,
+              y = select(munics, c(code_muni, name_muni) ) |>
+                rename(def_munic_ocor = name_muni), by = join_by("codmunocor" == "code_muni") ) |>
+    
+    #Município do cartório
+    left_join(x = _,
+              y = select(munics, c(code_muni, name_muni) ) |>
+                rename(def_munic_cart = name_muni), by = join_by("codmuncart" == "code_muni") ) |>
+    
+    #Município naturalidade
+    left_join(x = _,
+              y = select(munics, c(code_muni, name_muni) ) |>
+                rename(def_munic_natu = name_muni), by = join_by("codmunnatu" == "code_muni") ) |>
+    
+    #Município do Serviço de vigilância do óbito ou IML
+    left_join(x = _,
+              y = select(munics, c(code_muni, name_muni) ) |>
+                rename(def_munic_svoi = name_muni), by = join_by("codmunsvoi" == "code_muni") ) |>
+
 #Exclusão de variáveis não utilizadas ------------------------------------
       select(!c(causa_letra,causa_num) )
-      
-
-# Municípios --------------------------------------------------------------
-
-  # #Correção de ids com código de regiões administrativas do Distrito Federal.
-  # #Vou assumir que ids começando em 53 são do Distrito Federal
-  # across( c(codmunresd, codmunocor, codmuncart, codmunnatu, comunsvoim), ~
-  #           #Caso id comece em 53, então valor do Distrito Federal 530010
-  #           case_when(str_sub(., 1, 2) == "53" ~ "530010",
-  #                     .default = .) |> as_factor() ) ) |>
-  #   
-  # #Fazendo o join com a base de municípios
-  # #Vou pegar o nome dos municípios
-  # #Como tratar municípios com ids numéricas, mas códigos sem correspondência?
-  # left_join(x = _, y = munics |> rename(munic_not = nm_municip), by = join_by("id_municip" == "cod_ibge") ) |>
-  # #Municípios de residência
-  # left_join(x = _, y = munics |> rename(munic_resd = nm_municip), by = join_by("id_mn_resi" == "cod_ibge") ) |>
-  # #Município de ocorência
-  # left_join(x = _, y = munics |> rename(munic_ocor = nm_municip), by = join_by("id_mn_ocor" == "cod_ibge") ) |>
-  # 
-    
-    
-    
-  #   
-  # #Acrescentar Erro de Preenchimento ao nome dos municípios com id missing
-  # #Acrescentar Erro de Preenchimento ao nome dos municípios com id preenchido com código desconhecido
-  # #Exemplo : id_mn_ocor == 277992 
-  # mutate(
-  #   across( c(munic_not,munic_ocor,munic_resd), ~ fct_na_value_to_level(.x, level = "Erro de Preenchimento") ) )
-  #   
-    
-    
-    
-    
-
- 
-  
-  ######################################################################################################################
-
-
-   #### Código do estabelecimento
-  
-  
-  
-    # #Correções nos códigos do DF. Existem códigos das regiões administrativas. Conserta para código do DF.
-    # MUNIC_MOV = fifelse(startsWith(as.character(MUNIC_MOV), "53"), "530010", as.character(MUNIC_MOV)),
-    # MUNIC_RES = fifelse(startsWith(as.character(MUNIC_RES), "53"), "530010", as.character(MUNIC_RES)),
-
-  
-  
- 
-  # #Municípios --------------------------------------------------------------
-# 
    
-  #COMUNSVOIM
-    #Município e UF do SVO ou IML
-  
-#     #left_Join com município de residência
-#   data <- merge(
-#     x = data,
-#     y = munics,
-#     by.x = "MUNIC_RES",
-#     by.y = "code_muni",
-#     all.x = TRUE,
-#     suffixes = c("", "_resd")
-#   )
-#   
-#   #Renomear colunas de residência
-#   setnames(data,
-#            old = c("name_muni", "MUNIC_RES", "code_state", "abbrev_state", "name_state", "name_region"),
-#            new = c("def_munic_resd", "cod_munic_resd", "code_state_resd", "abbrev_state_resd", "def_uf_resd", "region_resd"))
-#   
-#   #left_join com município de internação
-#   data <- merge(
-#     x = data,
-#     y = munics,
-#     by.x = "MUNIC_MOV",
-#     by.y = "code_muni",
-#     all.x = TRUE,
-#     suffixes = c("", "_int")
-#   )
-#   
-#   #Renomear variáveis
-#   setnames(data,
-#            old = c("NASC", "ESPEC", "PROC_SOLIC", "PROC_REA", "INSTRU"),
-#            new = c("DT_NASC", "COD_ESPEC", "COD_PROC_SOLIC", "COD_PROC_REA", "ESC"))
-#   
-#   #Renomear colunas de internação
-#   setnames(data,
-#            old = c("name_muni", "MUNIC_MOV", "code_state", "abbrev_state", "name_state", "name_region"),
-#            new = c("def_munic_int", "cod_munic_int", "code_state_int", "abbrev_state_int", "def_uf_int", "region_int"))
-#   
+# Código do estabelecimento -----------------------------------------------
+
+
   # data <- tibble::as_tibble(data) 
   # data <- droplevels(data.table::as.data.table(data))
   # data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
   #                                                   FUN = stringi::stri_unescape_unicode)))
+  
   
 }
 
