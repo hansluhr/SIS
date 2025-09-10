@@ -1057,7 +1057,19 @@ tratar_sim <- function(data) {
     
     left_join(x = _, 
               y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup = def_ocup), 
-              join_by("ocup" == "cod") )   |>
+              join_by("ocup" == "cod") ) |>
+    #Cbos de 5 dígitos são cbos antigas. Estou procurando a tabela de correspondência.
+    #Outras cbos apresentam valores incorretos.
+    #Estou considerando cbos com contagens de dígitos inferior a 4 como erro de 
+    #preenchimento
+    mutate(
+      def_ocup = case_when(
+        nchar(as.character(ocup)) < 4 ~ "Erro Preenchimento",
+        .default = def_ocup),
+      def_ocup_mae = case_when(
+        nchar(as.character(ocupmae)) < 4 ~ "Erro Preenchimento",
+        .default =  def_ocup_mae ) ) |>
+
     
 #Exclusão de variáveis não utilizadas ------------------------------------
 select(!c(causa_letra,causa_num) )
