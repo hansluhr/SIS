@@ -23,7 +23,8 @@ tratar_sim <- function(data) {
   data |> 
 
     #Rename do código munic de resdiência. Útil para criar variável com o nome padrão de resd
-    rename(codmunresd = codmunres) |>
+    rename(codmunresd = codmunres,
+           codmunsvoi = comunsvoim) |>
     
     mutate(
     
@@ -271,36 +272,38 @@ tratar_sim <- function(data) {
       mes = lubridate::month(dtobito,label = TRUE) |> as_factor(),
       dia = lubridate::wday(dtobito,label = TRUE) |> as_factor(), 
        
-      
       #Código dos municípios de ocorrência e residência com seis dígitos
       #No microdado do SIM. A partir de 2006 o código do município aparece com 6 dígitos. 
       #Vou deixar todos os municípios em todos os anos com 6 dígitos.
       across(.cols =  c(codmunnatu, #Código município de naturalidade do falecido. 
-                        codmunresd,  #Código município de residência
-                        codmunocor), #Código município de ocorrência.
+                        codmunresd, #Código município de residência
+                        codmunocor, #Código município de ocorrência. 
+                        codmuncart, #Código do município do cartório
+                        codmunsvoi), #Código do município do SVO ou do IML
              .fns = ~ substr(., start = 1, stop = 6) ), 
       
       #Pegar o código da uf de ocorrência, uf de residência e uf de naturalidade
-      across(.cols = c(codmunocor, codmunresd, codmunnatu), .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
-             #Extração do nome a partir do 7º e até 10º dígito do nome das variáveis de origem. 
+      across(.cols = c(codmunocor, codmunresd, codmunnatu, codmuncart, codmunsvoi),
+             .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
+             #Extração do nome a partir do 7º e até 10º dígito do nome das variáveis de origem. (codmunxxx)
              .names = "cod_uf_{str_sub(.col, start = 7, end = 10)}"),
       
       #Nome da UF de ocorrência e UF de residência.
-      across(.cols = c(cod_uf_ocor, cod_uf_resd, cod_uf_natu),
+      across(.cols = c(cod_uf_ocor, cod_uf_resd, cod_uf_natu, cod_uf_cart, cod_uf_svoi),
              .fns = ~  recode(.,
-                                       '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", 
-                                       '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins", 
-                                       '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte", 
-                                       '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas", 
-                                       '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais", 
-                                       '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo", 
-                                       '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul", 
-                                       '50'= "Mato Grosso do Sul",'51'= "Mato Grosso", 
-                                       '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC", .missing = "Missing") |> as_factor(), 
+                              '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", 
+                              '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins", 
+                              '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte", 
+                              '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas", 
+                              '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais", 
+                              '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo", 
+                              '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul", 
+                              '50'= "Mato Grosso do Sul",'51'= "Mato Grosso", 
+                              '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC", .missing = "Missing") |> as_factor(), 
              .names = "def_uf_{str_sub(.col, start = 8, end = 11)}"),  
        
       #Nome da região de ocorrência e região de residência.
-      across(.cols = c(def_uf_ocor, def_uf_resd, def_uf_natu),
+      across(.cols = c(def_uf_ocor, def_uf_resd, def_uf_natu, def_uf_cart, def_uf_svoi),
              
              .fns = ~ case_when(
                #Região Norte
@@ -1045,9 +1048,7 @@ tratar_sim <- function(data) {
                                "239" ~ "Zimbabwe", 
                                 NA ~ "Missing",       
                                .default = natural) |> as_factor() ) ) |>
-    
-    
-    
+
 # Ocupações ---------------------------------------------------------------
   #### Ocupações do falecido 
   ### Ocupações da mae ocupmae
@@ -1069,11 +1070,44 @@ tratar_sim <- function(data) {
       def_ocup_mae = case_when(
         nchar(as.character(ocupmae)) < 4 ~ "Erro Preenchimento",
         .default =  def_ocup_mae ) ) |>
-
     
 #Exclusão de variáveis não utilizadas ------------------------------------
-select(!c(causa_letra,causa_num) )
-  
+      select(!c(causa_letra,causa_num) )
+      
+
+# Municípios --------------------------------------------------------------
+
+  # #Correção de ids com código de regiões administrativas do Distrito Federal.
+  # #Vou assumir que ids começando em 53 são do Distrito Federal
+  # across( c(codmunresd, codmunocor, codmuncart, codmunnatu, comunsvoim), ~
+  #           #Caso id comece em 53, então valor do Distrito Federal 530010
+  #           case_when(str_sub(., 1, 2) == "53" ~ "530010",
+  #                     .default = .) |> as_factor() ) ) |>
+  #   
+  # #Fazendo o join com a base de municípios
+  # #Vou pegar o nome dos municípios
+  # #Como tratar municípios com ids numéricas, mas códigos sem correspondência?
+  # left_join(x = _, y = munics |> rename(munic_not = nm_municip), by = join_by("id_municip" == "cod_ibge") ) |>
+  # #Municípios de residência
+  # left_join(x = _, y = munics |> rename(munic_resd = nm_municip), by = join_by("id_mn_resi" == "cod_ibge") ) |>
+  # #Município de ocorência
+  # left_join(x = _, y = munics |> rename(munic_ocor = nm_municip), by = join_by("id_mn_ocor" == "cod_ibge") ) |>
+  # 
+    
+    
+    
+  #   
+  # #Acrescentar Erro de Preenchimento ao nome dos municípios com id missing
+  # #Acrescentar Erro de Preenchimento ao nome dos municípios com id preenchido com código desconhecido
+  # #Exemplo : id_mn_ocor == 277992 
+  # mutate(
+  #   across( c(munic_not,munic_ocor,munic_resd), ~ fct_na_value_to_level(.x, level = "Erro de Preenchimento") ) )
+  #   
+    
+    
+    
+    
+
  
   
   ######################################################################################################################
