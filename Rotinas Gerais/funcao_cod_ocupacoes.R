@@ -16,11 +16,8 @@ arquivos <-
 #Neste zip está o arquivo de interesse tb_procedimento.txt
 arquivos <- arquivos[stringr::str_detect(arquivos, "^TabelaUnificada_.*\\.zip$")]
 
-#arquivos <- arquivos[stringr::str_detect(arquivos, "^TabelaUnificada_2025.*\\.zip")]
-
 #Vou criar função para auxiliar no empilhamento.
-#A função faz o downlaod e acesso do zip, e seguida faz leitura e tratamento do arquivo tb_procedimento.txt
-
+#A função faz o downlaod e acesso do zip, e seguida faz leitura e tratamento do arquivo tb_ocupacao.txt
 ocupacoes_ftp_zip <- 
   function(arquivo) {
   #Informa o arquivo zip importado
