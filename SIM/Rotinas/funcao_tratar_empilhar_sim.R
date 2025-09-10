@@ -299,7 +299,9 @@ tratar_sim <- function(data) {
                               '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo", 
                               '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul", 
                               '50'= "Mato Grosso do Sul",'51'= "Mato Grosso", 
-                              '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC", .missing = "Missing") |> as_factor(), 
+                              '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC", 
+                              .default = "Cod Munic Erro",
+                              .missing = "Missing") |> as_factor(), 
              .names = "def_uf_{str_sub(.col, start = 8, end = 11)}"),  
        
       #Nome da região de ocorrência e região de residência.
