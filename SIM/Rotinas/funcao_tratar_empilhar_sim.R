@@ -497,86 +497,152 @@ tratar_sim <- function(data) {
 
   #39 - Necrópsia
   #Refere-se a execução ou não de necropsia para confirmação do diagnóstico  
-  def_necropsia = case_match(.x = necropsia,
+  def_necropsia = 
+  if ("necropsia" %in% names(data) ) {
+  
+  case_match(.x = necropsia,
                              "1" ~ "Sim",
                              "2" ~ "Não",
                              NA ~ "Missing",
-                             .default = "Ignorado") |> as_factor(),
+                             .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #43 - Óbito atestado por Médico
-  def_atestante = case_match(.x = atestante,
+  def_atestante = 
+  if ("atestante" %in% names(data) ) {
+  
+  case_match(.x = atestante,
                              "1" ~ "Assistente",
                              "2" ~ "Substituto",
                              "3" ~ "IML",
                              "4" ~ "SVO",
                              "5" ~ "Outro", 
                              NA ~ "Missing",
-                             .default = "Ignorado") |> as_factor(),
-  
+                             .default = "Ignorado") |> as_factor()  
+    } else {
+      factor("Missing")
+    },
+
   #48 - Tipo. Tipo de morte violenta ou circunstâncias em que se deu a morte não natural
- def_circobito = case_match(.x = circobito,
+  def_circobito = 
+  if ("circobito" %in% names(data) ) {
+  
+  case_match(.x = circobito,
                        "1" ~ "Acidente",
                        "2" ~ "Suicídio",
                        "3" ~ "Homicídio",
                        "4" ~ "Outros",
                        NA ~ "Missing", 
-                       .default = "Ignorado") |> as_factor(),
+                       .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #49 - Acidente do trabalho. Indica se o evento que desencadeou o óbito 
   #está relacionado ao processo de trabalho 
-  def_acidtrab = case_match(.x = acidtrab,
+  def_acidtrab = 
+  if ("acidtrab" %in% names(data) ) {
+  
+  case_match(.x = acidtrab,
                             "1" ~ "Sim",
                             "2" ~ "Não",
                             NA ~ "Missing",
-                            .default = "Ignorado") |> as_factor(),
+                            .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
   
   #50 - Fonte da Informação. fonte de informação utilizada para o preenchimento dos campos 48 e 49 
-  def_fonte = case_match(.x = fonte,
+  def_fonte = 
+  if ("fonte" %in% names(data) ) {
+  
+  case_match(.x = fonte,
                          "1" ~ "Ocorrência Policial",
                          "2" ~ "Hospital",
                          "3" ~ "Família",
                          "4" ~ "Outra", 
                          NA ~ "Missing", 
-                         .default = "Ignorado") |> as_factor(),
+                         .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Origem 
-  def_origem = case_match(.x = origem,
+  def_origem = 
+  if ("origem" %in% names(data) ) {
+    
+  case_match(.x = origem,
                           "1" ~ "Oracle",
                           "2" ~ "Banco estadual diponibilizado via FTP",
                           "3" ~ "Banco SEADE", 
                           NA ~ "Missing", 
-                          .default = "Ignorado") |> as_factor(),
+                          .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
+
   #Óbito na gravidez
-  def_obitograv = case_match(.x = obitograv,
+  def_obitograv = 
+  if ("obitograv" %in% names(data) ) {
+  
+  case_match(.x = obitograv,
                              "1" ~ "Sim",
                              "2" ~ "Não",
                              NA ~ "Missing",
-                             .default = "Ignorado") |> as_factor(),
+                             .default = "Ignorado") |> as_factor()
+    
+  } else {
+    factor("Missing")
+  },
+
 
   #Óbito no puerpério
-  def_obitopuerp = case_match(.x = obitopuerp,
+  def_obitopuerp = 
+  if ("obitopuerp" %in% names(data) ) {
+  
+  case_match(.x = obitopuerp,
                               "1" ~ "Até 42 dias após o parto",
                               "2" ~ "De 43 dias a 1 ano após o parto",
                               "3" ~ "Não",
                               NA ~ "Missing", 
-                              .default = "Ignorado") |> as_factor(),
+                              .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Exame. Realização de exame 
-  def_exame = case_match(.x = exame,
+  def_exame = 
+  if ("exame" %in% names(data) ) {
+  
+  case_match(.x = exame,
                          "1" ~ "Sim",
                          "2" ~ "Não", 
                          NA ~ "Missing",
-                         .default = "Ignorado") |> as_factor(),
+                         .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Cirurgia. Realização de Cirurgia
-  def_cirurgia = case_match(.x = cirurgia,
+  def_cirurgia = 
+  if ("cirurgia" %in% names(data) ) {
+  
+  case_match(.x = cirurgia,
                             "1" ~ "Sim",
                             "2" ~ "Não",
                             NA ~ "Missing",
-                            .default = "Ignorado") |> as_factor(),
+                            .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Fonte de informação.
-  def_fonteinv = case_match(.x = fonteinv,
+  def_fonteinv = 
+  if ("fonteinv" %in% names(data) ) {
+  
+  case_match(.x = fonteinv,
                             "1" ~ "Comitê de Morte Materna e/ou Infantil",
                             "2" ~ "Visita domiciliar / Entrevista família",
                             "3" ~ "Estabelecimento de Saúde / Prontuário", 
@@ -586,24 +652,42 @@ tratar_sim <- function(data) {
                             "7" ~ "Outra Fonte",
                             "8" ~ "Múltiplas Fontes",
                             NA ~ "Missing", 
-                            .default = "Ignorado") |> as_factor(),
+                            .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Status de DO Epidemiológica  
-  def_stdoepidem = case_match(.x = stdoepidem,
+  def_stdoepidem = 
+  if ("stdoepidem" %in% names(data) ) {
+  
+  case_match(.x = stdoepidem,
                               "1" ~ "Sim",
                               "0" ~ "Não",
                               NA ~  "Missing",
-                              .default = "Ignorado") |> as_factor(),
+                              .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Status de DO Nova 
-  def_stdonova = case_match(.x = stdonova,
+  def_stdonova = 
+  if ("stdoepidem" %in% names(data) ) {
+  
+  case_match(.x = stdonova,
                             "1" ~ "Sim",
                             "0" ~ "Não",
                             NA ~  "Missing",
-                            .default = "Ignorado") |> as_factor(),
+                            .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Momento da ocorrência do óbito.
-  def_tpobitocor = case_match(.x = tpobitocor,
+  def_tpobitocor = 
+  if ("tpobitocor" %in% names(data) ) {
+    
+  case_match(.x = tpobitocor,
                               "1" ~ "Durante a gestação",
                               "2" ~ "Durante o abortamento",
                               "3" ~ "Após o abortamento",
@@ -614,50 +698,88 @@ tratar_sim <- function(data) {
                               "8" ~ "Mais de um ano após o parto",
                               "9" ~  "óbito não ocorreu nas circunstancias anteriores",
                               NA ~  "Missing",
-                              .default = "Ignorado") |> as_factor(),
+                              .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Informa se a investigação permitiu o 
   #resgate de alguma causa de óbito não informado, ou a 
   #correção de alguma antes informada 
-  def_tpresginfo = case_match(.x = tpresginfo,
+  def_tpresginfo = 
+  if ("tpresginfo" %in% names(data) ) {
+  
+  
+  case_match(.x = tpresginfo,
                               "1" ~ "Não acrescentou nem corrigiu informação",
                               "2" ~ "Sim, permitiu o resgate de novas informações",
                               "3" ~ "Sim, permitiu a correção de alguma das causas informadas originalmente",
                               NA ~  "Missing",
-                              .default = "Ignorado") |> as_factor(),
+                              .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Tipo de nível investigador 
-  def_tpnivelinv = case_match(.x = tpnivelinv, 
+  def_tpnivelinv = 
+  if ("tpnivelinv" %in% names(data) ) {
+  
+  case_match(.x = tpnivelinv, 
                               "E" ~ "Estadual",
                               "R" ~ "Regional",
                               "M" ~ "Municipal",
                               NA ~ "Missing",
-                              .default = "Ignorado") |> as_factor(),
+                              .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Momento do óbito em relação ao parto após investigação  
-  def_morteparto = case_match(.x = morteparto,
+  def_morteparto = 
+  if ("morteparto" %in% names(data) ) {
+  
+  case_match(.x = morteparto,
                               "1" ~ "Antes",
                               "2" ~ "Durante",
                               "3" ~ "Após",
                               NA ~ "Missing",
-                              .default = "Ignorado") |> as_factor(),
+                              .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
+    
   
   #Indica se houve correção ou  alteração da  causa do óbito após investigação 
-  def_altcausa = case_match(.x = altcausa,
+  def_altcausa = 
+  if ("altcausa" %in% names(data) ) {
+  
+  case_match(.x = altcausa,
                             "1" ~ "Sim",
                             "0" ~ "Não",
                             NA ~  "Missing",
-                            .default = "Ignorado") |> as_factor(),
+                            .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
   
   #Óbito investigado 
-  def_tppos = case_match(.x = tppos,
+  def_tppos = 
+  if ("tppos" %in% names(data) ) {
+  
+  case_match(.x = tppos,
                          "1" ~ "Sim",
                          "0" ~ "Não",
                          NA ~  "Missing",
-                         .default = "Ignorado") |> as_factor(),  
+                         .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
 
   #Semanas de gestação (formulário antigo) Faixas de semanas de gestação 
-  def_gestacao = case_match(.x = gestacao,
+  def_gestacao = 
+  if ("gestacao" %in% names(data) ) {
+  
+  case_match(.x = gestacao,
                             "1" ~ "Menos de 22 semanas",
                             "2" ~ "22 a 27 semanas",
                             "3" ~ "28 a 31 semanas",
@@ -665,10 +787,16 @@ tratar_sim <- function(data) {
                             "5" ~ "37 a 41 semanas",
                             "6" ~ "42 e + semanas",
                             NA ~  "Missing",
-                            .default = "Ignorado") |> as_factor(), 
+                            .default = "Ignorado") |> as_factor()
+  } else {
+    factor("Missing")
+  },
      
-   #Internações por Condições Sensíveis à Atenção Primária #ICSAP: Identificação por CID
-  def_icsap = case_match(.x = causabas, 
+  #Internações por Condições Sensíveis à Atenção Primária #ICSAP: Identificação por CID
+  def_icsap = 
+  if ("causabas" %in% names(data) ) {
+  
+  case_match(.x = causabas, 
        
       c("A370", "A378", "A379", "A360", "A361", "A363", "A369", "A33", "A34", "A35", "B06", "B052", "A950", "A959", "B161", "B162", "B169", "G000",
        "A170", "A171", "A172", "A173", "A174", "A175", "A176", "A177", "A178", "A179", "A190", "A191", "A192", "A198", "A199",
@@ -725,13 +853,20 @@ tratar_sim <- function(data) {
         c("O23", "A500", "A501", "A502", "A503", "A504", "A505", "A506", "A507", "A509", "P35") ~ "cidgrupo19", 
        
        #Cids que não são ICSAP
-       .default = "Outros") |> as_factor(),
-
+       .default = "Outros") |> as_factor() 
+    
+  } else {
+    factor("Missing")
+  },
 
 #Naturalidade
 #Código iniciando com 8 para indicar naturalidade Brasileira. Neste caso, os dois dígitos 
 #seguintes paracem indicar a UF. Caso contrário, parece indicar estrangeiro. 
-    def_natural =  case_when(
+    def_natural =  
+  if ("natural" %in% names(data) ) {
+  
+  case_when(
+    
   #Començando com 8, então Brasil 
   str_starts(natural, "8") ~ "Brasil",
   #Se não for Brasileiro, então segue os códigos ou NA então missing.
@@ -988,7 +1123,7 @@ tratar_sim <- function(data) {
                                "173" ~ "Republica da africa do sul", 
                                "140" ~ "Republica da bielorrussia",
                                "133" ~ "Republica da macedonia", 
-                               "56" ~ "Republica de el salvador",
+                               "56"  ~ "Republica de el salvador",
                                "291" ~ "Republica de fiji",  
                                "120" ~ "Republica de malta",
                                "191" ~ "Republica do gabao",  
@@ -1070,16 +1205,16 @@ tratar_sim <- function(data) {
                                "237" ~ "Zambia",  
                                "239" ~ "Zimbabwe", 
                                 NA ~ "Missing",       
-                               .default = natural) |> as_factor() ) ) |>
+                               .default = natural) |> as_factor() ) } ) |>
 
 # Ocupações ---------------------------------------------------------------
-  #### Ocupações do falecido 
+   
   ### Ocupações da mae ocupmae
   left_join(x = _, 
               y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup_mae = def_ocup), 
               join_by("ocupmae" == "cod") ) |>
-    
-    left_join(x = _, 
+  #### Ocupações do falecido
+  left_join(x = _, 
               y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup = def_ocup), 
               join_by("ocup" == "cod") ) |>
     #Cbos de 5 dígitos são cbos antigas. Estou procurando a tabela de correspondência.
@@ -1106,11 +1241,16 @@ tratar_sim <- function(data) {
         .default =  def_ocup_mae ),
 # Municípios --------------------------------------------------------------      
      ### Refazer essa seção de municípios. Está horrível.
+
+
 #Correção de ids com código de regiões administrativas do Distrito Federal.
 #Vou assumir que ids começando em 53 são do Distrito Federal
-  across( c(codmunresd, codmunocor, codmuncart, codmunnatu, codmunsvoi), ~
-                #Caso id comece em 53, então valor do Distrito Federal 530010
-                case_when(str_sub(., 1, 2) == "53" ~ "530010",
+  across(.cols =  any_of(
+          c("codmunresd", "codmunocor", 
+            "codmuncart", "codmunnatu", 
+            "codmunsvoi") ), 
+          #Caso id comece em 53, então substituir pelo cod do Distrito Federal 530010
+          .fns = ~ case_when(str_sub(., 1, 2) == "53" ~ "530010",
                           .default = .) |> as_factor() ) )  |> 
     #Fazendo o join com a base de municípios
     #Vou pegar o nome dos municípios
@@ -1124,30 +1264,30 @@ tratar_sim <- function(data) {
               y = select(munics, c(code_muni, name_muni) ) |>
                 rename(def_munic_ocor = name_muni), by = join_by("codmunocor" == "code_muni") ) |>
     
-    #Município do cartório
-    left_join(x = _,
-              y = select(munics, c(code_muni, name_muni) ) |>
-                rename(def_munic_cart = name_muni), by = join_by("codmuncart" == "code_muni") ) |>
+    # #Município do cartório
+    # left_join(x = _,
+    #           y = select(munics, c(code_muni, name_muni) ) |>
+    #             rename(def_munic_cart = name_muni), by = join_by("codmuncart" == "code_muni") ) |>
     
-    #Município naturalidade
-    left_join(x = _,
-              y = select(munics, c(code_muni, name_muni) ) |>
-                rename(def_munic_natu = name_muni), by = join_by("codmunnatu" == "code_muni") ) |>
+    # #Município naturalidade
+    # left_join(x = _,
+    #           y = select(munics, c(code_muni, name_muni) ) |>
+    #             rename(def_munic_natu = name_muni), by = join_by("codmunnatu" == "code_muni") ) |>
     
-    #Município do Serviço de vigilância do óbito ou IML
-    left_join(x = _,
-              y = select(munics, c(code_muni, name_muni) ) |>
-                rename(def_munic_svoi = name_muni), by = join_by("codmunsvoi" == "code_muni") ) |>
+    # #Município do Serviço de vigilância do óbito ou IML
+    # left_join(x = _,
+    #           y = select(munics, c(code_muni, name_muni) ) |>
+    #             rename(def_munic_svoi = name_muni), by = join_by("codmunsvoi" == "code_muni") ) |>
 
 #Exclusão de variáveis não utilizadas ------------------------------------
       select(!c(causa_letra,causa_num) )
    
 # Código do estabelecimento -----------------------------------------------
 
-  # data <- tibble::as_tibble(data) 
-  # data <- droplevels(data.table::as.data.table(data))
-  # data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
-  #                                                   FUN = stringi::stri_unescape_unicode)))
+  data <- tibble::as_tibble(data)
+  data <- droplevels(data.table::as.data.table(data))
+  data <- suppressWarnings(tibble::as_tibble(lapply(X = data,
+                                                    FUN = stringi::stri_unescape_unicode)))
   
 }
 
