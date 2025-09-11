@@ -25,8 +25,9 @@ tratar_sim <- function(data) {
     #Rename do código munic de resdiência. 
     #Útil para criar variável com o nome padrão de resd
     #Rename do código do munic svoiml. faciliar o nome padrão.
-    rename(codmunresd = codmunres,
-           codmunsvoi = comunsvoim) |>
+    rename(
+      codmunresd = any_of("codmunres"),
+      codmunsvoi = any_of("comunsvoim") ) |>
     
     mutate(
     
@@ -277,21 +278,27 @@ tratar_sim <- function(data) {
       #Código dos municípios de ocorrência e residência com seis dígitos
       #No microdado do SIM. A partir de 2006 o código do município aparece com 6 dígitos. 
       #Vou deixar todos os municípios em todos os anos com 6 dígitos.
-      across(.cols =  c(codmunnatu, #Código município de naturalidade do falecido. 
-                        codmunresd, #Código município de residência
-                        codmunocor, #Código município de ocorrência. 
-                        codmuncart, #Código do município do cartório
-                        codmunsvoi), #Código do município do SVO ou do IML
+      across(.cols = any_of( 
+                      c("codmunnatu", #Código município de naturalidade do falecido. 
+                        "codmunresd", #Código município de residência
+                        "codmunocor", #Código município de ocorrência. 
+                        "codmuncart", #Código do município do cartório
+                        "codmunsvoi") ), #Código do município do SVO ou do IML
              .fns = ~ substr(., start = 1, stop = 6) ), 
       
       #Pegar o código da uf de ocorrência, uf de residência e uf de naturalidade
-      across(.cols = c(codmunocor, codmunresd, codmunnatu, codmuncart, codmunsvoi),
+      across(.cols =  any_of( c("codmunocor", "codmunresd", 
+                               "codmunnatu", "codmuncart", 
+                               "codmunsvoi") ),
              .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
              #Extração do nome a partir do 7º e até 10º dígito do nome das variáveis de origem. (codmunxxx)
              .names = "cod_uf_{str_sub(.col, start = 7, end = 10)}"),
       
       #Nome da UF de ocorrência e UF de residência.
-      across(.cols = c(cod_uf_ocor, cod_uf_resd, cod_uf_natu, cod_uf_cart, cod_uf_svoi),
+      across(.cols = any_of( 
+                      c("cod_uf_ocor", "cod_uf_resd", 
+                       "cod_uf_natu", "cod_uf_cart", 
+                       "cod_uf_svoi") ),
              .fns = ~  recode(.,
                               '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", 
                               '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins", 
@@ -307,7 +314,10 @@ tratar_sim <- function(data) {
              .names = "def_uf_{str_sub(.col, start = 8, end = 11)}"),  
        
       #Nome da região de ocorrência e região de residência.
-      across(.cols = c(def_uf_ocor, def_uf_resd, def_uf_natu, def_uf_cart, def_uf_svoi),
+      across(.cols = any_of( 
+                     c("def_uf_ocor", "def_uf_resd", 
+                       "def_uf_natu", "def_uf_cart", 
+                       "def_uf_svoi") ),
              
              .fns = ~ case_when(
                #Região Norte
@@ -327,7 +337,7 @@ tratar_sim <- function(data) {
       
       #Escolaridade em anos (esc)
       #Escolaridade da mãe em anos (escmae)
-      across(.cols = c(esc, escmae),
+      across(.cols = any_of( c("esc", "escmae") ),
              .fns = ~ case_match(.x = ., 
             "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", 
             "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
@@ -340,7 +350,7 @@ tratar_sim <- function(data) {
 
        #Escolaridade 2010. Nível da última série concluída pelo falecido (esc2010)
        #Escolaridade  2010.  Nível  da  última  série  concluída  pela  mãe. (escmae2010)
-       across(.cols = c(esc2010, escmae2010), 
+       across(.cols = any_of( c("esc2010", "escmae2010") ), 
        .fns = ~ case_match(.x = .,
        "0" ~  "Sem escolaridade", "1" ~  "Fundamental I (1ª a 4ª série)",
        "2" ~ "Fundamental II (5ª a 8ª série)", "3" ~ "Médio (antigo 2º Grau)",
@@ -357,7 +367,7 @@ tratar_sim <- function(data) {
    
        #Escolaridade do falecido agregada (formulário a partir de 2010). ESCFALAGR1
        #Escolaridade  da  mãe  agregada  (formulário  a  partir  de  2010). escmaeagr1
-       across(.cols = c(escfalagr1, escmaeagr1), 
+       across(.cols = any_of( c("escfalagr1", "escmaeagr1") ), 
        .fns = ~ case_match(.x = .,
         "00" ~ "Sem escolaridade", "01" ~  "Fundamental I Incompleto",
         "02" ~ "Fundamental I Completo", "03" ~ "Fundamental II Incompleto",
@@ -456,7 +466,9 @@ tratar_sim <- function(data) {
                               .default = "Ignorado") |> as_factor(),
   
   #37 - A morte ocorreu. Situação gestacional ou pósgestacional em que ocorreu o óbito  
-  def_tpmorteoco = case_match(.x = tpmorteoco,
+  def_tpmorteoco = 
+  if ("tpmorteoco" %in% names(data) ) {
+  case_match(.x = tpmorteoco,
                               "1" ~ "Na Gravidez",
                               "2" ~ "No Parto",
                               "3" ~ "No Abortamento",
@@ -464,16 +476,24 @@ tratar_sim <- function(data) {
                               "5" ~ "De 43 dias a 1 ano após o término da gestação",
                               "8" ~ "Não ocorreu nestes períodos",
                               NA ~ "Missing",
-                              .default = "Ignorado") |> as_factor(),
+                              .default = "Ignorado") |> as_factor() 
+    } else {
+      factor("Missing")
+    },
 
   #38- Recebeu assist. médica durante a doença que ocasionou a morte?
   #Se refere ao atendimento médico continuado que o paciente recebeu, ou não, 
   #durante a enfermidade que ocasionou o óbito  
-   def_assistmed = case_match(.x = assistmed,
+  def_assistmed = 
+  if ("assistmed" %in% names(data) ) {
+  case_match(.x = assistmed,
                              "1" ~ "Sim",
                              "2" ~ "Não",
                              NA ~ "Missing",
-                             .default = "Ignorado") |> as_factor(),
+                             .default = "Ignorado") |> as_factor() 
+    } else {
+      factor("Missing")
+    },
 
   #39 - Necrópsia
   #Refere-se a execução ou não de necropsia para confirmação do diagnóstico  
@@ -1129,7 +1149,6 @@ tratar_sim <- function(data) {
   # data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
   #                                                   FUN = stringi::stri_unescape_unicode)))
   
-  
 }
 
 
@@ -1147,11 +1166,11 @@ empilhar_sim <- function(arquivo,
     dados[, (vars_excluir) := NULL]
   }
   
-  #Selecionar variáveis desejadas. Mantém variáveis disponíveis se não indicar nenhuma variável. 
-  if (!is.null(variaveis)) {
-    vars_sel <- intersect(variaveis, names(dados))
-    dados <- dados[, ..vars_sel]
-  }
+  # #Selecionar variáveis desejadas. Mantém variáveis disponíveis se não indicar nenhuma variável. 
+  # if (!is.null(variaveis)) {
+  #   vars_sel <- intersect(variaveis, names(dados))
+  #   dados <- dados[, ..vars_sel]
+  # }
   
     return(dados)
 }
