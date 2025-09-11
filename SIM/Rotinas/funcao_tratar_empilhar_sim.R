@@ -1067,14 +1067,25 @@ tratar_sim <- function(data) {
     #Estou considerando cbos com contagens de dígitos inferior a 4 como erro de 
     #preenchimento
     mutate(
+      #Cbos com preenchimento inadequado.
       def_ocup = case_when(
-        nchar(as.character(ocup)) < 4 ~ "Erro Preenchimento",
+        #CBO com 5 dígitos parece ser cbo 1994
+        nchar(as.character(ocup)) == 5 ~ "CBO 1994?",
+        
+        #CBo com 4 dígitos ou menos
+        nchar(as.character(ocup)) <= 4 ~ "Erro Preenchimento",
         .default = def_ocup),
+      
+      #Cbos com preenchimento inadequado.
       def_ocup_mae = case_when(
-        nchar(as.character(ocupmae)) < 4 ~ "Erro Preenchimento",
+        nchar(as.character(ocupmae)) == 5 ~ "CBO 1994?",
+        
+        #CBo com 4 dígitos ou menos
+        nchar(as.character(ocupmae)) <= 4 ~ "Erro Preenchimento",
+        
         .default =  def_ocup_mae ),
 # Municípios --------------------------------------------------------------      
-
+     ### Refazer essa seção de municípios. Está horrível.
 #Correção de ids com código de regiões administrativas do Distrito Federal.
 #Vou assumir que ids começando em 53 são do Distrito Federal
   across( c(codmunresd, codmunocor, codmuncart, codmunnatu, codmunsvoi), ~
@@ -1112,7 +1123,6 @@ tratar_sim <- function(data) {
       select(!c(causa_letra,causa_num) )
    
 # Código do estabelecimento -----------------------------------------------
-
 
   # data <- tibble::as_tibble(data) 
   # data <- droplevels(data.table::as.data.table(data))
