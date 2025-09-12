@@ -30,13 +30,15 @@ tratar_sim <- function(data) {
       codmunsvoi = any_of("comunsvoim") ) |>
     
     mutate(
-    
+    #Letra e número da causa básica
     causa_letra = substr(causabas,1,1),
     causa_num = as.numeric(substr(causabas,2,3) ),
+    #Local do incidente
     local_incd = as.numeric(substr(causabas,4,4) ),
 
 # Idade ------------------------------------------------------------------
-    #Idade                          
+    
+     #Idade                          
     idade = as.double(as.character(idade)),
     #Idade desconhecida
     idade = case_when(idade == 999 | idade == 0  ~ as.double(NA), TRUE ~ idade),
@@ -1298,19 +1300,24 @@ empilhar_sim <- function(arquivo,
                          variaveis = NULL, #Variáveis que desejo manter. NULL seleciona todas as variáveis não excluidas.
                          excluir = vars_excluir) {
   message("Importando: ", arquivo)
-  dados <- read.dbc::read.dbc(arquivo) |> janitor::clean_names()
+  dados <- read.dbc::read.dbc(arquivo) |> data.table::as.data.table()
   
-  #Excluir variáveis sem preenchimento\Zeradas
+  # |> janitor::clean_names()
+  
+  PRecisa acertar isso.
+  A exclusão de variáveis não está funcionando.
+  
+    #Excluir variáveis sem preenchimento\Zeradas
   vars_excluir <- intersect(toupper(vars_excluir), names(dados))
   if (length(vars_excluir) > 0) {
     dados[, (vars_excluir) := NULL]
   }
   
   # #Selecionar variáveis desejadas. Mantém variáveis disponíveis se não indicar nenhuma variável. 
-  # if (!is.null(variaveis)) {
-  #   vars_sel <- intersect(variaveis, names(dados))
-  #   dados <- dados[, ..vars_sel]
-  # }
+  if (!is.null(variaveis)) {
+    vars_sel <- intersect(variaveis, names(dados))
+    dados <- dados[, vars_sel, with = FALSE]
+  }
   
     return(dados)
 }
