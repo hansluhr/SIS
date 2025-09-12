@@ -1296,16 +1296,16 @@ tratar_sim <- function(data) {
 
 
 # Função utilizada para empilhar o SIH ------------------------------------
-importar_dbc <- function(pasta,
+importar_empilhar_dbc <- function(pasta_dbc,
                          var_select = NULL, # variáveis que desejo manter
-                         excluir = c("tpassina", "numerodn", "estabdescr")) {
+                         excluir = c("tpassina", "numerodn", "estabdescr")) { #Variáveis que serão excluidas.
   
-  # lista de arquivos dbc na pasta
+  #lista de arquivos dbc na pasta
   arquivos <- list.files(
-    path = pasta,
+    path = pasta_dbc, #Pasta onde estão os dbcs
     pattern = "\\.dbc$",
-    full.names = TRUE
-  )
+    full.names = TRUE)
+  #Trata - se de lista com os arquivos dbcs que estão na pasta dbc.
   
   if (length(arquivos) == 0) {
     stop("Nenhum arquivo .dbc encontrado na pasta.")
@@ -1313,27 +1313,30 @@ importar_dbc <- function(pasta,
   
   message("Encontrados ", length(arquivos), " arquivos .dbc")
   
-  # importa todos e empilha
-  dados <- data.table::rbindlist(
-    future_lapply(
-      arquivos,
-      function(arquivo) {
+  #Dados é o arquivo com os dbcs importados e empilhados.
+  dados <- 
+    
+    data.table::rbindlist(
+    future_lapply(arquivos,
+    
+  function(arquivo) {
         message("Importando: ", arquivo)
         
         dados <- read.dbc::read.dbc(arquivo) |>
           
-          data.table::as.data.table() |>
+          #Transforma em data.table
+          data.table::setDT() |>
           
           janitor::clean_names()
         
-        # excluir variáveis se existirem
+        #Exclusão de variáveis zeradas
         vars_excluir <- intersect(excluir, names(dados))
         if (length(vars_excluir) > 0) {
           dados[, (vars_excluir) := NULL]
         }
         
         
-        # selecionar variáveis desejadas
+        #Seleção de variáveis de interesse.
         if (!is.null(var_select)) {
           vars_sel <- intersect(var_select, names(dados))
           dados <- dados[, vars_sel, with = FALSE]
