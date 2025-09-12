@@ -1296,28 +1296,55 @@ tratar_sim <- function(data) {
 
 
 # Função utilizada para empilhar o SIH ------------------------------------
-empilhar_sim <- function(arquivo, 
-                         variaveis = NULL, #Variáveis que desejo manter. NULL seleciona todas as variáveis não excluidas.
-                         excluir = vars_excluir) {
-  message("Importando: ", arquivo)
-  dados <- read.dbc::read.dbc(arquivo) |> data.table::as.data.table()
+importar_dbc <- function(pasta,
+                         var_select = NULL, # variáveis que desejo manter
+                         excluir = c("tpassina", "numerodn", "estabdescr")) {
   
-  # |> janitor::clean_names()
+  # lista de arquivos dbc na pasta
+  arquivos <- list.files(
+    path = pasta,
+    pattern = "\\.dbc$",
+    full.names = TRUE
+  )
   
-  PRecisa acertar isso.
-  A exclusão de variáveis não está funcionando.
-  
-    #Excluir variáveis sem preenchimento\Zeradas
-  vars_excluir <- intersect(toupper(vars_excluir), names(dados))
-  if (length(vars_excluir) > 0) {
-    dados[, (vars_excluir) := NULL]
+  if (length(arquivos) == 0) {
+    stop("Nenhum arquivo .dbc encontrado na pasta.")
   }
   
-  # #Selecionar variáveis desejadas. Mantém variáveis disponíveis se não indicar nenhuma variável. 
-  if (!is.null(variaveis)) {
-    vars_sel <- intersect(variaveis, names(dados))
-    dados <- dados[, vars_sel, with = FALSE]
-  }
+  message("Encontrados ", length(arquivos), " arquivos .dbc")
   
-    return(dados)
+  # importa todos e empilha
+  dados <- data.table::rbindlist(
+    future_lapply(
+      arquivos,
+      function(arquivo) {
+        message("Importando: ", arquivo)
+        
+        dados <- read.dbc::read.dbc(arquivo) |>
+          
+          data.table::as.data.table() |>
+          
+          janitor::clean_names()
+        
+        # excluir variáveis se existirem
+        vars_excluir <- intersect(excluir, names(dados))
+        if (length(vars_excluir) > 0) {
+          dados[, (vars_excluir) := NULL]
+        }
+        
+        
+        # selecionar variáveis desejadas
+        if (!is.null(var_select)) {
+          vars_sel <- intersect(var_select, names(dados))
+          dados <- dados[, vars_sel, with = FALSE]
+        }
+        
+        return(dados)
+      }
+    ),
+    use.names = TRUE, fill = TRUE
+  )
+  
+  message("Importação e tratamento de variáveis concluído! \n As variáveis tpassina, numerodn, estabdescr estão vazias e foram excluídas.")
+  return(dados)
 }
