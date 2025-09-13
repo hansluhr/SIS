@@ -1285,6 +1285,13 @@ tratar_sim <- function(data) {
     #            y = select(munics, c(code_muni, name_muni) ) |>
     #              rename(def_munic_svoi = name_muni), by = join_by("codmunsvoi" == "code_muni") ) |>
 
+    join_munic("codmunresd", "def_munic_resd", munics) |>
+    join_munic("codmunocor", "def_munic_ocor", munics) |>
+    join_munic("codmuncart", "def_munic_cart", munics) |>
+    join_munic("codmunnatu", "def_munic_natu", munics) |>
+    join_munic("codmunsvoi", "def_munic_svoi", munics) |>
+    
+    
 #Exclusão de variáveis não utilizadas ------------------------------------
       select(!c(causa_letra,causa_num) )
    
@@ -1296,6 +1303,27 @@ tratar_sim <- function(data) {
                                                     FUN = stringi::stri_unescape_unicode)))
   
 }
+
+
+
+
+# Função auxiliar: tenta fazer join, ou cria a coluna derivada como NA
+join_munic <- function(df, col_base, novo_nome, munics) {
+  if (col_base %in% names(df)) {
+    df |>
+      left_join(
+        munics |> 
+          select(code_muni, name_muni) |> 
+          rename(!!novo_nome := name_muni),
+        by = setNames("code_muni", col_base)
+      )
+  } else {
+    df |> mutate(!!novo_nome := NA_character_)
+  }
+}
+
+
+
 
 
 
