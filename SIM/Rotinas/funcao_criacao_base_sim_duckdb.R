@@ -34,7 +34,7 @@ source("C:/Users/gabli/Desktop/r/SIS/SIM/Rotinas/funcao_tratar_empilhar_sim.R")
 
 #Função principal
 importar_empilhar_salvar_sim <- function(
-    anos_lista,
+    anos_lista, #Anos dos dbcs de interesse
     pasta_dbc,
     duckdb_file,
     tabela = "sim_br",
