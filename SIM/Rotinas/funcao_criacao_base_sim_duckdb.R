@@ -29,31 +29,29 @@ library(data.table)
 library(future.apply)
 
 
-source("C:/Users/gabli/Desktop/r/SIS/SIM/Rotinas/funcao_tratar_empilhar_sim.R")
-
-
+source("C:/Users/gabli/Desktop/r/SIS/SIM/Rotinas/funcao_tratar_sim.R")
 #Função principal
 importar_empilhar_salvar_sim <- function(
     anos_lista, #Anos dos dbcs de interesse
-    pasta_dbc,
-    duckdb_file,
-    tabela = "sim_br",
+    pasta_dbc, #Pasta de armazenamento dos dbcs de interesse.
+    pasta_duckdb, #Pasta de armazenamento do duckdb
+    tabela = "sim_br", #Nome da tabela duckdb
     vars_excluir = c("TPASSINA", "NUMERODN", "ESTABDESCR") ) {
   
   #Conexão com o DuckDB
   con <- dbConnect(
     duckdb::duckdb(),
-    dbdir = duckdb_file,
+    dbdir = pasta_duckdb,
     read_only = FALSE)
   
   on.exit(dbDisconnect(con, shutdown = TRUE))
   
-  #Controle
+  #Controle de colunas.
   colunas_sim <- NULL
   tabela_criada <- FALSE
   
   for (ano in anos_lista) {
-    message("=== Processando ano: ", ano, " ===")
+    message("Importando e tratando: ", ano)
     
     # Lista de arquivos do ano
     anos_dbc <- list.files(
@@ -67,17 +65,17 @@ importar_empilhar_salvar_sim <- function(
       next
     }
     
-    # Importa, empilha e trata
+    #Importa, empilha e trata
     tmp <- read.dbc::read.dbc(anos_dbc) |>
   
       #Transforma em data.table
       data.table::setDT() |>
-      
+      #Limpa colunas
       janitor::clean_names() |>
-      
-      tratar_sim()
+      #Faz o tratamento dos dados.
+      tratar_sim(); gc()
 
-    # Cria a tabela no primeiro bloco
+    #Cria a tabela no primeiro bloco
     if (!tabela_criada) {
       dbWriteTable(
         con,
@@ -114,32 +112,38 @@ importar_empilhar_salvar_sim <- function(
     rm(tmp); gc()
   }
   
-  message("✔ Importação concluída! Dados salvos em ", duckdb_file, " tabela: ", tabela)
+  message("Importação concluída! Duckdb salvos em ", pasta_duckdb, " nome da tabela: ", tabela)
 }
 
 
 
 importar_empilhar_salvar_sim(
-  anos_lista = c(1996, 2021),
+  anos_lista = c(2006:2023),
   pasta_dbc = here::here("Bases/sim/dbc"),
-  duckdb_file = here::here("Bases/sim/duckdb/sim.duckdb"),
+  pasta_duckdb = here::here("Bases/sim/duckdb/sim.duckdb"),
   tabela = "sim_br")
-
+beepr::beep(sound = 1)
 
 con <- dbConnect(duckdb::duckdb(),
                  dbdir = here::here("Bases/sim/duckdb/sim.duckdb"), #Nome do database que armazena o SIH
                  read_only = FALSE)
 
-
 data <- 
   tbl(con, "sim_br")
-
-
 
 rm(list = setdiff(ls(), c("con","ocupacao","munics") ) ); gc()
 beepr::beep(sound = 1)
 
-dbDisconnect(con)
+2000,2005
+
+#
+Acrescentar 
+ufinform
+
+
+
+
+dbDisconnect(con) ; gc()
 
 
 
