@@ -1251,13 +1251,32 @@ tratar_sim <- function(data) {
 
 #Correção de ids com código de regiões administrativas do Distrito Federal.
 #Vou assumir que ids começando em 53 são do Distrito Federal
+#Isso acontece no SINAN. Trouxe do SINAN para o SIM
   across(.cols =  any_of(
+    
           c("codmunresd", "codmunocor", 
             "codmuncart", "codmunnatu", 
             "codmunsvoi") ), 
+         
           #Caso id comece em 53, então substituir pelo cod do Distrito Federal 530010
           .fns = ~ case_when(str_sub(., 1, 2) == "53" ~ "530010",
-                          .default = .) |> as_factor() ) )  |> 
+                          .default = .) |> as_factor() ), 
+
+#Nos primeiros anos da série. 
+#Alguns códigos de municípios são na realidade o bairro.
+#Nestes casos, estou substituindo o código do bairro pelo código da capital da UF
+  across(.cols = any_of(
+    
+    c("codmunresd", "codmunocor", 
+    "codmuncart", "codmunnatu", 
+    "codmunsvoi") ),
+    
+            .fns = ~ case_when(
+    #Rio de Janeiro
+    str_sub(., 1, 3) == "334" ~ "330455",
+    #São Paulo
+    str_sub(., 1, 3) == "358" ~ "355030",
+    .default = .) |> as_factor() ) )    |> 
     # #Fazendo o join com a base de municípios
     # #Vou pegar o nome dos municípios
     # #Município de residência
