@@ -20,7 +20,8 @@ tratar_sim <- function(data) {
 
 
 # Transformações utilizando mutate ----------------------------------------
-  data |> 
+  data <- 
+    data |> 
 
     #Rename do código munic de resdiência. 
     #Útil para criar variável com o nome padrão de resd
@@ -244,7 +245,10 @@ tratar_sim <- function(data) {
       
       #veículo 1.Acidente 2.Homicídio (y03, impacto) , 3.Indeterminado (y32,impacto) 4.Suicídio(x82,impacto)
       causa_letra  == "V" & causa_num > 0 | causa_letra  == "Y" & causa_num == 03 | 
-      causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo") |> as_factor(), 
+      causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo", 
+      
+      #Outros capítulos são mortes naturais
+      .default = "Natural") |> as_factor(), 
 
       # # #Variável de intencionalidades para facilitar contagens.
       intencao_homic = case_when(intencao %in% c("Homicídio","h_legal") ~ "Homicídio",
@@ -1254,32 +1258,32 @@ tratar_sim <- function(data) {
           #Caso id comece em 53, então substituir pelo cod do Distrito Federal 530010
           .fns = ~ case_when(str_sub(., 1, 2) == "53" ~ "530010",
                           .default = .) |> as_factor() ) )  |> 
-    #Fazendo o join com a base de municípios
-    #Vou pegar o nome dos municípios
-    #Município de residência
-    left_join(x = _,
-              y = select(munics, c(code_muni, name_muni) ) |>
-                rename(def_munic_resd = name_muni), by = join_by("codmunresd" == "code_muni") )  |>
-    
-    #Município de ocorrência
-    left_join(x = _,
-              y = select(munics, c(code_muni, name_muni) ) |>
-                rename(def_munic_ocor = name_muni), by = join_by("codmunocor" == "code_muni") ) |>
-    
-    # #Município do cartório
+    # #Fazendo o join com a base de municípios
+    # #Vou pegar o nome dos municípios
+    # #Município de residência
     # left_join(x = _,
     #           y = select(munics, c(code_muni, name_muni) ) |>
-    #             rename(def_munic_cart = name_muni), by = join_by("codmuncart" == "code_muni") ) |>
-    
-    # #Município naturalidade
+    #             rename(def_munic_resd = name_muni), by = join_by("codmunresd" == "code_muni") )  |>
+    # 
+    # #Município de ocorrência
     # left_join(x = _,
     #           y = select(munics, c(code_muni, name_muni) ) |>
-    #             rename(def_munic_natu = name_muni), by = join_by("codmunnatu" == "code_muni") ) |>
-    
-    # #Município do Serviço de vigilância do óbito ou IML
-    # left_join(x = _,
-    #           y = select(munics, c(code_muni, name_muni) ) |>
-    #             rename(def_munic_svoi = name_muni), by = join_by("codmunsvoi" == "code_muni") ) |>
+    #             rename(def_munic_ocor = name_muni), by = join_by("codmunocor" == "code_muni") ) |>
+    # 
+    #  #Município do cartório
+    #  left_join(x = _,
+    #            y = select(munics, c(code_muni, name_muni) ) |>
+    #              rename(def_munic_cart = name_muni), by = join_by("codmuncart" == "code_muni") ) |>
+    # 
+    # # #Município naturalidade
+    #  left_join(x = _,
+    #            y = select(munics, c(code_muni, name_muni) ) |>
+    #              rename(def_munic_natu = name_muni), by = join_by("codmunnatu" == "code_muni") ) |>
+    # 
+    # # #Município do Serviço de vigilância do óbito ou IML
+    #  left_join(x = _,
+    #            y = select(munics, c(code_muni, name_muni) ) |>
+    #              rename(def_munic_svoi = name_muni), by = join_by("codmunsvoi" == "code_muni") ) |>
 
 #Exclusão de variáveis não utilizadas ------------------------------------
       select(!c(causa_letra,causa_num) )
@@ -1296,58 +1300,59 @@ tratar_sim <- function(data) {
 
 
 # Função utilizada para empilhar o SIH ------------------------------------
-importar_empilhar_dbc <- function(pasta_dbc,
-                         var_select = NULL, # variáveis que desejo manter
-                         excluir = c("tpassina", "numerodn", "estabdescr")) { #Variáveis que serão excluidas.
-  
-  #lista de arquivos dbc na pasta
-  arquivos <- list.files(
-    path = pasta_dbc, #Pasta onde estão os dbcs
-    pattern = "\\.dbc$",
-    full.names = TRUE)
-  #Trata - se de lista com os arquivos dbcs que estão na pasta dbc.
-  
-  if (length(arquivos) == 0) {
-    stop("Nenhum arquivo .dbc encontrado na pasta.")
-  }
-  
-  message("Encontrados ", length(arquivos), " arquivos .dbc")
-  
-  #Dados é o arquivo com os dbcs importados e empilhados.
-  dados <- 
-    
-    data.table::rbindlist(
-    future_lapply(arquivos,
-    
-  function(arquivo) {
-        message("Importando: ", arquivo)
-        
-        dados <- read.dbc::read.dbc(arquivo) |>
-          
-          #Transforma em data.table
-          data.table::setDT() |>
-          
-          janitor::clean_names()
-        
-        #Exclusão de variáveis zeradas
-        vars_excluir <- intersect(excluir, names(dados))
-        if (length(vars_excluir) > 0) {
-          dados[, (vars_excluir) := NULL]
-        }
-        
-        
-        #Seleção de variáveis de interesse.
-        if (!is.null(var_select)) {
-          vars_sel <- intersect(var_select, names(dados))
-          dados <- dados[, vars_sel, with = FALSE]
-        }
-        
-        return(dados)
-      }
-    ),
-    use.names = TRUE, fill = TRUE
-  )
-  
-  message("Importação e tratamento de variáveis concluído! \n As variáveis tpassina, numerodn, estabdescr estão vazias e foram excluídas.")
-  return(dados)
-}
+# importar_empilhar_dbc <- function(pasta_dbc,
+#                          var_select = NULL, # variáveis que desejo manter
+#                          excluir = c("tpassina", "numerodn", "estabdescr")) { #Variáveis que serão excluidas.
+#   
+#   #Trata - se de lista com os arquivos dbcs que estão na pasta dbc.
+#   arquivos <- list.files(
+#     path = pasta_dbc, #Pasta onde estão os dbcs
+#     pattern = "\\.dbc$",
+#     full.names = TRUE)
+#   
+#   
+#   if (length(arquivos) == 0) {
+#     stop("Nenhum arquivo .dbc encontrado na pasta.")
+#   }
+#   
+#   message("Encontrados ", length(arquivos), " arquivos .dbc")
+#   
+#   #Dados é o arquivo com os dbcs importados e empilhados.
+#   dados <- 
+#     
+#     data.table::rbindlist(
+#       
+#     future_lapply(arquivos,
+#     
+#   function(arquivo) {
+#         message("Importando: ", arquivo)
+#         
+#         dados <- read.dbc::read.dbc(arquivo) |>
+#           
+#           #Transforma em data.table
+#           data.table::setDT() |>
+#           
+#           janitor::clean_names()
+#         
+#         #Exclusão de variáveis zeradas
+#         vars_excluir <- intersect(excluir, names(dados))
+#         if (length(vars_excluir) > 0) {
+#           dados[, (vars_excluir) := NULL]
+#         }
+#         
+#         
+#         #Seleção de variáveis de interesse.
+#         if (!is.null(var_select)) {
+#           vars_sel <- intersect(var_select, names(dados))
+#           dados <- dados[, vars_sel, with = FALSE]
+#         }
+#         
+#         return(dados)
+#       }
+#     ),
+#     use.names = TRUE, fill = TRUE
+#   )
+#   
+#   message("Importação e tratamento de variáveis concluído! \n As variáveis tpassina, numerodn, estabdescr estão vazias e foram excluídas.")
+#   return(dados)
+# }
