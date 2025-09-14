@@ -1283,37 +1283,18 @@ tratar_sim <- function(data) {
     str_sub(., 1, 3) == "358" ~ "355030",
     .default = .) |> as_factor() ) )  |> 
     
-    # #Fazendo o join com a base de municípios
-    # #Vou pegar o nome dos municípios
-    # #Município de residência
-    # left_join(x = _,
-    #           y = select(munics, c(code_muni, name_muni) ) |>
-    #             rename(def_munic_resd = name_muni), by = join_by("codmunresd" == "code_muni") )  |>
-    # 
-    # #Município de ocorrência
-    # left_join(x = _,
-    #           y = select(munics, c(code_muni, name_muni) ) |>
-    #             rename(def_munic_ocor = name_muni), by = join_by("codmunocor" == "code_muni") ) |>
-    # 
-    #  #Município do cartório
-    #  left_join(x = _,
-    #            y = select(munics, c(code_muni, name_muni) ) |>
-    #              rename(def_munic_cart = name_muni), by = join_by("codmuncart" == "code_muni") ) |>
-    # 
-    # # #Município naturalidade
-    #  left_join(x = _,
-    #            y = select(munics, c(code_muni, name_muni) ) |>
-    #              rename(def_munic_natu = name_muni), by = join_by("codmunnatu" == "code_muni") ) |>
-    # 
-    # # #Município do Serviço de vigilância do óbito ou IML
-    #  left_join(x = _,
-    #            y = select(munics, c(code_muni, name_muni) ) |>
-    #              rename(def_munic_svoi = name_muni), by = join_by("codmunsvoi" == "code_muni") ) |>
-
+    #Adicionando o nome dos municípios.
+    #Fiz uma função para isso. join_munic
+    
+    #Município de residência
     join_munic("codmunresd", "def_munic_resd", munics) |>
+    #Ócorrencia
     join_munic("codmunocor", "def_munic_ocor", munics) |>
+    #Município do cartório
     join_munic("codmuncart", "def_munic_cart", munics) |>
+    #Município de naturalidade
     join_munic("codmunnatu", "def_munic_natu", munics) |>
+    #Município do svo\iml
     join_munic("codmunsvoi", "def_munic_svoi", munics) |>
     
     
@@ -1332,7 +1313,7 @@ tratar_sim <- function(data) {
 
 
 
-# Função auxiliar: tenta fazer join, ou cria a coluna derivada como NA
+#Função auxiliar: tenta fazer join, ou cria a coluna derivada como NA
 join_munic <- function(df, col_base, novo_nome, munics) {
   if (col_base %in% names(df)) {
     df |>
