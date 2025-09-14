@@ -8,9 +8,11 @@ tratar_sim <- function(data) {
   #empilhar. Estou transformando em character todas as variáveis, exceto variáveis 
   #iniciando em DT e idades. 
   
-  #Seleciona as variáveis para transformação vars_char
+  #Seleciona as variáveis para transformação vars_char.
+  #Exclundi as variáveis abaixo
   vars_char <- names(data)[
-    !stringr::str_starts(names(data), "DT") & names(data) != "IDADE" & names(data) != "IDADEMAE"]
+    #!stringr::str_starts(names(data), "DT") & 
+    names(data) != "IDADE" & names(data) != "IDADEMAE"]
   
   #Transformando variáveis de interesse para character.
   cols_existentes <- intersect(vars_char, names(data))
@@ -255,7 +257,7 @@ tratar_sim <- function(data) {
                                  .default = intencao) |> as_factor(),
 
       #Consertando dtobito
-      dtobito = as.numeric(as.character(dtobito)),
+      #dtobito = as.numeric(as.character(dtobito)),
 
       dtobito = case_when(
         dtobito == 1996 ~ 1011996,dtobito == 1997 ~ 1011997,dtobito == 1998 ~ 1011998,dtobito == 1999  ~ 1011999,
@@ -274,7 +276,9 @@ tratar_sim <- function(data) {
         dtobito == 121999 ~ 1121999,dtobito == 21999 ~ 1021999,dtobito == 22000 ~ 1022000, .default = dtobito),
 
      #Transformando as data para a classe date  
-      across(.cols = starts_with("dt"), .fns = ~ lubridate::dmy(.) ),
+      across(.cols = starts_with("dt"), 
+             .fns = ~ lubridate::dmy(
+               iconv(as.character(.), from = "latin1", to = "UTF-8") ) ),
 
      #Criando variáveis relacionadas a data.
       ano = lubridate::year(dtobito) |> as_factor(),
@@ -1221,7 +1225,7 @@ tratar_sim <- function(data) {
               join_by("ocupmae" == "cod") ) |>
   #### Ocupações do falecido
   left_join(x = _, 
-              y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup = def_ocup), 
+              y = select(ocupacao, !c(versao_cod_proc) ), 
               join_by("ocup" == "cod") ) |>
     #Cbos de 5 dígitos são cbos antigas. Estou procurando a tabela de correspondência.
     #Outras cbos apresentam valores incorretos.
@@ -1271,12 +1275,13 @@ tratar_sim <- function(data) {
     "codmuncart", "codmunnatu", 
     "codmunsvoi") ),
     
-            .fns = ~ case_when(
+    .fns = ~ case_when(
     #Rio de Janeiro
     str_sub(., 1, 3) == "334" ~ "330455",
     #São Paulo
     str_sub(., 1, 3) == "358" ~ "355030",
-    .default = .) |> as_factor() ) )    |> 
+    .default = .) |> as_factor() ) )  |> 
+    
     # #Fazendo o join com a base de municípios
     # #Vou pegar o nome dos municípios
     # #Município de residência
