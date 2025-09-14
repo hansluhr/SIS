@@ -1235,10 +1235,11 @@ tratar_sim <- function(data) {
       #Cbos com preenchimento inadequado.
       def_ocup = case_when(
         #CBO com 5 dígitos parece ser cbo 1994
-        nchar(as.character(ocup)) == 5 ~ "CBO 1994?",
-        
+        #O iconv acontece por causa de 1999
+        nchar(iconv(as.character(ocup), from = "latin1", to = "UTF-8", sub = "")) == 5 ~ "CBO 1994?",
+        #O iconv acontece por causa de 1999
         #CBo com 4 dígitos ou menos
-        nchar(as.character(ocup)) <= 4 ~ "Erro Preenchimento",
+        nchar(iconv(as.character(ocup), from = "latin1", to = "UTF-8", sub = "")) <= 4 ~ "Erro Preenchimento",
         .default = def_ocup),
       
       #Cbos com preenchimento inadequado.
@@ -1352,6 +1353,9 @@ join_munic <- function(df, col_base, novo_nome, munics) {
 
 
 # Função utilizada para empilhar o SIH ------------------------------------
+
+#Passei essa função para dentro da função de criação.
+
 # importar_empilhar_dbc <- function(pasta_dbc,
 #                          var_select = NULL, # variáveis que desejo manter
 #                          excluir = c("tpassina", "numerodn", "estabdescr")) { #Variáveis que serão excluidas.
