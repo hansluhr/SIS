@@ -1,6 +1,6 @@
 
 
-
+Sys.setenv(LANG = "en")
 #Importação tabela ocupações
 # Link direto para o arquivo bruto no GitHub
 url <- "https://github.com/hansluhr/SIS/raw/main/Bases%20Gerais/cbo_ocupacao.xlsx"
@@ -17,18 +17,15 @@ source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Ro
 
 
 
-here::i_am("SIM/Rotinas/criacao_base_sim_duckdb.R")
-
-#Tratamento dos dbcs
-
-Sys.setenv(LANG = "en")
-library(tidyverse)
-library(DBI)
-library(duckdb)
-library(data.table)
-library(future.apply)
 
 
+
+# library(tidyverse)
+# library(duckdb)
+# library(data.table)
+
+
+here::i_am("SIM/Rotinas/funcao_criacao_base_sim_duckdb.R")
 source("C:/Users/gabli/Desktop/r/SIS/SIM/Rotinas/funcao_tratar_sim.R")
 #Função principal
 importar_empilhar_salvar_sim <- function(
@@ -39,12 +36,12 @@ importar_empilhar_salvar_sim <- function(
     vars_excluir = c("TPASSINA", "NUMERODN", "ESTABDESCR") ) {
   
   #Conexão com o DuckDB
-  con <- dbConnect(
+  con <- duckdb::dbConnect(
     duckdb::duckdb(),
     dbdir = pasta_duckdb,
     read_only = FALSE)
   
-  on.exit(dbDisconnect(con, shutdown = TRUE))
+  on.exit(duckdb::dbDisconnect(con, shutdown = TRUE))
   
   #Controle de colunas.
   colunas_sim <- NULL
@@ -77,7 +74,7 @@ importar_empilhar_salvar_sim <- function(
 
     #Cria a tabela no primeiro bloco
     if (!tabela_criada) {
-      dbWriteTable(
+      duckdb::dbWriteTable(
         con,
         name = tabela,
         value = tmp,
@@ -94,13 +91,13 @@ importar_empilhar_salvar_sim <- function(
       if (length(novas_colunas) > 0) {
         message("Novas colunas detectadas: ", paste(novas_colunas, collapse = ", "))
         for (col in novas_colunas) {
-          dbExecute(con, sprintf("ALTER TABLE %s ADD COLUMN %s TEXT", tabela, col))
+          DBI::dbExecute(con, sprintf("ALTER TABLE %s ADD COLUMN %s TEXT", tabela, col))
         }
         colunas_sim <- union(colunas_sim, novas_colunas)
       }
       
-      # Append
-      dbWriteTable(
+      #Append
+      DBI::dbWriteTable(
         con,
         name = tabela,
         value = tmp,
@@ -116,12 +113,12 @@ importar_empilhar_salvar_sim <- function(
 }
 
 
-
 importar_empilhar_salvar_sim(
-  anos_lista = c(2006:2023),
+  anos_lista = c(2013:2015),
   pasta_dbc = here::here("Bases/sim/dbc"),
   pasta_duckdb = here::here("Bases/sim/duckdb/sim.duckdb"),
   tabela = "sim_br")
+rm(list = setdiff(ls(), c("ocupacao","munics") ) ); gc()
 beepr::beep(sound = 1)
 
 con <- dbConnect(duckdb::duckdb(),
@@ -131,19 +128,21 @@ con <- dbConnect(duckdb::duckdb(),
 data <- 
   tbl(con, "sim_br")
 
-rm(list = setdiff(ls(), c("con","ocupacao","munics") ) ); gc()
-beepr::beep(sound = 1)
+dbDisconnect(con) ; gc()
 
-2000,2005
+beepr::beep(sound = 1)
 
 #
 Acrescentar 
 ufinform
 
 
+data |>
+  count(ano) |>
+  collect() |>
+  arrange(ano)
 
 
-dbDisconnect(con) ; gc()
 
 
 
