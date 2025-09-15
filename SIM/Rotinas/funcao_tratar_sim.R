@@ -303,7 +303,7 @@ dplyr::across(.cols = tidyselect::any_of(
                         "codmunsvoi") ),
              .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
              #Extração do nome a partir do 7º e até 10º dígito do nome das variáveis de origem. (codmunxxx)
-             .names = "cod_uf_{str_sub(.col, start = 7, end = 10)}"),
+             .names = "cod_uf_{stringr::str_sub(.col, start = 7, end = 10)}"),
       
       #Nome da UF de ocorrência e UF de residência.
 dplyr::across(.cols = tidyselect::any_of( 
@@ -322,7 +322,7 @@ dplyr::across(.cols = tidyselect::any_of(
                               '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC", 
                               .default = "Cod Munic Erro",
                               .missing = "Missing") |> forcats::as_factor(), 
-             .names = "def_uf_{str_sub(.col, start = 8, end = 11)}"),  
+             .names = "def_uf_{stringr::str_sub(.col, start = 8, end = 11)}"),  
        
       #Nome da região de ocorrência e região de residência.
 dplyr::across(.cols = tidyselect::any_of( 
@@ -344,7 +344,7 @@ dplyr::across(.cols = tidyselect::any_of(
                
                .default ="Missing") |> forcats::as_factor(), 
              
-             .names = "def_reg_{str_sub(.col, start = 8, end = 11)}"),
+             .names = "def_reg_{stringr::str_sub(.col, start = 8, end = 11)}"),
       
       #Escolaridade em anos (esc)
       #Escolaridade da mãe em anos (escmae)
@@ -365,7 +365,7 @@ dplyr::across(.cols = tidyselect::any_of(
                             "Missing", "Ignorado"), ordered = TRUE ) ),
             
       #Atribuição de nome na variável
-      .names = "def_{str_sub(.col)}"),
+      .names = "def_{stringr::str_sub(.col)}"),
 
        #Escolaridade 2010. Nível da última série concluída pelo falecido (esc2010)
        #Escolaridade  2010.  Nível  da  última  série  concluída  pela  mãe. (escmae2010)
@@ -387,7 +387,7 @@ dplyr::across(.cols = tidyselect::any_of(
                   "Superior incompleto", "Superior completo", "Missing",
                   "Ignorado"), ordered = TRUE) ),
        #Atribuição de nome na variável
-       .names = "def_{str_sub(.col)}"),
+       .names = "def_{stringr::str_sub(.col)}"),
    
        #Escolaridade do falecido agregada (formulário a partir de 2010). ESCFALAGR1
        #Escolaridade  da  mãe  agregada  (formulário  a  partir  de  2010). escmaeagr1
@@ -419,7 +419,7 @@ dplyr::across(.cols = tidyselect::any_of( c("escfalagr1", "escmaeagr1") ),
                    "Missing", "Ignorado"), ordered = TRUE) ),
        
        #Atribuição de nome na variável (def_nome_da_variável)
-       .names = "def_{str_sub(.col)}"),
+       .names = "def_{stringr::str_sub(.col)}"),
 
       #Local do incidente - Variável criada
       local_incd = dplyr::case_match(
@@ -1290,7 +1290,7 @@ dplyr::across(.cols = tidyselect::any_of(
             "codmunsvoi") ), 
          
           #Caso id comece em 53, então substituir pelo cod do Distrito Federal 530010
-          .fns = ~ dplyr::case_when(str_sub(., 1, 2) == "53" ~ "530010",
+          .fns = ~ dplyr::case_when(stringr::str_sub(., 1, 2) == "53" ~ "530010",
           
           .default = .) |> forcats::as_factor() ), 
 
