@@ -19,14 +19,13 @@ source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Ro
 
 
 
-
-# library(tidyverse)
-# library(duckdb)
-# library(data.table)
-
-
 here::i_am("SIM/Rotinas/funcao_criacao_base_sim_duckdb.R")
-source("C:/Users/gabli/Desktop/r/SIS/SIM/Rotinas/funcao_tratar_sim.R")
+
+#Importar função de tratamento do SIM
+source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIM/Rotinas/funcao_tratar_sim.R")
+
+
+
 #Função principal
 importar_empilhar_salvar_sim <- function(
     anos_lista, #Anos dos dbcs de interesse
@@ -132,15 +131,9 @@ dbDisconnect(con) ; gc()
 
 beepr::beep(sound = 1)
 
-#
+
 Acrescentar 
 ufinform
-
-
-data |>
-  count(ano) |>
-  collect() |>
-  arrange(ano)
 
 
 
@@ -159,95 +152,95 @@ data |>
 
 
 # Backup ------------------------------------------------------------------
-
-# Requisitos: read.dbc, janitor, dplyr, stringr, tibble, future.apply (opcional)
-importar_e_tratar_dbc <- function(pasta_base,
-                                  anos = NULL,                     # vetor de anos (numéricos ou strings). NULL = todos
-                                  treat_fn = tratar_sim,           # função de tratamento (deve existir)
-                                  var_select = NULL,               # se não NULL, mantém só essas variáveis depois do tratamento
-                                  excluir = c("tpassina","numerodn","estabdescr"), # colunas a remover (nomes em minúscula)
-                                  combine = TRUE,                  # TRUE => retorna um tibble único; FALSE => lista por arquivo
-                                  parallel = TRUE) {               # usar future.apply (requer plano já configurado)
-  # pacotes usados internamente
-  requireNamespace("read.dbc", quietly = TRUE)
-  requireNamespace("janitor", quietly = TRUE)
-  requireNamespace("dplyr", quietly = TRUE)
-  requireNamespace("stringr", quietly = TRUE)
-  requireNamespace("tibble", quietly = TRUE)
-  if (parallel) requireNamespace("future.apply", quietly = TRUE)
-  
-  # validação rápida
-  if (!is.function(treat_fn)) {
-    stop("treat_fn deve ser uma função (ex.: tratar_sim).")
-  }
-  arquivos <- list.files(path = pasta_base, pattern = "\\.dbc$", full.names = TRUE)
-  if (length(arquivos) == 0) {
-    stop("Nenhum arquivo .dbc encontrado em: ", pasta_base)
-  }
-  
-  # extrair ano do nome do arquivo (4 dígitos imediatamente antes de .dbc)
-  anos_arquivos <- stringr::str_extract(basename(arquivos), "\\d{4}(?=\\.dbc)")
-  
-  # filtrar por anos solicitados (se fornecidos)
-  if (!is.null(anos)) {
-    anos_chr <- as.character(anos)
-    arquivos <- arquivos[anos_arquivos %in% anos_chr]
-    anos_arquivos <- anos_arquivos[anos_arquivos %in% anos_chr]
-  }
-  
-  if (length(arquivos) == 0) {
-    stop("Nenhum arquivo .dbc encontrado para os anos solicitados.")
-  }
-  
-  # função interna para processar um arquivo
-  processar_arquivo <- function(arquivo) {
-    message("Lendo: ", basename(arquivo))
-    
-    df <- read.dbc::read.dbc(arquivo) |>
-      janitor::clean_names() |>            # nomes em snake_case (minúsculos)
-      tibble::as_tibble()
-    
-    # remover colunas 'excluir' se existirem
-    cols_excluir <- intersect(excluir, names(df))
-    if (length(cols_excluir) > 0) {
-      df <- dplyr::select(df, -dplyr::any_of(cols_excluir))
-    }
-    
-    # aplicar função de tratamento (assume que treat_fn aceita e devolve data.frame / tibble)
-    df <- treat_fn(df)
-    
-    # se var_select foi passado, manter só essas (após o tratamento)
-    if (!is.null(var_select)) {
-      df <- dplyr::select(df, dplyr::any_of(var_select))
-    }
-    
-    # anexar metadados úteis
-    df <- dplyr::mutate(
-      df,
-      source_file = basename(arquivo),
-      source_year = stringr::str_extract(basename(arquivo), "\\d{4}")
-    )
-    
-    df
-  }
-  
-  # executar (paralelo ou sequencial)
-  if (parallel) {
-    res_list <- future.apply::future_lapply(arquivos, processar_arquivo)
-  } else {
-    res_list <- lapply(arquivos, processar_arquivo)
-  }
-  
-  # nomear lista pelos arquivos (opcional)
-  names(res_list) <- basename(arquivos)
-  
-  # devolver combinado ou lista
-  if (combine) {
-    # dplyr::bind_rows preserva tipos e adiciona NA quando faltar colunas
-    result <- dplyr::bind_rows(res_list)
-    return(result)
-  } else {
-    return(res_list)
-  }
-}
+# 
+# # Requisitos: read.dbc, janitor, dplyr, stringr, tibble, future.apply (opcional)
+# importar_e_tratar_dbc <- function(pasta_base,
+#                                   anos = NULL,                     # vetor de anos (numéricos ou strings). NULL = todos
+#                                   treat_fn = tratar_sim,           # função de tratamento (deve existir)
+#                                   var_select = NULL,               # se não NULL, mantém só essas variáveis depois do tratamento
+#                                   excluir = c("tpassina","numerodn","estabdescr"), # colunas a remover (nomes em minúscula)
+#                                   combine = TRUE,                  # TRUE => retorna um tibble único; FALSE => lista por arquivo
+#                                   parallel = TRUE) {               # usar future.apply (requer plano já configurado)
+#   # pacotes usados internamente
+#   requireNamespace("read.dbc", quietly = TRUE)
+#   requireNamespace("janitor", quietly = TRUE)
+#   requireNamespace("dplyr", quietly = TRUE)
+#   requireNamespace("stringr", quietly = TRUE)
+#   requireNamespace("tibble", quietly = TRUE)
+#   if (parallel) requireNamespace("future.apply", quietly = TRUE)
+#   
+#   # validação rápida
+#   if (!is.function(treat_fn)) {
+#     stop("treat_fn deve ser uma função (ex.: tratar_sim).")
+#   }
+#   arquivos <- list.files(path = pasta_base, pattern = "\\.dbc$", full.names = TRUE)
+#   if (length(arquivos) == 0) {
+#     stop("Nenhum arquivo .dbc encontrado em: ", pasta_base)
+#   }
+#   
+#   # extrair ano do nome do arquivo (4 dígitos imediatamente antes de .dbc)
+#   anos_arquivos <- stringr::str_extract(basename(arquivos), "\\d{4}(?=\\.dbc)")
+#   
+#   # filtrar por anos solicitados (se fornecidos)
+#   if (!is.null(anos)) {
+#     anos_chr <- as.character(anos)
+#     arquivos <- arquivos[anos_arquivos %in% anos_chr]
+#     anos_arquivos <- anos_arquivos[anos_arquivos %in% anos_chr]
+#   }
+#   
+#   if (length(arquivos) == 0) {
+#     stop("Nenhum arquivo .dbc encontrado para os anos solicitados.")
+#   }
+#   
+#   # função interna para processar um arquivo
+#   processar_arquivo <- function(arquivo) {
+#     message("Lendo: ", basename(arquivo))
+#     
+#     df <- read.dbc::read.dbc(arquivo) |>
+#       janitor::clean_names() |>            # nomes em snake_case (minúsculos)
+#       tibble::as_tibble()
+#     
+#     # remover colunas 'excluir' se existirem
+#     cols_excluir <- intersect(excluir, names(df))
+#     if (length(cols_excluir) > 0) {
+#       df <- dplyr::select(df, -dplyr::any_of(cols_excluir))
+#     }
+#     
+#     # aplicar função de tratamento (assume que treat_fn aceita e devolve data.frame / tibble)
+#     df <- treat_fn(df)
+#     
+#     # se var_select foi passado, manter só essas (após o tratamento)
+#     if (!is.null(var_select)) {
+#       df <- dplyr::select(df, dplyr::any_of(var_select))
+#     }
+#     
+#     # anexar metadados úteis
+#     df <- dplyr::mutate(
+#       df,
+#       source_file = basename(arquivo),
+#       source_year = stringr::str_extract(basename(arquivo), "\\d{4}")
+#     )
+#     
+#     df
+#   }
+#   
+#   # executar (paralelo ou sequencial)
+#   if (parallel) {
+#     res_list <- future.apply::future_lapply(arquivos, processar_arquivo)
+#   } else {
+#     res_list <- lapply(arquivos, processar_arquivo)
+#   }
+#   
+#   # nomear lista pelos arquivos (opcional)
+#   names(res_list) <- basename(arquivos)
+#   
+#   # devolver combinado ou lista
+#   if (combine) {
+#     # dplyr::bind_rows preserva tipos e adiciona NA quando faltar colunas
+#     result <- dplyr::bind_rows(res_list)
+#     return(result)
+#   } else {
+#     return(res_list)
+#   }
+# }
 
