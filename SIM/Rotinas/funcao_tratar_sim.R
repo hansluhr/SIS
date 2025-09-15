@@ -28,11 +28,11 @@ tratar_sim <- function(data) {
     #Rename do código munic de resdiência. 
     #Útil para criar variável com o nome padrão de resd
     #Rename do código do munic svoiml. faciliar o nome padrão.
-    rename(
+    dplyr::rename(
       codmunresd = any_of("codmunres"),
       codmunsvoi = any_of("comunsvoim") ) |>
     
-    mutate(
+    dplyr::mutate(
     #Letra e número da causa básica
     causa_letra = substr(causabas,1,1),
     causa_num = as.numeric(substr(causabas,2,3) ),
@@ -44,16 +44,16 @@ tratar_sim <- function(data) {
      #Idade                          
     idade = as.double(as.character(idade)),
     #Idade desconhecida
-    idade = case_when(idade == 999 | idade == 0  ~ as.double(NA), TRUE ~ idade),
+    idade = dplyr::case_when(idade == 999 | idade == 0  ~ as.double(NA), TRUE ~ idade),
     #Menor de 1 ano
-    idade = case_when(idade > 0 & idade <= 400  ~ 0, TRUE ~ idade),
+    idade = dplyr::case_when(idade > 0 & idade <= 400  ~ 0, TRUE ~ idade),
     #Idade em anos
-    idade = case_when(idade > 400 & idade < 999 ~ idade - 400, TRUE ~ idade),
+    idade = dplyr::case_when(idade > 400 & idade < 999 ~ idade - 400, TRUE ~ idade),
     
 
 # Intenção da causa externa -----------------------------------------------
     #Intenção
-    intencao = case_when(
+    intencao = dplyr::case_when(
       ###acidente(==1)
       #acidente-envenenamento
       (causa_letra  == "X" & causa_num > 39 & causa_num < 50)  |
@@ -166,11 +166,11 @@ tratar_sim <- function(data) {
         causa_letra  == "Y" & causa_num > 39 & causa_num < 90 ~ "Outros",
       
         #Outras intenções são causa natural
-        .default = "Natural") |> as_factor(), 
+        .default = "Natural") |> forcats::as_factor(), 
     
 
 # Instrumento causa externa -----------------------------------------------
-    instrumento =  case_when(
+    instrumento = dplyr::case_when(
       #Envenenamento (==1) 
       causa_letra  == "X" & causa_num > 39  & causa_num < 50 | # /*Acidente envenenamento*/
         causa_letra  == "X" & causa_num > 59 & causa_num < 70 |  #/*Self harm envenenamento*/
@@ -250,16 +250,16 @@ tratar_sim <- function(data) {
       causa_letra  == "Y" & causa_num == 32 | causa_letra  == "X" & causa_num == 82 ~ "Veículo", 
       
       #Outros capítulos são mortes naturais
-      .default = "Natural") |> as_factor(), 
+      .default = "Natural") |> forcats::as_factor(), 
 
       # # #Variável de intencionalidades para facilitar contagens.
-      intencao_homic = case_when(intencao %in% c("Homicídio","h_legal") ~ "Homicídio",
-                                 .default = intencao) |> as_factor(),
+      intencao_homic = dplyr::case_when(intencao %in% c("Homicídio","h_legal") ~ "Homicídio",
+                                 .default = intencao) |> forcats::as_factor(),
 
       #Consertando dtobito
       #dtobito = as.numeric(as.character(dtobito)),
 
-      dtobito = case_when(
+      dtobito = dplyr::case_when(
         dtobito == "1996" ~ "1011996",dtobito == "1997" ~ "1011997",dtobito == "1998" ~ "1011998",dtobito == "1999"  ~ "1011999",
         dtobito == "2000" ~ "1012000",dtobito == "2002" ~ "1012002",dtobito == "11996" ~ "1011996",dtobito == "11997" ~ "1011997",
         dtobito == "11998" ~ "1011998",dtobito == "11999" ~ "1011999",dtobito == "21996" ~ "1021996",dtobito == "21997" ~ "1021997",
@@ -276,19 +276,19 @@ tratar_sim <- function(data) {
         dtobito == "121999" ~ "1121999",dtobito == "21999" ~ "1021999",dtobito == "22000" ~ "1022000", .default = dtobito),
 
      #Transformando as data para a classe date  
-      across(.cols = starts_with("dt"), 
+dplyr::across(.cols = tidyselect::starts_with("dt"), 
              .fns = ~ lubridate::dmy(
                iconv(as.character(.), from = "latin1", to = "UTF-8") ) ),
 
      #Criando variáveis relacionadas a data.
-      ano = lubridate::year(dtobito) |> as_factor(),
-      mes = lubridate::month(dtobito,label = TRUE) |> as_factor(),
-      dia = lubridate::wday(dtobito,label = TRUE) |> as_factor(), 
+      ano = lubridate::year(dtobito) |> forcats::as_factor(),
+      mes = lubridate::month(dtobito,label = TRUE) |> forcats::as_factor(),
+      dia = lubridate::wday(dtobito,label = TRUE) |> forcats::as_factor(), 
        
       #Código dos municípios de ocorrência e residência com seis dígitos
       #No microdado do SIM. A partir de 2006 o código do município aparece com 6 dígitos. 
       #Vou deixar todos os municípios em todos os anos com 6 dígitos.
-      across(.cols = any_of( 
+dplyr::across(.cols = tidyselect::any_of( 
                       c("codmunnatu", #Código município de naturalidade do falecido. 
                         "codmunresd", #Código município de residência
                         "codmunocor", #Código município de ocorrência. 
@@ -297,19 +297,20 @@ tratar_sim <- function(data) {
              .fns = ~ substr(., start = 1, stop = 6) ), 
       
       #Pegar o código da uf de ocorrência, uf de residência e uf de naturalidade
-      across(.cols =  any_of( c("codmunocor", "codmunresd", 
-                               "codmunnatu", "codmuncart", 
-                               "codmunsvoi") ),
+dplyr::across(.cols = tidyselect::any_of( 
+                      c("codmunocor", "codmunresd", 
+                        "codmunnatu", "codmuncart", 
+                        "codmunsvoi") ),
              .fns = ~ as.numeric( substr(.,1,2) ), #Dois primeiros dígitos são o código da UF
              #Extração do nome a partir do 7º e até 10º dígito do nome das variáveis de origem. (codmunxxx)
              .names = "cod_uf_{str_sub(.col, start = 7, end = 10)}"),
       
       #Nome da UF de ocorrência e UF de residência.
-      across(.cols = any_of( 
+dplyr::across(.cols = tidyselect::any_of( 
                       c("cod_uf_ocor", "cod_uf_resd", 
                        "cod_uf_natu", "cod_uf_cart", 
                        "cod_uf_svoi") ),
-             .fns = ~  recode(.,
+             .fns = ~  dplyr::recode(.,
                               '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", 
                               '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins", 
                               '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte", 
@@ -320,16 +321,16 @@ tratar_sim <- function(data) {
                               '50'= "Mato Grosso do Sul",'51'= "Mato Grosso", 
                               '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC", 
                               .default = "Cod Munic Erro",
-                              .missing = "Missing") |> as_factor(), 
+                              .missing = "Missing") |> forcats::as_factor(), 
              .names = "def_uf_{str_sub(.col, start = 8, end = 11)}"),  
        
       #Nome da região de ocorrência e região de residência.
-      across(.cols = any_of( 
+dplyr::across(.cols = tidyselect::any_of( 
                      c("def_uf_ocor", "def_uf_resd", 
                        "def_uf_natu", "def_uf_cart", 
                        "def_uf_svoi") ),
              
-             .fns = ~ case_when(
+             .fns = ~ dplyr::case_when(
                #Região Norte
                . %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima", "Tocantins") ~ "Norte",
                #Região Nordeste
@@ -341,44 +342,58 @@ tratar_sim <- function(data) {
                #Região Sul
                . %in% c("Paraná", "Rio Grande do Sul", "Santa Catarina" ) ~ "Sul",
                
-               .default ="Missing") |> as_factor(), 
+               .default ="Missing") |> forcats::as_factor(), 
              
              .names = "def_reg_{str_sub(.col, start = 8, end = 11)}"),
       
       #Escolaridade em anos (esc)
       #Escolaridade da mãe em anos (escmae)
-      across(.cols = any_of( c("esc", "escmae") ),
-             .fns = ~ case_match(.x = ., 
+dplyr::across(.cols = tidyselect::any_of(
+  
+                      c("esc", "escmae") ),
+              
+             .fns = ~ dplyr::case_match(.x = ., 
             "1" ~ "Nenhuma", "2" ~ "1 a 3 anos", 
             "3" ~  "4 a 7 anos", "4" ~  "8 a 11 anos",
-            "5" ~  "12 anos e mais", NA ~ "Missing", .default = "Ignorado",
+            "5" ~  "12 anos e mais", NA ~ "Missing", 
+            .default = "Ignorado",
+            
             #Transformando em factor e atribuindo ordem.
-            .ptype = factor(levels = c("Nenhuma", "1 a 3 anos", "4 a 7 anos",
-                            "8 a 11 anos", "12 anos e mais", "Missing", "Ignorado"), ordered = TRUE ) ),
+            .ptype = factor(levels = 
+                              c("Nenhuma", "1 a 3 anos","4 a 7 anos",
+                            "8 a 11 anos", "12 anos e mais", 
+                            "Missing", "Ignorado"), ordered = TRUE ) ),
+            
       #Atribuição de nome na variável
       .names = "def_{str_sub(.col)}"),
 
        #Escolaridade 2010. Nível da última série concluída pelo falecido (esc2010)
        #Escolaridade  2010.  Nível  da  última  série  concluída  pela  mãe. (escmae2010)
-       across(.cols = any_of( c("esc2010", "escmae2010") ), 
-       .fns = ~ case_match(.x = .,
+dplyr::across(.cols = tidyselect::any_of(
+         c("esc2010", "escmae2010") ), 
+         
+       .fns = ~ dplyr::case_match(.x = .,
+                                  
        "0" ~  "Sem escolaridade", "1" ~  "Fundamental I (1ª a 4ª série)",
        "2" ~ "Fundamental II (5ª a 8ª série)", "3" ~ "Médio (antigo 2º Grau)",
        "4" ~  "Superior incompleto", "5" ~  "Superior completo", 
        NA ~ "Missing", .default = "Ignorado",
+       
        #Transformando em factor e atribuindo ordem.                          
        .ptype = factor(
        #Ordem dos levels
        levels = c("Sem escolaridade","Fundamental I (1ª a 4ª série)",
                   "Fundamental II (5ª a 8ª série)","Médio (antigo 2º Grau)",
-                  "Superior incompleto", "Superior completo", "Missing", "Ignorado"), ordered = TRUE) ),
+                  "Superior incompleto", "Superior completo", "Missing",
+                  "Ignorado"), ordered = TRUE) ),
        #Atribuição de nome na variável
        .names = "def_{str_sub(.col)}"),
    
        #Escolaridade do falecido agregada (formulário a partir de 2010). ESCFALAGR1
        #Escolaridade  da  mãe  agregada  (formulário  a  partir  de  2010). escmaeagr1
-       across(.cols = any_of( c("escfalagr1", "escmaeagr1") ), 
-       .fns = ~ case_match(.x = .,
+dplyr::across(.cols = tidyselect::any_of( c("escfalagr1", "escmaeagr1") ), 
+              
+       .fns = ~ dplyr::case_match(.x = .,
         "00" ~ "Sem escolaridade", "01" ~  "Fundamental I Incompleto",
         "02" ~ "Fundamental I Completo", "03" ~ "Fundamental II Incompleto",
         "04" ~ "Fundamental II Completo", "05" ~  "Ensino Médio Incompleto", 
@@ -388,8 +403,10 @@ tratar_sim <- function(data) {
         "11" ~ "Fundamental II Incompleto ou Inespecífico",
         "12" ~  "Ensino Médio Incompleto ou Inespecífico", 
         NA ~ "Missing", .default = "Ignorado",
+        
         #Transformando em factor e atribuindo ordem. 
         .ptype = factor(
+          
         #Ordem dos levels  
         levels = c("Sem escolaridade", "Fundamental I Incompleto",
                    "Fundamental I Completo",  "Fundamental II Incompleto",
@@ -400,18 +417,22 @@ tratar_sim <- function(data) {
                    "Fundamental II Incompleto ou Inespecífico",
                    "Ensino Médio Incompleto ou Inespecífico", 
                    "Missing", "Ignorado"), ordered = TRUE) ),
+       
        #Atribuição de nome na variável (def_nome_da_variável)
        .names = "def_{str_sub(.col)}"),
 
       #Local do incidente - Variável criada
-      local_incd = case_match(
+      local_incd = dplyr::case_match(
                            .x = local_incd,
-                           0 ~ "Residencial", 1 ~ "Hab. Coletiva", 2 ~ "Área de administração pública*", 
-                           3 ~ "Esportiva", 4 ~ "Rua/Estrada", 5 ~ "Comercial", 6 ~ "Industrial",  
-                           7 ~ "Fazenda", 8 ~ "Outros", NA ~ "Missing", .default = "Ignorado") |> as_factor(),
+                           0 ~ "Residencial", 1 ~ "Hab. Coletiva", 
+                           2 ~ "Área de administração pública*", 
+                           3 ~ "Esportiva", 4 ~ "Rua/Estrada", 
+                           5 ~ "Comercial", 6 ~ "Industrial",  
+                           7 ~ "Fazenda", 8 ~ "Outros", NA ~ "Missing", 
+                           .default = "Ignorado") |> forcats::as_factor(),
       
       #Local de óbito de intervenção legal é rua/estrada
-      local_incd = case_when(
+      local_incd = dplyr::case_when(
         #Óbitos por causa natural não indicam local do incidente
         intencao == "Natural" ~ "Natural",
         #Em intervenção legal o terceiro dígito não é o local. Vou assumir rua\estrada.
@@ -428,57 +449,57 @@ tratar_sim <- function(data) {
     #Fazer dicionário + função?
 
      #Sexo
-    def_sexo = case_match(.x = sexo, "1" ~ "Homem", "2" ~ "Mulher",
-                        NA ~ "Missing", .default = "Ignorado") |> as_factor(),
+    def_sexo = dplyr::case_match(.x = sexo, "1" ~ "Homem", "2" ~ "Mulher",
+                        NA ~ "Missing", .default = "Ignorado") |> forcats::as_factor(),
       
     #Raça\cor
-    def_racacor = case_match(.x = racacor, "1" ~ "Branca", "2" ~ "Preta", "3" ~ "Amarela",
-                       "4" ~ "Parda", "5" ~ "Indigena", NA ~ "Missing", .default = "Ignorado" ) |> as_factor(),
+    def_racacor = dplyr::case_match(.x = racacor, "1" ~ "Branca", "2" ~ "Preta", "3" ~ "Amarela",
+                       "4" ~ "Parda", "5" ~ "Indigena", NA ~ "Missing", .default = "Ignorado" ) |> forcats::as_factor(),
     #Estado Civil
-    def_estciv = case_match(.x = estciv, "1" ~"Solteiro", 
+    def_estciv = dplyr::case_match(.x = estciv, "1" ~"Solteiro", 
                           "2" ~ "Casado", "3" ~ "Viúvo", "4" ~ "Divorciado", "5" ~ "União Estável", 
-                          NA ~ "Missing", .default = "Ignorado" ) |> as_factor(),
+                          NA ~ "Missing", .default = "Ignorado" ) |> forcats::as_factor(),
 
     #Local de ocorrência do óbito
-    def_local_ocor = case_match(.x = lococor, "1" ~ "Hospital", 
+    def_local_ocor = dplyr::case_match(.x = lococor, "1" ~ "Hospital", 
     "2" ~  "Outros Estabelecimentos de Saúde", "3" ~ "Domicílio",
     "4" ~ "Via Pública", "5" ~  "Outros", "6" ~ "Aldeia Indígena", 
-    NA ~ "Missing", .default = "Ignorado") |> as_factor(),
+    NA ~ "Missing", .default = "Ignorado") |> forcats::as_factor(),
 
 
   #1 - Tipo de óbito
-  def_tipobito = case_match(.x = tipobito, 
+  def_tipobito = dplyr::case_match(.x = tipobito, 
                             "1" ~ "Fetal",
                             "2" ~ "Não Fetal",
                             NA ~ "Missing",
-                            .default = "Ignorada") |> as_factor(),
+                            .default = "Ignorada") |> forcats::as_factor(),
    
    #32 - Tipo de Gravidez
-   def_gravidez = case_match(.x = gravidez,
+   def_gravidez = dplyr::case_match(.x = gravidez,
                               "1" ~ "Única",
                               "2" ~ "Dupla",
                               "3" ~ "Tripla",
                               NA ~ "Missing",
-                              .default = "Ignorada") |> as_factor(),
+                              .default = "Ignorada") |> forcats::as_factor(),
   #33 - Tipo de Parto 
-  def_parto = case_match(.x = parto,
+  def_parto = dplyr::case_match(.x = parto,
                          "1" ~ "Vaginal",
                          "2" ~ "Cesáreo",
                          NA ~ "Missing", 
-                         .default = "Ignorado") |> as_factor(),
+                         .default = "Ignorado") |> forcats::as_factor(),
     
   #34- Morte em relação ao Parto. Momento do óbito em relação ao parto 
-  def_obitoparto = case_match(.x = obitoparto,
+  def_obitoparto = dplyr::case_match(.x = obitoparto,
                               "1" ~ "Antes",
                               "2" ~ "Durante",
                               "3" ~ "Depois",
                               NA ~ "Missing",
-                              .default = "Ignorado") |> as_factor(),
+                              .default = "Ignorado") |> forcats::as_factor(),
   
   #37 - A morte ocorreu. Situação gestacional ou pósgestacional em que ocorreu o óbito  
   def_tpmorteoco = 
   if ("tpmorteoco" %in% names(data) ) {
-  case_match(.x = tpmorteoco,
+    dplyr::case_match(.x = tpmorteoco,
                               "1" ~ "Na Gravidez",
                               "2" ~ "No Parto",
                               "3" ~ "No Abortamento",
@@ -486,7 +507,7 @@ tratar_sim <- function(data) {
                               "5" ~ "De 43 dias a 1 ano após o término da gestação",
                               "8" ~ "Não ocorreu nestes períodos",
                               NA ~ "Missing",
-                              .default = "Ignorado") |> as_factor() 
+                              .default = "Ignorado") |> forcats::as_factor() 
     } else {
       factor("Missing")
     },
@@ -496,11 +517,11 @@ tratar_sim <- function(data) {
   #durante a enfermidade que ocasionou o óbito  
   def_assistmed = 
   if ("assistmed" %in% names(data) ) {
-  case_match(.x = assistmed,
+    dplyr::case_match(.x = assistmed,
                              "1" ~ "Sim",
                              "2" ~ "Não",
                              NA ~ "Missing",
-                             .default = "Ignorado") |> as_factor() 
+                             .default = "Ignorado") |> forcats::as_factor() 
     } else {
       factor("Missing")
     },
@@ -510,11 +531,11 @@ tratar_sim <- function(data) {
   def_necropsia = 
   if ("necropsia" %in% names(data) ) {
   
-  case_match(.x = necropsia,
+    dplyr::case_match(.x = necropsia,
                              "1" ~ "Sim",
                              "2" ~ "Não",
                              NA ~ "Missing",
-                             .default = "Ignorado") |> as_factor()
+                             .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -523,14 +544,14 @@ tratar_sim <- function(data) {
   def_atestante = 
   if ("atestante" %in% names(data) ) {
   
-  case_match(.x = atestante,
+  dplyr::case_match(.x = atestante,
                              "1" ~ "Assistente",
                              "2" ~ "Substituto",
                              "3" ~ "IML",
                              "4" ~ "SVO",
                              "5" ~ "Outro", 
                              NA ~ "Missing",
-                             .default = "Ignorado") |> as_factor()  
+                             .default = "Ignorado") |> forcats::as_factor()  
     } else {
       factor("Missing")
     },
@@ -539,13 +560,13 @@ tratar_sim <- function(data) {
   def_circobito = 
   if ("circobito" %in% names(data) ) {
   
-  case_match(.x = circobito,
+  dplyr::case_match(.x = circobito,
                        "1" ~ "Acidente",
                        "2" ~ "Suicídio",
                        "3" ~ "Homicídio",
                        "4" ~ "Outros",
                        NA ~ "Missing", 
-                       .default = "Ignorado") |> as_factor()
+                       .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -555,11 +576,11 @@ tratar_sim <- function(data) {
   def_acidtrab = 
   if ("acidtrab" %in% names(data) ) {
   
-  case_match(.x = acidtrab,
+  dplyr::case_match(.x = acidtrab,
                             "1" ~ "Sim",
                             "2" ~ "Não",
                             NA ~ "Missing",
-                            .default = "Ignorado") |> as_factor()
+                            .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -568,13 +589,13 @@ tratar_sim <- function(data) {
   def_fonte = 
   if ("fonte" %in% names(data) ) {
   
-  case_match(.x = fonte,
+  dplyr::case_match(.x = fonte,
                          "1" ~ "Ocorrência Policial",
                          "2" ~ "Hospital",
                          "3" ~ "Família",
                          "4" ~ "Outra", 
                          NA ~ "Missing", 
-                         .default = "Ignorado") |> as_factor()
+                         .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -583,12 +604,12 @@ tratar_sim <- function(data) {
   def_origem = 
   if ("origem" %in% names(data) ) {
     
-  case_match(.x = origem,
+  dplyr::case_match(.x = origem,
                           "1" ~ "Oracle",
                           "2" ~ "Banco estadual diponibilizado via FTP",
                           "3" ~ "Banco SEADE", 
                           NA ~ "Missing", 
-                          .default = "Ignorado") |> as_factor()
+                          .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -597,11 +618,11 @@ tratar_sim <- function(data) {
   def_obitograv = 
   if ("obitograv" %in% names(data) ) {
   
-  case_match(.x = obitograv,
+  dplyr::case_match(.x = obitograv,
                              "1" ~ "Sim",
                              "2" ~ "Não",
                              NA ~ "Missing",
-                             .default = "Ignorado") |> as_factor()
+                             .default = "Ignorado") |> forcats::as_factor()
     
   } else {
     factor("Missing")
@@ -612,12 +633,12 @@ tratar_sim <- function(data) {
   def_obitopuerp = 
   if ("obitopuerp" %in% names(data) ) {
   
-  case_match(.x = obitopuerp,
+  dplyr::case_match(.x = obitopuerp,
                               "1" ~ "Até 42 dias após o parto",
                               "2" ~ "De 43 dias a 1 ano após o parto",
                               "3" ~ "Não",
                               NA ~ "Missing", 
-                              .default = "Ignorado") |> as_factor()
+                              .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -626,11 +647,11 @@ tratar_sim <- function(data) {
   def_exame = 
   if ("exame" %in% names(data) ) {
   
-  case_match(.x = exame,
+  dplyr::case_match(.x = exame,
                          "1" ~ "Sim",
                          "2" ~ "Não", 
                          NA ~ "Missing",
-                         .default = "Ignorado") |> as_factor()
+                         .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -639,11 +660,11 @@ tratar_sim <- function(data) {
   def_cirurgia = 
   if ("cirurgia" %in% names(data) ) {
   
-  case_match(.x = cirurgia,
+  dplyr::case_match(.x = cirurgia,
                             "1" ~ "Sim",
                             "2" ~ "Não",
                             NA ~ "Missing",
-                            .default = "Ignorado") |> as_factor()
+                            .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -652,7 +673,7 @@ tratar_sim <- function(data) {
   def_fonteinv = 
   if ("fonteinv" %in% names(data) ) {
   
-  case_match(.x = fonteinv,
+  dplyr::case_match(.x = fonteinv,
                             "1" ~ "Comitê de Morte Materna e/ou Infantil",
                             "2" ~ "Visita domiciliar / Entrevista família",
                             "3" ~ "Estabelecimento de Saúde / Prontuário", 
@@ -662,7 +683,7 @@ tratar_sim <- function(data) {
                             "7" ~ "Outra Fonte",
                             "8" ~ "Múltiplas Fontes",
                             NA ~ "Missing", 
-                            .default = "Ignorado") |> as_factor()
+                            .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -671,11 +692,11 @@ tratar_sim <- function(data) {
   def_stdoepidem = 
   if ("stdoepidem" %in% names(data) ) {
   
-  case_match(.x = stdoepidem,
+  dplyr::case_match(.x = stdoepidem,
                               "1" ~ "Sim",
                               "0" ~ "Não",
                               NA ~  "Missing",
-                              .default = "Ignorado") |> as_factor()
+                              .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -684,11 +705,11 @@ tratar_sim <- function(data) {
   def_stdonova = 
   if ("stdoepidem" %in% names(data) ) {
   
-  case_match(.x = stdonova,
+  dplyr::case_match(.x = stdonova,
                             "1" ~ "Sim",
                             "0" ~ "Não",
                             NA ~  "Missing",
-                            .default = "Ignorado") |> as_factor()
+                            .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -697,7 +718,7 @@ tratar_sim <- function(data) {
   def_tpobitocor = 
   if ("tpobitocor" %in% names(data) ) {
     
-  case_match(.x = tpobitocor,
+  dplyr::case_match(.x = tpobitocor,
                               "1" ~ "Durante a gestação",
                               "2" ~ "Durante o abortamento",
                               "3" ~ "Após o abortamento",
@@ -708,7 +729,7 @@ tratar_sim <- function(data) {
                               "8" ~ "Mais de um ano após o parto",
                               "9" ~  "óbito não ocorreu nas circunstancias anteriores",
                               NA ~  "Missing",
-                              .default = "Ignorado") |> as_factor()
+                              .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -720,12 +741,12 @@ tratar_sim <- function(data) {
   if ("tpresginfo" %in% names(data) ) {
   
   
-  case_match(.x = tpresginfo,
+  dplyr::case_match(.x = tpresginfo,
                               "1" ~ "Não acrescentou nem corrigiu informação",
                               "2" ~ "Sim, permitiu o resgate de novas informações",
                               "3" ~ "Sim, permitiu a correção de alguma das causas informadas originalmente",
                               NA ~  "Missing",
-                              .default = "Ignorado") |> as_factor()
+                              .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -734,12 +755,12 @@ tratar_sim <- function(data) {
   def_tpnivelinv = 
   if ("tpnivelinv" %in% names(data) ) {
   
-  case_match(.x = tpnivelinv, 
+   dplyr::case_match(.x = tpnivelinv, 
                               "E" ~ "Estadual",
                               "R" ~ "Regional",
                               "M" ~ "Municipal",
                               NA ~ "Missing",
-                              .default = "Ignorado") |> as_factor()
+                              .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -748,12 +769,12 @@ tratar_sim <- function(data) {
   def_morteparto = 
   if ("morteparto" %in% names(data) ) {
   
-  case_match(.x = morteparto,
+  dplyr::case_match(.x = morteparto,
                               "1" ~ "Antes",
                               "2" ~ "Durante",
                               "3" ~ "Após",
                               NA ~ "Missing",
-                              .default = "Ignorado") |> as_factor()
+                              .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -763,11 +784,11 @@ tratar_sim <- function(data) {
   def_altcausa = 
   if ("altcausa" %in% names(data) ) {
   
-  case_match(.x = altcausa,
+  dplyr::case_match(.x = altcausa,
                             "1" ~ "Sim",
                             "0" ~ "Não",
                             NA ~  "Missing",
-                            .default = "Ignorado") |> as_factor()
+                            .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -776,11 +797,11 @@ tratar_sim <- function(data) {
   def_tppos = 
   if ("tppos" %in% names(data) ) {
   
-  case_match(.x = tppos,
+  dplyr::case_match(.x = tppos,
                          "1" ~ "Sim",
                          "0" ~ "Não",
                          NA ~  "Missing",
-                         .default = "Ignorado") |> as_factor()
+                         .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -789,7 +810,7 @@ tratar_sim <- function(data) {
   def_gestacao = 
   if ("gestacao" %in% names(data) ) {
   
-  case_match(.x = gestacao,
+  dplyr::case_match(.x = gestacao,
                             "1" ~ "Menos de 22 semanas",
                             "2" ~ "22 a 27 semanas",
                             "3" ~ "28 a 31 semanas",
@@ -797,7 +818,7 @@ tratar_sim <- function(data) {
                             "5" ~ "37 a 41 semanas",
                             "6" ~ "42 e + semanas",
                             NA ~  "Missing",
-                            .default = "Ignorado") |> as_factor()
+                            .default = "Ignorado") |> forcats::as_factor()
   } else {
     factor("Missing")
   },
@@ -806,7 +827,7 @@ tratar_sim <- function(data) {
   def_icsap = 
   if ("causabas" %in% names(data) ) {
   
-  case_match(.x = causabas, 
+  dplyr::case_match(.x = causabas, 
        
       c("A370", "A378", "A379", "A360", "A361", "A363", "A369", "A33", "A34", "A35", "B06", "B052", "A950", "A959", "B161", "B162", "B169", "G000",
        "A170", "A171", "A172", "A173", "A174", "A175", "A176", "A177", "A178", "A179", "A190", "A191", "A192", "A198", "A199",
@@ -863,7 +884,7 @@ tratar_sim <- function(data) {
         c("O23", "A500", "A501", "A502", "A503", "A504", "A505", "A506", "A507", "A509", "P35") ~ "cidgrupo19", 
        
        #Cids que não são ICSAP
-       .default = "Outros") |> as_factor() 
+       .default = "Outros") |> forcats::as_factor() 
     
   } else {
     factor("Missing")
@@ -875,12 +896,12 @@ tratar_sim <- function(data) {
     def_natural =  
   if ("natural" %in% names(data) ) {
   
-  case_when(
+  dplyr::case_when(
     
   #Començando com 8, então Brasil 
-  str_starts(natural, "8") ~ "Brasil",
+  stringr::str_starts(natural, "8") ~ "Brasil",
   #Se não for Brasileiro, então segue os códigos ou NA então missing.
-  TRUE ~ case_match(natural,
+  TRUE ~ dplyr::case_match(natural,
                                "170" ~ "Abissinia",  
                                "171" ~ "Acores",
                                "172" ~ "Afar frances",  
@@ -1215,25 +1236,32 @@ tratar_sim <- function(data) {
                                "237" ~ "Zambia",  
                                "239" ~ "Zimbabwe", 
                                 NA ~ "Missing",       
-                               .default = natural) |> as_factor() ) } ) |>
+                               .default = natural) |> forcats::as_factor() ) } ) |>
 
 # Ocupações ---------------------------------------------------------------
    
   ### Ocupações da mae ocupmae
-  left_join(x = _, 
-              y = select(ocupacao, !c(versao_cod_proc) ) |> rename(def_ocup_mae = def_ocup), 
-              join_by("ocupmae" == "cod") ) |>
+  dplyr::left_join(x = _, 
+              y = dplyr::select(ocupacao, !c(versao_cod_proc) ) |> 
+            
+              dplyr::rename(def_ocup_mae = def_ocup), 
+              
+              dplyr::join_by("ocupmae" == "cod") ) |>
+    
   #### Ocupações do falecido
-  left_join(x = _, 
-              y = select(ocupacao, !c(versao_cod_proc) ), 
-              join_by("ocup" == "cod") ) |>
+  dplyr::left_join(x = _, 
+              y = dplyr::select(ocupacao, !c(versao_cod_proc) ), 
+              
+              dplyr::join_by("ocup" == "cod") ) |>
+    
     #Cbos de 5 dígitos são cbos antigas. Estou procurando a tabela de correspondência.
     #Outras cbos apresentam valores incorretos.
     #Estou considerando cbos com contagens de dígitos inferior a 4 como erro de 
     #preenchimento
-    mutate(
+    
+  dplyr::mutate(
       #Cbos com preenchimento inadequado.
-      def_ocup = case_when(
+      def_ocup = dplyr::case_when(
         #CBO com 5 dígitos parece ser cbo 1994
         #O iconv acontece por causa de 1999
         nchar(iconv(as.character(ocup), from = "latin1", to = "UTF-8", sub = "")) == 5 ~ "CBO 1994?",
@@ -1243,7 +1271,7 @@ tratar_sim <- function(data) {
         .default = def_ocup),
       
       #Cbos com preenchimento inadequado.
-      def_ocup_mae = case_when(
+      def_ocup_mae = dplyr::case_when(
         nchar(as.character(ocupmae)) == 5 ~ "CBO 1994?",
         
         #CBo com 4 dígitos ou menos
@@ -1251,37 +1279,37 @@ tratar_sim <- function(data) {
         
         .default =  def_ocup_mae ),
 # Municípios --------------------------------------------------------------      
-     ### Refazer essa seção de municípios. Está horrível.
-
-
+    
 #Correção de ids com código de regiões administrativas do Distrito Federal.
 #Vou assumir que ids começando em 53 são do Distrito Federal
 #Isso acontece no SINAN. Trouxe do SINAN para o SIM
-  across(.cols =  any_of(
+dplyr::across(.cols = tidyselect::any_of(
     
           c("codmunresd", "codmunocor", 
             "codmuncart", "codmunnatu", 
             "codmunsvoi") ), 
          
           #Caso id comece em 53, então substituir pelo cod do Distrito Federal 530010
-          .fns = ~ case_when(str_sub(., 1, 2) == "53" ~ "530010",
-                          .default = .) |> as_factor() ), 
+          .fns = ~ dplyr::case_when(str_sub(., 1, 2) == "53" ~ "530010",
+          
+          .default = .) |> forcats::as_factor() ), 
 
 #Nos primeiros anos da série. 
 #Alguns códigos de municípios são na realidade o bairro.
 #Nestes casos, estou substituindo o código do bairro pelo código da capital da UF
-  across(.cols = any_of(
+dplyr::across(.cols = tidyselect::any_of(
     
     c("codmunresd", "codmunocor", 
     "codmuncart", "codmunnatu", 
     "codmunsvoi") ),
     
-    .fns = ~ case_when(
+    .fns = ~ dplyr::case_when(
     #Rio de Janeiro
-    str_sub(., 1, 3) == "334" ~ "330455",
+    stringr::str_sub(., 1, 3) == "334" ~ "330455",
     #São Paulo
-    str_sub(., 1, 3) == "358" ~ "355030",
-    .default = .) |> as_factor() ) )  |> 
+    stringr::str_sub(., 1, 3) == "358" ~ "355030",
+    
+    .default = .) |> forcats::as_factor() ) )  |> 
     
     #Adicionando o nome dos municípios.
     #Fiz uma função para isso. join_munic
@@ -1299,7 +1327,7 @@ tratar_sim <- function(data) {
     
     
 #Exclusão de variáveis não utilizadas ------------------------------------
-      select(!c(causa_letra,causa_num) )
+  dplyr::select(!c(causa_letra,causa_num) )
    
 # Código do estabelecimento -----------------------------------------------
 
@@ -1317,14 +1345,14 @@ tratar_sim <- function(data) {
 join_munic <- function(df, col_base, novo_nome, munics) {
   if (col_base %in% names(df)) {
     df |>
-      left_join(
+      dplyr::left_join(
         munics |> 
-          select(code_muni, name_muni) |> 
-          rename(!!novo_nome := name_muni),
+          dplyr::select(code_muni, name_muni) |> 
+          dplyr::rename(!!novo_nome := name_muni),
         by = setNames("code_muni", col_base)
       )
   } else {
-    df |> mutate(!!novo_nome := NA_character_)
+    df |> dplyr::mutate(!!novo_nome := NA_character_)
   }
 }
 
