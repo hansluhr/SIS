@@ -58,6 +58,10 @@ sia |>
                            "0901010111","0203020022","0409060089",
                            "0901010120","0409060305") ) -> x
 
+sia |>
+  filter(pa_proc_id %in% c("0901010057","0901010111","0901010120" ) ) -> y 
+
+
 
 0901010057 OCI INVESTIGAÇÃO DIAGNÓSTICA DE CÂNCER DE COLO DO ÚTERO
 0201010666 BIOPSIA DO COLO UTERINO
