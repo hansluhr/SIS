@@ -22,7 +22,11 @@ source(file = "https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Ro
 here::i_am("SIM/Rotinas/funcao_criacao_base_sim_duckdb.R")
 
 #Importar função de tratamento do SIM
-source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIM/Rotinas/funcao_tratar_sim.R")
+source("C:/Users/gabli/Desktop/r/SIS/SIM/Rotinas/funcao_tratar_sim.R")
+
+library(tidyverse)
+library(duckdb)
+library(data.table)
 
 
 
@@ -113,7 +117,7 @@ importar_empilhar_salvar_sim <- function(
 
 
 importar_empilhar_salvar_sim(
-  anos_lista = c(2013:2015),
+  anos_lista = c(2013),
   pasta_dbc = here::here("Bases/sim/dbc"),
   pasta_duckdb = here::here("Bases/sim/duckdb/sim.duckdb"),
   tabela = "sim_br")
@@ -138,9 +142,10 @@ ufinform
 
 
 
+apply(data, 2, function(col)sum(is.na(col))/length(col))
 
-
-
+data |>
+  filter(is.na(esc))
 
 
 
