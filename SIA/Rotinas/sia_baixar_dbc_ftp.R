@@ -59,7 +59,7 @@ baixar_dbc_sia <- function(anos,
         
         
         #Criar padrão de busca para os dbcs de interesse, na uf, ano e mês 
-        padrao <- paste0("^PA",  uf, ano, mes, "\\.dbc$")
+        padrao <- paste0("^PA", uf, ano, mes, "[a-zA-Z]*", "\\.dbc$")
         #Esse padrão é utilizado para extrair o nomes dos dbcs de interesse, 
         #de listagem com todos os dbcs (arquivos_filtrados)
         arquivos_filtrados <- lista_arquivos[str_detect(lista_arquivos, padrao)]
