@@ -140,3 +140,4 @@ baixar_dbc_sia <- function(anos,
   
   message("\n✅ Todos os downloads concluídos!")
 }
+beepr::beep()
