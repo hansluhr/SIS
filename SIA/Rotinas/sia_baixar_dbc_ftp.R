@@ -137,7 +137,7 @@ baixar_dbc_sia <- function(anos,
       }
     }
   }
-  
+  beepr::beep()
   message("\n✅ Todos os downloads concluídos!")
 }
-beepr::beep()
+
