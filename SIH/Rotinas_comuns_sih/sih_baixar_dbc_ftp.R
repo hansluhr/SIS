@@ -6,10 +6,10 @@ baixar_dbc_sih <- function(anos,
                            meses,
                            ufs = "ALL",
                            destino = "dados_sihsus/",
-                           tipo = c("reduzida", "rejeitada") ) {
+                           sih = c("reduzida", "rejeitada","SP") ) {
   
   #Match.arg garante que só aceite valores válidos
-  tipo <- match.arg(tipo)
+  sih <- match.arg(sih)
   
   #Criar diretório de destino se não existir
   if (!dir.exists(destino)) dir.create(destino, recursive = TRUE)
@@ -60,7 +60,11 @@ baixar_dbc_sih <- function(anos,
   #RD é reduzida e ER é rejeitada com erro. 
   #Se o parâmetro tipo for reduzida, então o prefixo será RD, de outro caso ER
   #de rejeitada com erro.
-  prefixo <- ifelse(tipo == "reduzida", "RD", "ER")
+  #SP é serviços profissionais      
+  prefixo <- dplyr::case_when(
+          sih == "reduzida"  ~ "RD",
+          sih == "rejeitada" ~ "ER",
+          sih == "SP"        ~ "SP")
   
   #Criar padrão de busca para os dbcs de interesse, na uf, ano e mês 
   padrao <- paste0("^", prefixo, uf, ano, mes, "\\.dbc$")
@@ -141,6 +145,6 @@ baixar_dbc_sih <- function(anos,
       }
     }
   }
-  
+  beepr::beep()
   message("\n✅ Todos os downloads concluídos!")
 }
