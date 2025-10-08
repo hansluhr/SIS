@@ -15,7 +15,7 @@ tratar_sia <-
   cols_existentes <- intersect(variables_names, names(data))
   if (length(cols_existentes) > 0) {
    data[, (cols_existentes) := lapply(.SD, as.character), .SDcols = cols_existentes]
-    
+  }
     
     data <- dtplyr::lazy_dt(data)
        
@@ -331,13 +331,6 @@ tratar_sia <-
           .default = .data$PA_RACACOR)) #%>% dplyr::mutate(as.factor(.data$PA_RACACOR))
       }
 
-      # if ("PA_MUNPCN" %in% variables_names & municipality_data ==
-      #     TRUE) {
-      #   colnames(tabMun)[1] <- "PA_MUNPCN"
-      #   data <- data %>% dplyr::mutate(PA_MUNPCN = as.integer(.data$IDADEMAX)) %>%
-      #     dplyr::left_join(tabMun, by = "PA_MUNPCN")
-      # }
-
       #Quantidade Produzida (APRESENTADA)
       if ("PA_QTDPRO" %in% variables_names) {
         data <- data %>% dplyr::mutate(PA_QTDPRO = as.integer(.data$PA_QTDPRO))
@@ -407,59 +400,87 @@ tratar_sia <-
         .data$PA_ETNIA,
         "0001" ~ "ACONA (WAKONAS, NACONAS, JAKONA, ACORANES)",
         "0002" ~ "AIKANA (AIKANA, MAS SAKA,TUBARAO)",
-        "0003" ~ "AJURU", "0004" ~ "AKUNSU (AKUNT'SU)",
-        "0005" ~ "AMANAYE", "0006" ~ "AMONDAWA", 
-        "0007" ~ "ANAMBE", "0008" ~ "APARAI (APALAI)",
-        "0009" ~ "APIAKA (APIACA)", "0010" ~ "APINAYE (APINAJE/APINAIE/APINAGE)",
+        "0003" ~ "AJURU", 
+        "0004" ~ "AKUNSU (AKUNT'SU)",
+        "0005" ~ "AMANAYE", 
+        "0006" ~ "AMONDAWA", 
+        "0007" ~ "ANAMBE", 
+        "0008" ~ "APARAI (APALAI)",
+        "0009" ~ "APIAKA (APIACA)", 
+        "0010" ~ "APINAYE (APINAJE/APINAIE/APINAGE)",
         "0011" ~ "APURINA (APORINA, IPURINA, IPURINA, IPURINAN)",
         "0012" ~ "ARANA (ARACUAI DO VALE DO JEQUITINHONHA)",
-        "0013" ~ "ARAPASO (ARAPACO)", "0014" ~ "ARARA DE RONDONIA (KARO, URUCU, URUKU)",
+        "0013" ~ "ARAPASO (ARAPACO)", 
+        "0014" ~ "ARARA DE RONDONIA (KARO, URUCU, URUKU)",
         "0015" ~ "ARARA DO ACRE (SHAWANAUA, AMAWAKA)",
         "0016" ~ "ARARA DO ARIPUANA (ARARA DO BEIRADAO/ARI-PUANA)",
         "0017" ~ "ARARA DO PARA (UKARAGMA, UKARAMMA)",
-        "0018" ~ "ARAWETE (ARAUETE)", "0019" ~ "ARIKAPU (ARICAPU, ARIKAPO, MASUBI, MAXUBI)",
+        "0018" ~ "ARAWETE (ARAUETE)", 
+        "0019" ~ "ARIKAPU (ARICAPU, ARIKAPO, MASUBI, MAXUBI)",
         "0020" ~ "ARIKEM (ARIQUEN, ARIQUEME, ARIKEME)",
-        "0021" ~ "ARIKOSE (ARICOBE)", "0022" ~ "ARUA",
-        "0023" ~ "ARUAK (ARAWAK)", "0024" ~ "ASHANINKA (KAMPA)",
+        "0021" ~ "ARIKOSE (ARICOBE)", 
+        "0022" ~ "ARUA",
+        "0023" ~ "ARUAK (ARAWAK)", 
+        "0024" ~ "ASHANINKA (KAMPA)",
         "0025" ~ "ASURINI DO TOCANTINS (AKUAWA/AKWAWA)",
-        "0026" ~ "ASURINI DO XINGU (AWAETE)", "0027" ~
-          "ATIKUM (ATICUM)", "0028" ~ "AVA - CANOEIRO",
-        "0029" ~ "AWETI (AUETI/AUETO)", "0030" ~ "BAKAIRI (KURA, BACAIRI)",
+        "0026" ~ "ASURINI DO XINGU (AWAETE)", 
+        "0027" ~ "ATIKUM (ATICUM)", 
+        "0028" ~ "AVA - CANOEIRO",
+        "0029" ~ "AWETI (AUETI/AUETO)", 
+        "0030" ~ "BAKAIRI (KURA, BACAIRI)",
         "0031" ~ "BANAWA YAFI (BANAWA, BANAWA-JAFI)",
         "0032" ~ "BANIWA (BANIUA, BANIVA, WALIMANAI, WAKUENAI)",
-        "0033" ~ "BARA (WAIPINOMAKA)", "0034" ~ "BARASANA (HANERA)",
-        "0035" ~ "BARE", "0036" ~ "BORORO (BOE)", "0037" ~
-          "BOTOCUDO (GEREN)", "0038" ~ "CANOE", "0039" ~
-          "CASSUPA", "0040" ~ "CHAMACOCO", "0041" ~
-          "CHIQUITANO (XIQUITANO)", "0042" ~ "CIKIYANA (SIKIANA)",
-        "0043" ~ "CINTA LARGA (MATETAMAE)", "0044" ~
-          "COLUMBIARA (CORUMBIARA)", "0045" ~ "DENI",
+        "0033" ~ "BARA (WAIPINOMAKA)", 
+        "0034" ~ "BARASANA (HANERA)",
+        "0035" ~ "BARE", 
+        "0036" ~ "BORORO (BOE)", 
+        "0037" ~ "BOTOCUDO (GEREN)", 
+        "0038" ~ "CANOE", 
+        "0039" ~ "CASSUPA", 
+        "0040" ~ "CHAMACOCO", 
+        "0041" ~ "CHIQUITANO (XIQUITANO)", 
+        "0042" ~ "CIKIYANA (SIKIANA)", 
+        "0043" ~ "CINTA LARGA (MATETAMAE)", 
+        "0044" ~ "COLUMBIARA (CORUMBIARA)", 
+        "0045" ~ "DENI",
         "0046" ~ "DESANA (DESANA, DESANO, DESSANO, WIRA, UMUKOMASA)",
-        "0047" ~ "DIAHUI (JAHOI, JAHUI, DIARROI)", "0048" ~
-          "ENAWENE-NAWE (SALUMA)", "0049" ~ "FULNI-O",
+        "0047" ~ "DIAHUI (JAHOI, JAHUI, DIARROI)", 
+        "0048" ~ "ENAWENE-NAWE (SALUMA)", 
+        "0049" ~ "FULNI-O",
         "0050" ~ "GALIBI (GALIBI DO OIAPOQUE, KARINHA)",
         "0051" ~ "GALIBI MARWORNO (GALIBI DO UACA, ARUA)",
-        "0052" ~ "GAVIAO DE RONDONIA (DIGUT)", "0053" ~
-          "GAVIAO KRIKATEJE", "0054" ~ "GAVIAO PARKATEJE (PARKATEJE)",
+        "0052" ~ "GAVIAO DE RONDONIA (DIGUT)", 
+        "0053" ~ "GAVIAO KRIKATEJE", 
+        "0054" ~ "GAVIAO PARKATEJE (PARKATEJE)",
         "0055" ~ "GAVIAO PUKOBIE (PUKOBIE, PYKOPJE, GAVIAO DO MARANHAO)",
-        "0056" ~ "GUAJA (AWA, AVA)", "0057" ~ "GUAJAJARA (TENETEHARA)",
-        "0058" ~ "GUARANI KAIOWA (PAI TAVYTERA)", "0059" ~
-          "GUARANI M'BYA", "0060" ~ "GUARANI NANDEVA (AVAKATUETE, CHIRIPA,NHANDEWA, AVA GUARANI)",
-        "0061" ~ "GUATO", "0062" ~ "HIMARIMA (HIMERIMA)",
+        "0056" ~ "GUAJA (AWA, AVA)", 
+        "0057" ~ "GUAJAJARA (TENETEHARA)",
+        "0058" ~ "GUARANI KAIOWA (PAI TAVYTERA)", 
+        "0059" ~ "GUARANI M'BYA", 
+        "0060" ~ "GUARANI NANDEVA (AVAKATUETE, CHIRIPA,NHANDEWA, AVA GUARANI)",
+        "0061" ~ "GUATO", 
+        "0062" ~ "HIMARIMA (HIMERIMA)",
         "0063" ~ "INGARIKO (INGARICO, AKAWAIO, KAPON)",
-        "0064" ~ "IRANXE (IRANTXE)", "0065" ~ "ISSE",
-        "0066" ~ "JABOTI (JABUTI, KIPIU, YABYTI)", "0067" ~
-          "JAMAMADI (YAMAMADI, DJEOROMITXI)", "0068" ~
-          "JARAWARA", "0069" ~ "JIRIPANCO (JERIPANCO, GERIPANCO)",
-        "0070" ~ "JUMA (YUMA)", "0071" ~ "JURUNA", "0072" ~
-          "JURUTI (YURITI)", "0073" ~ "KAAPOR (URUBU-KAAPOR, KA'APOR, KAAPORTE)",
-        "0074" ~ "KADIWEU (CADUVEO, CADIUEU)", "0075" ~
-          "KAIABI (CAIABI, KAYABI)", "0076" ~ "KAIMBE (CAIMBE)",
-        "0077" ~ "KAINGANG (CAINGANGUE)", "0078" ~ "KAIXANA (CAIXANA)",
+        "0064" ~ "IRANXE (IRANTXE)", 
+        "0065" ~ "ISSE",
+        "0066" ~ "JABOTI (JABUTI, KIPIU, YABYTI)", 
+        "0067" ~ "JAMAMADI (YAMAMADI, DJEOROMITXI)", 
+        "0068" ~ "JARAWARA", 
+        "0069" ~ "JIRIPANCO (JERIPANCO, GERIPANCO)",
+        "0070" ~ "JUMA (YUMA)", 
+        "0071" ~ "JURUNA", 
+        "0072" ~ "JURUTI (YURITI)",
+        "0073" ~ "KAAPOR (URUBU-KAAPOR, KA'APOR, KAAPORTE)",
+        "0074" ~ "KADIWEU (CADUVEO, CADIUEU)",
+        "0075" ~ "KAIABI (CAIABI, KAYABI)", 
+        "0076" ~ "KAIMBE (CAIMBE)",
+        "0077" ~ "KAINGANG (CAINGANGUE)", 
+        "0078" ~ "KAIXANA (CAIXANA)",
         "0079" ~ "KALABASSA (CALABASSA, CALABACAS)",
-        "0080" ~ "KALANCO", "0081" ~ "KALAPALO (CALAPALO)",
-        "0082" ~ "KAMAYURA (CAMAIURA, KAMAIURA)", "0083" ~
-          "KAMBA (CAMBA)", "0084" ~ "KAMBEBA (CAMBEBA, OMAGUA)",
+        "0080" ~ "KALANCO", 
+        "0081" ~ "KALAPALO (CALAPALO)",
+        "0082" ~ "KAMAYURA (CAMAIURA, KAMAIURA)", 
+        "0083" ~ "KAMBA (CAMBA)", "0084" ~ "KAMBEBA (CAMBEBA, OMAGUA)",
         "0085" ~ "KAMBIWA (CAMBIUA)", "0086" ~ "KAMBIWA PIPIPA (PIPIPA)",
         "0087" ~ "KAMPE", "0088" ~ "KANAMANTI (KANAMATI, CANAMANTI)",
         "0089" ~ "KANAMARI (CANAMARI, KANAMARY, TUKUNA)",
@@ -668,14 +689,88 @@ tratar_sia <-
       }
 
     #UF e município do estabelecimento
-    
-    
-    
-    
-    
-    
-    
+    data <- data |>
 
+      #Correção de ids com código de regiões administrativas do Distrito Federal.
+      #Vou assumir que ids começando em 53 são do Distrito Federal
+      mutate(
+
+        across(.cols = any_of( c("PA_MUNPCN", "PA_UFMUN") ),
+               #Caso id comece em 53, então valor do Distrito Federal 530010
+               .fns = ~  case_when(str_sub(., 1, 2) == "53" ~ "530010",
+                                   .default = .) |> as_factor() ),  
+
+        #capturar o código da UF onde está localizado o estabelecimento e
+        #UF Código do Município de residência do paciente ou do estabelecimento,
+        #caso não se tenha a identificação do paciente
+        across(.cols = any_of(
+
+          c("PA_MUNPCN", "PA_UFMUN") ),
+
+          #Dois primeiros dígitos são o código da UF
+          .fns = ~ as.numeric( substr(.,1,2) ),
+
+          #Extração do nome a partir do 4º e até 9º dígito do nome das variáveis de origem. (codmunxxx)
+          .names = "cod_uf_{str_sub(.col, start = 4, end = 9)}"), 
+
+
+        #Nome da UF de registro e UF de residência.
+        across(.cols = any_of(
+          c("cod_uf_MUNPCN", "cod_uf_UFMUN") ),
+          .fns = ~  recode(.,
+                           '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas",
+                           '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins",
+                           '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte",
+                           '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas",
+                           '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais",
+                           '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo",
+                           '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul",
+                           '50'= "Mato Grosso do Sul",'51'= "Mato Grosso",
+                           '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC",
+                           .default = "Cod Munic Erro",
+                           .missing = "Missing") |> as_factor(),
+          .names = "def_uf_{str_sub(.col, start = 8, end = 11)}"),
+
+        #Nome da região de ocorrência e região de residência.
+        across(.cols = any_of(
+          c("def_uf_MUNP", "def_uf_UFMU") ),
+
+          .fns = ~ case_when(
+            #Região Norte
+            . %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima", "Tocantins") ~ "Norte",
+            #Região Nordeste
+            . %in% c("Alagoas","Bahia","Ceará","Maranhão","Paraíba","Pernambuco","Piauí","Rio Grande do Norte","Sergipe") ~ "Nordeste",
+            #Região Centro-Oeste
+            . %in% c("Goiás","Mato Grosso", "Mato Grosso do Sul","Distrito Federal") ~ "Centro Oeste",
+            #Região Sudeste
+            . %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste",
+            #Região Sul
+            . %in% c("Paraná", "Rio Grande do Sul", "Santa Catarina" ) ~ "Sul",
+
+            .default ="Missing") |> as_factor(),
+
+          .names = "def_reg_{str_sub(.col, start = 8, end = 11)}") ) 
+
+      #Municípios do estabelecimento e município de residência.
+    #Município do estabelecimento
+    data <- merge(
+      x = data,
+      y = select(munics, c(code_muni, def_munic_UFMUN = name_muni) ),
+      by.x = "PA_UFMUN",
+      by.y = "code_muni",
+      all.x = TRUE,
+      suffixes = c("", "_resd")
+    )
+    
+    #   #Município de residência
+    data <- merge(
+      x = data,
+      y = select(munics, c(code_muni, def_munic_MUNPCN = name_muni) ),
+      by.x = "PA_MUNPCN",
+      by.y = "code_muni",
+      all.x = TRUE,
+      suffixes = c("", "_resd")
+    )
     data <- tibble::as_tibble(data)
     data <- droplevels(data.table::as.data.table(data))
     data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
@@ -684,47 +779,10 @@ tratar_sia <-
     
   }
   
-}
+
   
   
 
 
 
 
-
-
-base <-  read.dbc::read.dbc("C:/Users/gabli/Desktop/r/SIS/Bases/sia/dbc/PADF2507.dbc") |>
-  janitor::clean_names()
-
-
-base |>
-  #Atribuindo município
-  mutate(cod_uf = substr(pa_ufmun,1,2),
-         
-         def_uf =  case_match(.x = cod_uf,
-                              '11' ~ "Rondônia", '12' ~"Acre", '13'~ "Amazonas", 
-                              '14'~ "Roraima", '15'~ "Pará",'16'~ "Amapá",'17'~ "Tocantins", 
-                              '21'~ "Maranhão", '22'~ "Piauí", '23'~ "Ceará", '24'~ "Rio Grande do Norte", 
-                              '25'~ "Paraíba", '26'~ "Pernambuco", '27'~ "Alagoas", 
-                              '28'~ "Sergipe", '29' ~"Bahia", '31'~ "Minas Gerais", 
-                              '32'~ "Espírito Santo", '33'~ "Rio de Janeiro", '35'~ "São Paulo", 
-                              '41'~ "Paraná", '42'~ "Santa Catarina", '43'~ "Rio Grande do Sul", 
-                              '50'~ "Mato Grosso do Sul",'51'~ "Mato Grosso", 
-                              '52'~ "Goiás", '53'~ "Distrito Federal", '99'~ "CNRAC", 
-                              
-                              .default = "Cod Munic Erro") |> as_factor(),
-         #Região
-         def_regiao =  case_when(
-           #Região Norte
-           def_uf %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima", "Tocantins") ~ "Norte",
-           #Região Nordeste
-           def_uf %in% c("Alagoas","Bahia","Ceará","Maranhão","Paraíba","Pernambuco","Piauí","Rio Grande do Norte","Sergipe") ~ "Nordeste",
-           #Região Centro-Oeste
-           def_uf %in% c("Goiás","Mato Grosso", "Mato Grosso do Sul","Distrito Federal") ~ "Centro Oeste",
-           #Região Sudeste
-           def_uf %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste", 
-           #Região Sul
-           def_uf %in% c("Paraná", "Rio Grande do Sul", "Santa Catarina" ) ~ "Sul" ) ) 
-
-
-base$pa_ufmun
