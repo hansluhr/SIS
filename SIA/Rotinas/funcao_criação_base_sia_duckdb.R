@@ -1,22 +1,5 @@
-library(RCurl)
-library(stringr)
-library(digest)
 
-
-here::i_am("SIA/Rotinas/criação_base_sia.R")
-
-# Download dos dbcs SIA -------------------------------------------
-#Chamar função para importar arquivos DBCs do FTP DataSuS 
-source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIA/Rotinas/sia_baixar_dbc_ftp.R")
-
-#Pasta onde os arquivos DBCs do SIH serão salvos.
-#Baixar arquivos dbcs SIH
-baixar_dbc_sia(anos = c(2010:2025), 
-               meses = c(1:12), 
-               ufs = c("DF"), 
-               destino = here::here("Bases/sia/dbc") )
-rm(baixar_dbc_sia)
-
+#Essa função importa, trata e empilha em duckdb os dbcs do SIA.
 
 
 # Função de importar, empilhar e trata - SIA ------------------------------
@@ -119,48 +102,3 @@ importar_empilhar_salvar_sia <- function(
 }
 
 
-
-
-importar_empilhar_salvar_sia(
-  anos = c(2010:2015),
-  mes = c(1:12),
-  uf = c("AC","RR"),
-  pasta_dbc = here::here("Bases/sia/dbc"),
-  pasta_duckdb = here::here("Bases/sia/duckdb/sia.duckdb"),
-  tabela = "sia_br")
-rm(list = ls() )
-
-library(tidyverse)
-library(duckdb)
-library(data.table)
-
-
-
-
-Olhar variável 
-nome_proced, nome_ocupacao, municipality_data
-
-
-con <- DBI::dbConnect(duckdb::duckdb(),
-                 dbdir = here::here("Bases/sia/duckdb/sia.duckdb"), #Nome do database que armazena o SIH
-                 read_only = FALSE)
-
-data <- 
-  tbl(con, "sia_br")
-
-
-data |>
-  count(pa_ufmun, sort = TRUE)
-
-
-
-DBI::dbDisconnect(con, shutdown = TRUE) ; gc()
-rm(list = setdiff(ls(), c("ocupacao","munics") ) ); gc()
-
-
-
-
-# 3. Remova o arquivo
-file.remove(here::here("Bases/sia/duckdb/sia.duckdb"))
-
-beepr::beep(sound = 1)
