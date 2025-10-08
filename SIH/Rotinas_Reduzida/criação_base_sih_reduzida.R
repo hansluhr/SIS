@@ -155,13 +155,18 @@ rm(list=ls()); gc()
 
 
 #Abre conexão com a database
-con <- dbConnect(duckdb::duckdb(), dbdir = "C:/Users/gabli/Desktop/r/SIS/Bases/sih/duckdb/sih_08_abr_25.duckdb", 
+con <- dbConnect(duckdb::duckdb(), 
+                 dbdir = "C:/Users/gabli/Desktop/r/SIS/Bases/sih/duckdb/sih_reduzida.duckdb", 
                  read_only = FALSE)
 data <- 
   tbl(con, "sih")
 
 
-
+data |>
+ filter(cod_proc_rea %in% c("0211020010","0211020028") )
+  
+data |>
+  filter(cod_proc_rea == "0211020010")
 
 
 

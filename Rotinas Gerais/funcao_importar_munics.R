@@ -16,13 +16,17 @@ geobr::list_geobr() |>
 #Vou criar munics (tibble) e utilizar no join com a base de interesse.
   geobr::read_municipality(year = _ ) |> dplyr::as_tibble() |>
   #Código dos municípios com 6 dígitos.
-  dplyr::mutate(code_muni = code_muni |> stringr::str_sub(start = 1, end = 6),
-         #Transforma em factor
+  dplyr::mutate(
+        code_muni = code_muni |> stringr::str_sub(start = 1, end = 6),
+        #Rename de Brasília para Distrito Federal        
+        name_muni =  dplyr::case_when(name_muni == "Brasília" ~ "Distrito Federal",
+                  .default = name_muni),
+        #Transforma em factor
          dplyr::across( c(code_muni, name_state, code_state), ~  forcats::as_factor(.x) ) ) |>
   #Excluindo variáveis não utilizadas.
   dplyr::select(!c(code_region, geom)) |>
   #Elimando geo
-  sf::st_drop_geometry(data_all) |>
+  sf::st_drop_geometry(data_all) |> 
 
 #3º Bind rows das informações sobre municípios ignorados.
   ###Adiciona informações sobre os municípios ignorados
