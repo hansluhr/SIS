@@ -131,6 +131,27 @@ tratar_sia <-
       # # }
       # 
     
+    #data[procedimentos, def_proc := i.proc, on = .(PA_PROC_ID = cod)] 
+   # data <- data |>
+   #    dplyr::left_join(  y = procedimentos ,
+   #             by = join_by("PA_PROC_ID" == "cod"))
+   
+   
+    data <- data |>
+      mutate(PA_PROC_ID = PA_PROC_ID |> as.integer() )
+    
+    # #Procedimento
+    data <- merge(
+      x = data,
+      y = select(procedimentos, c(cod, def_proc = proc) ),
+      by.x = "PA_PROC_ID",
+      by.y = "cod",
+      all.x = TRUE,
+      suffixes = c("", "_resd")
+    )
+    
+    
+    
       #Tipo de Financiamento da produção 
       if ("PA_TPFIN" %in% variables_names) {
         data <- data %>% dplyr::mutate(def_PA_TPFIN = dplyr::case_match(
@@ -167,13 +188,24 @@ tratar_sia <-
         "A" ~ "RAAS - Atenção Domiciliar", 
         "B" ~ "RAAS - Psicossocial",.default = .data$PA_DOCORIG)) #%>% dplyr::mutate(PA_DOCORIG = as.factor(.data$PA_DOCORIG))
       }
+     
+    
+      #Ocupaçoes
+    data <- 
+      data |>
+      #### Ocupações do falecido
+      left_join(x = _, 
+                y = select(ocupacao, !c(versao_cod_proc) ), 
+                
+                join_by("PA_CBOCOD" == "cod") )  
+    
+    
+      # if (nome_ocupacao == TRUE) {
+      #   data <- dplyr::left_join(data, microdatasus::tabCBO,
+      #                            by = c(PA_CBOCOD = "cod"))
+      #   data <- dplyr::rename(data, ocupacao = "nome")
+      # }
 
-      # # if (nome_ocupacao == TRUE) {
-      # #   data <- dplyr::left_join(data, microdatasus::tabCBO, 
-      # #                            by = c(PA_CBOCOD = "cod"))
-      # #   data <- dplyr::rename(data, ocupacao = "nome")
-      # # }
-      
       #Motivo de saída ou zeros, caso não tenha  
       if ("PA_MOTSAI" %in% variables_names) {
         data <- data %>% dplyr::mutate(def_PA_MOTSAI = dplyr::case_match(
@@ -751,7 +783,7 @@ tratar_sia <-
 
           .names = "def_reg_{str_sub(.col, start = 8, end = 11)}") ) 
 
-      #Municípios do estabelecimento e município de residência.
+    #Municípios do estabelecimento e município de residência.
     #Município do estabelecimento
     data <- merge(
       x = data,
