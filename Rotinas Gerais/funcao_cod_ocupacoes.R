@@ -92,6 +92,7 @@ ocupacao <- ocupacao |>
 #Remove duplicados, mantendo o mais recente por cod
 data.table::setorder(ocupacao, cod, -versao_cod_proc) #ordena por cod e versão desc
 ocupacao <- ocupacao[!duplicated(cod)]
+rm(arquivos,ftp_base,ocupacoes_ftp_zip)
 beepr::beep(sound = 1)
 
 
