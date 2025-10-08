@@ -13,7 +13,7 @@ source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/SIA/Rotin
 #Baixar arquivos dbcs SIH
 baixar_dbc_sia(anos = c(2010:2025), 
                meses = c(1:12), 
-               ufs = c("AC"), 
+               ufs = c("DF"), 
                destino = here::here("Bases/sia/dbc") )
 rm(baixar_dbc_sia)
 
@@ -31,6 +31,8 @@ importar_empilhar_salvar_sia <- function(
     pasta_dbc = here::here("Bases/sia/dbc"), #Pasta de armanzemaneto dos dbcs
     pasta_duckdb, #Pasta de armazenamento do duckdb
     tabela) { #Nome da tabela duckdb) 
+  
+ tictoc::tic()  
   
   #Conexão com o DuckDB
   con <- duckdb::dbConnect(
@@ -113,16 +115,16 @@ importar_empilhar_salvar_sia <- function(
       }
     }
  }
-  beepr::beep()
+  beepr::beep(); tictoc::toc()
 }
 
 
 
 
 importar_empilhar_salvar_sia(
-  anos = c(2025),
-  mes = c(1:2),
-  uf = c("AC"),
+  anos = c(2010:2015),
+  mes = c(1:12),
+  uf = c("AC","RR"),
   pasta_dbc = here::here("Bases/sia/dbc"),
   pasta_duckdb = here::here("Bases/sia/duckdb/sia.duckdb"),
   tabela = "sia_br")
@@ -139,11 +141,6 @@ Olhar variável
 nome_proced, nome_ocupacao, municipality_data
 
 
-
-
-rm(list = setdiff(ls(), c("ocupacao","munics") ) ); gc()
-beepr::beep(sound = 1)
-
 con <- DBI::dbConnect(duckdb::duckdb(),
                  dbdir = here::here("Bases/sia/duckdb/sia.duckdb"), #Nome do database que armazena o SIH
                  read_only = FALSE)
@@ -151,10 +148,14 @@ con <- DBI::dbConnect(duckdb::duckdb(),
 data <- 
   tbl(con, "sia_br")
 
-DBI::dbDisconnect(con, shutdown = TRUE) ; gc()
 
 data |>
-  count(pa_gestao, sort = TRUE)
+  count(pa_ufmun, sort = TRUE)
+
+
+
+DBI::dbDisconnect(con, shutdown = TRUE) ; gc()
+rm(list = setdiff(ls(), c("ocupacao","munics") ) ); gc()
 
 
 
