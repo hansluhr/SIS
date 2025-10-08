@@ -80,4 +80,4 @@ procedimentos <- lapply(arquivos,
 data.table::setorder(procedimentos, cod, -versao_cod_proc)   #ordena por cod e versão desc
 procedimentos <- procedimentos[!duplicated(cod)]
 
-
+rm(arquivos,ftp_base,procedimento_zip)
