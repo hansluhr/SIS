@@ -687,3 +687,44 @@ tratar_sia <-
 }
   
   
+
+
+
+
+
+
+base <-  read.dbc::read.dbc("C:/Users/gabli/Desktop/r/SIS/Bases/sia/dbc/PADF2507.dbc") |>
+  janitor::clean_names()
+
+
+base |>
+  #Atribuindo município
+  mutate(cod_uf = substr(pa_ufmun,1,2),
+         
+         def_uf =  case_match(.x = cod_uf,
+                              '11' ~ "Rondônia", '12' ~"Acre", '13'~ "Amazonas", 
+                              '14'~ "Roraima", '15'~ "Pará",'16'~ "Amapá",'17'~ "Tocantins", 
+                              '21'~ "Maranhão", '22'~ "Piauí", '23'~ "Ceará", '24'~ "Rio Grande do Norte", 
+                              '25'~ "Paraíba", '26'~ "Pernambuco", '27'~ "Alagoas", 
+                              '28'~ "Sergipe", '29' ~"Bahia", '31'~ "Minas Gerais", 
+                              '32'~ "Espírito Santo", '33'~ "Rio de Janeiro", '35'~ "São Paulo", 
+                              '41'~ "Paraná", '42'~ "Santa Catarina", '43'~ "Rio Grande do Sul", 
+                              '50'~ "Mato Grosso do Sul",'51'~ "Mato Grosso", 
+                              '52'~ "Goiás", '53'~ "Distrito Federal", '99'~ "CNRAC", 
+                              
+                              .default = "Cod Munic Erro") |> as_factor(),
+         #Região
+         def_regiao =  case_when(
+           #Região Norte
+           def_uf %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima", "Tocantins") ~ "Norte",
+           #Região Nordeste
+           def_uf %in% c("Alagoas","Bahia","Ceará","Maranhão","Paraíba","Pernambuco","Piauí","Rio Grande do Norte","Sergipe") ~ "Nordeste",
+           #Região Centro-Oeste
+           def_uf %in% c("Goiás","Mato Grosso", "Mato Grosso do Sul","Distrito Federal") ~ "Centro Oeste",
+           #Região Sudeste
+           def_uf %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste", 
+           #Região Sul
+           def_uf %in% c("Paraná", "Rio Grande do Sul", "Santa Catarina" ) ~ "Sul" ) ) 
+
+
+base$pa_ufmun
