@@ -1,5 +1,5 @@
 
-#Função utilizada para enriquecimento da base SIA Produção ambulatorial
+#Função utilizada para enriquecimento da base CNES
 
 tratar_cnes <- 
   function(data) {
