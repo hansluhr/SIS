@@ -18,792 +18,1092 @@ tratar_cnes <-
     }
     
     data <- dtplyr::lazy_dt(data)
+
+# Tratamento de Estabelecimentos ------------------------------------------
+
+    if(cnes == "Estabelecimentos") { 
+      
+      if ("CNES" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CNES = as.character(.data$CNES))
+      }
+      if (nomes == TRUE) {
+        cadger_temp <- microdatasus::fetch_cadger()
+        data <- data %>% dplyr::left_join(cadger_temp, by = "CNES")
+      }
+      if ("CODUFMUN" %in% variables_names & municipality_data == 
+          TRUE) {
+        colnames(tabMun)[1] <- "CODUFMUN"
+        tabMun$CODUFMUN <- as.character(tabMun$CODUFMUN)
+        data <- data %>% dplyr::left_join(tabMun, by = "CODUFMUN")
+      }
+      if ("COD_CEP" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COD_CEP = as.integer(.data$COD_CEP))
+      }
+      if ("CPF_CNPJ" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CPF_CNPJ = as.character(.data$CPF_CNPJ))
+      }
+      if ("PF_PJ" %in% variables_names) {
+        data <- data %>% dplyr::mutate(PF_PJ = dplyr::case_match(.data$PF_PJ, 
+                                                                 "1" ~ "Pessoa física", "3" ~ "Pessoa jurídica", 
+                                                                 .default = .data$PF_PJ)) %>% dplyr::mutate(PF_PJ = as.factor(.data$PF_PJ))
+      }
+      if ("NIV_DEP" %in% variables_names) {
+        data <- data %>% dplyr::mutate(NIV_DEP = dplyr::case_match(.data$NIV_DEP, 
+                                                                   "1" ~ "Individual", "3" ~ "Mantida", .default = .data$NIV_DEP)) %>% 
+          dplyr::mutate(NIV_DEP = as.factor(.data$NIV_DEP))
+      }
+      if ("CNPJ_MAN" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CNPJ_MAN = as.numeric(.data$CNPJ_MAN))
+      }
+      if ("COD_IR" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COD_IR = dplyr::case_match(.data$COD_IR, 
+                                                                  "0" ~ NA, "10" ~ "Estabelecimento público", 
+                                                                  "11" ~ "Estabelecimento filantrópico", "12" ~ 
+                                                                    "Estabelecimento sem fins lucrativos", "13" ~ 
+                                                                    "Estabelecimento privado luvrativa simples", 
+                                                                  "14" ~ "Estabelecimento privado luvrativa", 
+                                                                  "15" ~ "Estabelecimento sindical", "16" ~ "Estabelecimento pessoa física", 
+                                                                  "19" ~ "Estabelecimento Ret.Manten.código 19", 
+                                                                  .default = .data$COD_IR)) %>% dplyr::mutate(COD_IR = as.factor(.data$COD_IR))
+      }
+      if ("REGSAUDE" %in% variables_names) {
+        data <- data %>% dplyr::mutate(REGSAUDE = as.character(.data$REGSAUDE))
+      }
+      if ("MICR_REG" %in% variables_names) {
+        data <- data %>% dplyr::mutate(MICR_REG = as.integer(.data$MICR_REG))
+      }
+      if ("DISTRSAN" %in% variables_names) {
+        data <- data %>% dplyr::mutate(DISTRSAN = as.integer(.data$DISTRSAN))
+      }
+      if ("VINC_SUS" %in% variables_names) {
+        data <- data %>% dplyr::mutate(VINC_SUS = dplyr::case_match(.data$VINC_SUS, 
+                                                                    "0" ~ "Não", "1" ~ "Sim", "2" ~ "Não", .default = .data$VINC_SUS)) %>% 
+          dplyr::mutate(VINC_SUS = as.factor(.data$VINC_SUS))
+      }
+      if ("TPGESTAO" %in% variables_names) {
+        data <- data %>% dplyr::mutate(TPGESTAO = dplyr::case_match(.data$TPGESTAO, 
+                                                                    "D" ~ "Dupla", "E" ~ "Estadual", "M" ~ "Municipal", 
+                                                                    "Z" ~ "Sem gestão", "S" ~ "Sem gestão", .default = .data$TPGESTAO)) %>% 
+          dplyr::mutate(TPGESTAO = as.factor(.data$TPGESTAO))
+      }
+      if ("ESFERA_A" %in% variables_names) {
+        data <- data %>% dplyr::mutate(ESFERA_A = dplyr::case_match(.data$ESFERA_A, 
+                                                                    "1" ~ "Federal", "2" ~ "Estadual", "3" ~ "Municipal", 
+                                                                    "4" ~ "Privada", "-99" ~ NA, .default = .data$ESFERA_A)) %>% 
+          dplyr::mutate(ESFERA_A = as.factor(.data$ESFERA_A))
+      }
+      if ("RETENCAO" %in% variables_names) {
+        data <- data %>% dplyr::mutate(RETENCAO = dplyr::case_match(.data$RETENCAO, 
+                                                                    "0" ~ NA, "10" ~ "Estabelecimento público", 
+                                                                    "11" ~ "Estabelecimento filantrópico", "12" ~ 
+                                                                      "Estabelecimento sem fins lucrativos", "13" ~ 
+                                                                      "Estabelecimento privado luvrativa simples", 
+                                                                    "14" ~ "Estabelecimento privado luvrativa", 
+                                                                    "15" ~ "Estabelecimento sindical", "16" ~ "Estabelecimento pessoa física", 
+                                                                    .default = .data$RETENCAO)) %>% dplyr::mutate(RETENCAO = as.factor(.data$RETENCAO))
+      }
+      if ("ATIVIDAD" %in% variables_names) {
+        data <- data %>% dplyr::mutate(ATIVIDAD = dplyr::case_match(.data$ATIVIDAD, 
+                                                                    "-99" ~ NA, "1" ~ "Unidade Universitária", 
+                                                                    "2" ~ "Unidade Escola Superior Isolada", "3" ~ 
+                                                                      "Unidade Auxiliar de Ensino", "4" ~ "Unidade sem atividade de Ensino", 
+                                                                    "5" ~ "Hospital de ensino", .default = .data$ATIVIDAD)) %>% 
+          dplyr::mutate(ATIVIDAD = as.factor(.data$ATIVIDAD))
+      }
+      if ("NATUREZA" %in% variables_names) {
+        data <- data %>% dplyr::mutate(NATUREZA = dplyr::case_match(.data$NATUREZA, 
+                                                                    "-99" ~ NA, "1" ~ "Administração Direta da Saúde (MS, SES, e SMS)", 
+                                                                    "2" ~ "Adm Direta outros orgãos (MEX, MEx, Marinha,...)", 
+                                                                    "3" ~ "Adm Indireta - Autarquias", "4" ~ "Adm Indireta - Fundação Pública", 
+                                                                    "5" ~ "Adm Indireta - Empresa Pública", "6" ~ 
+                                                                      "Adm Indireta - Organização Social Pública", 
+                                                                    "7" ~ "Empresa Privada", "8" ~ "Fundação Privada", 
+                                                                    "9" ~ "Cooperativa", "10" ~ "Serviço Social Autônomo", 
+                                                                    "11" ~ "Entidade Beneficente sem fins lucrativos", 
+                                                                    "12" ~ "Economia Mista", "13" ~ "Sindicato", 
+                                                                    "0" ~ "Natureza inexistente", .default = .data$NATUREZA)) %>% 
+          dplyr::mutate(NATUREZA = as.factor(.data$NATUREZA))
+      }
+      if ("NAT_JUR" %in% variables_names) {
+        data <- data %>% dplyr::mutate(NAT_JUR = dplyr::case_match(.data$NAT_JUR, 
+                                                                   "1015" ~ "Órgão Público do Poder Executivo Federal", 
+                                                                   "1023" ~ "Órgão Público do Poder Executivo Estadual ou do Distrito Federal", 
+                                                                   "1031" ~ "Órgão Público do Poder Executivo Municipal", 
+                                                                   "1040" ~ "Órgão Público do Poder Legislativo Federal", 
+                                                                   "1058" ~ "Órgão Público do Poder Legislativo Estadual ou do Distrito Federal", 
+                                                                   "1066" ~ "Órgão Público do Poder Legislativo Municipal", 
+                                                                   "1074" ~ "Órgão Público do Poder Judiciário Federal", 
+                                                                   "1082" ~ "Órgão Público do Poder Judiciário Estadual", 
+                                                                   "1104" ~ "Autarquia Federal", "1112" ~ "Autarquia Estadual ou do Distrito Federal", 
+                                                                   "1120" ~ "Autarquia Municipal", "1139" ~ "Fundação Pública de Direito Público Federal", 
+                                                                   "1147" ~ "Fundação Pública de Direito Público Estadual ou do Distrito Federal", 
+                                                                   "1155" ~ "Fundação Pública de Direito Público Municipal", 
+                                                                   "1163" ~ "Órgão Público Autônomo Federal", 
+                                                                   "1171" ~ "Órgão Público Autônomo Estadual ou do Distrito Federal", 
+                                                                   "1180" ~ "Órgão Público Autônomo Municipal", 
+                                                                   "1198" ~ "Comissão Polinacional", "1201" ~ 
+                                                                     "Fundo Público", "1210" ~ "Consórcio Público de Direito Público (Associação Pública)", 
+                                                                   "1228" ~ "Consórcio Público de Direito Privado", 
+                                                                   "1236" ~ "Estado ou Distrito Federal", "1244" ~ 
+                                                                     "Município", "1252" ~ "Fundação Pública de Direito Privado Federal", 
+                                                                   "1260" ~ "Fundação Pública de Direito Privado Estadual ou do Distrito Federal", 
+                                                                   "1279" ~ "Fundação Pública de Direito Privado Municipal", 
+                                                                   "2011" ~ "Empresa Pública", "2038" ~ "Sociedade de Economia Mista", 
+                                                                   "2046" ~ "Sociedade Anônima Aberta", "2054" ~ 
+                                                                     "Sociedade Anônima Fechada", "2062" ~ "Sociedade Empresária Limitada", 
+                                                                   "2070" ~ "Sociedade Empresária em Nome Coletivo", 
+                                                                   "2089" ~ "Sociedade Empresária em Comandita Simples", 
+                                                                   "2097" ~ "Sociedade Empresária em Comandita por Ações", 
+                                                                   "2127" ~ "Sociedade em Conta de Participação", 
+                                                                   "2135" ~ "Empresário (Individual)", "2143" ~ 
+                                                                     "Cooperativa", "2151" ~ "Consórcio de Sociedades", 
+                                                                   "2160" ~ "Grupo de Sociedades", "2178" ~ "Estabelecimento, no Brasil, de Sociedade Estrangeira", 
+                                                                   "2194" ~ "Estabelecimento, no Brasil, de Empresa Binacional Argentino-Brasileira", 
+                                                                   "2216" ~ "Empresa Domiciliada no Exterior", 
+                                                                   "2224" ~ "Clube/Fundo de Investimento", "2232" ~ 
+                                                                     "Sociedade Simples Pura", "2240" ~ "Sociedade Simples Limitada", 
+                                                                   "2259" ~ "Sociedade Simples em Nome Coletivo", 
+                                                                   "2267" ~ "Sociedade Simples em Comandita Simples", 
+                                                                   "2275" ~ "Empresa Binacional", "2283" ~ "Consórcio de Empregadores", 
+                                                                   "2291" ~ "Consórcio Simples", "2305" ~ "Empresa Individual de Responsabilidade Limitada (de Natureza Empresária)", 
+                                                                   "2313" ~ "Empresa Individual de Responsabilidade Limitada (de Natureza Simples)", 
+                                                                   "2321" ~ "Sociedade Unipessoal de Advogados", 
+                                                                   "2330" ~ "Cooperativas de Consumo", "3034" ~ 
+                                                                     "Serviço Notarial e Registral (Cartório)", 
+                                                                   "3069" ~ "Fundação Privada", "3077" ~ "Serviço Social Autônomo", 
+                                                                   "3085" ~ "Condomínio Edilício", "3107" ~ "Comissão de Conciliação Prévia", 
+                                                                   "3115" ~ "Entidade de Mediação e Arbitragem", 
+                                                                   "3131" ~ "Entidade Sindical", "3204" ~ "Estabelecimento, no Brasil, de Fundação ou Associação Estrangeiras", 
+                                                                   "3212" ~ "Fundação ou Associação Domiciliada no Exterior", 
+                                                                   "3220" ~ "Organização Religiosa", "3239" ~ 
+                                                                     "Comunidade Indígena", "3247" ~ "Fundo Privado", 
+                                                                   "3255" ~ "Órgão de Direção Nacional de Partido Político", 
+                                                                   "3263" ~ "Órgão de Direção Regional de Partido Político", 
+                                                                   "3271" ~ "Órgão de Direção Local de Partido Político", 
+                                                                   "3280" ~ "Comitê Financeiro de Partido Político", 
+                                                                   "3298" ~ "Frente Plebiscitária ou Referendária", 
+                                                                   "3306" ~ "Organização Social (OS)", "3310" ~ 
+                                                                     "Demais Condomínios", "3999" ~ "Associação Privada", 
+                                                                   "4014" ~ "Empresa Individual Imobiliária", 
+                                                                   "4022" ~ "Segurado Especial", "4081" ~ "Contribuinte individual", 
+                                                                   "4090" ~ "Candidato a Cargo Político Eletivo", 
+                                                                   "4111" ~ "Leiloeiro", "4124" ~ "Produtor Rural (Pessoa Física)", 
+                                                                   "5010" ~ "Organização Internacional", "5029" ~ 
+                                                                     "Representação Diplomática Estrangeira", 
+                                                                   "5037" ~ "Outras Instituições Extraterritoriais", 
+                                                                   "0" ~ "Não especificado ou ignorado", .default = .data$NAT_JUR)) %>% 
+          dplyr::mutate(NAT_JUR = as.factor(.data$NAT_JUR))
+      }
+      if ("CLIENTEL" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CLIENTEL = dplyr::case_match(.data$CLIENTEL, 
+                                                                    "-99" ~ NA, "1" ~ "Atendimento de demanda espontânea", 
+                                                                    "2" ~ "Atendimento de demanda referenciada", 
+                                                                    "3" ~ "Atendimento de demanda espontânea e referenciada", 
+                                                                    "0" ~ "Fluxo de Clientela não exigido", .default = .data$CLIENTEL)) %>% 
+          dplyr::mutate(CLIENTEL = as.factor(.data$CLIENTEL))
+      }
+      if ("TP_UNID" %in% variables_names) {
+        data <- data %>% dplyr::mutate(TP_UNID = dplyr::case_match(.data$TP_UNID, 
+                                                                   "1" ~ "Posto de saúde", "01" ~ "Posto de saúde", 
+                                                                   "2" ~ "Centro de saúde / Unidade básica", 
+                                                                   "02" ~ "Centro de saúde / Unidade básica", 
+                                                                   "4" ~ "Policlínica", "04" ~ "Policlínica", 
+                                                                   "5" ~ "Hospital geral", "05" ~ "Hospital geral", 
+                                                                   "7" ~ "Hospital Especializado", "07" ~ "Hospital Especializado", 
+                                                                   "9" ~ "Pronto socorro de hospital geral (antigo)", 
+                                                                   "09" ~ "Pronto socorro de hospital geral (antigo)", 
+                                                                   "12" ~ "Pronto socorro traumato-ortopédico (antigo)", 
+                                                                   "15" ~ "Unidade mista", "20" ~ "Pronto socorro geral", 
+                                                                   "21" ~ "Pronto socorro especializado", "22" ~ 
+                                                                     "Consultório isolado", "32" ~ "Unidade móvel fluvial", 
+                                                                   "36" ~ "Clínica / Centro de saúde de especialidade", 
+                                                                   "39" ~ "Unidade de apoio diagnose e terapia (SADT isolado)", 
+                                                                   "40" ~ "Unidade móvel terrestre", "42" ~ "Unidade móvel de nível pré-hospitalar na área de urgência", 
+                                                                   "43" ~ "Farmácia", "45" ~ "Unidade de saúde da família", 
+                                                                   "50" ~ "Unidade de vigilância em saúde", "60" ~ 
+                                                                     "Cooperativa ou empresa de cessão de trabalhadores na saúde", 
+                                                                   "61" ~ "Centro de parto normal - isolado", "62" ~ 
+                                                                     "Hospital / Dia - Isolado", "63" ~ "Unidade autorizadora", 
+                                                                   "64" ~ "Central de regulação de serviços de saúde", 
+                                                                   "65" ~ "Unidade de vigilância epidemiológica (antigo)", 
+                                                                   "66" ~ "Unidade de vigilância sanitária (antigo)", 
+                                                                   "67" ~ "Laboratório central de saúde pública LACEN", 
+                                                                   "68" ~ "Central de gestão em saúde", "69" ~ 
+                                                                     "Centro de atenção hemoterapia e/ou hematologica", 
+                                                                   "70" ~ "Centro de atenção psicosocial", "71" ~ 
+                                                                     "Centro de apoio a saúde da família", "72" ~ 
+                                                                     "Unidade de atenção a saúde indígena", 
+                                                                   "73" ~ "Pronto atendimento", "74" ~ "Pólo academia da saúde", 
+                                                                   "75" ~ "Telessaúde", "76" ~ "Central de regulação médica das urgências", 
+                                                                   "77" ~ "Serviço de atenção domiciliar isolado (Home care)", 
+                                                                   "78" ~ "Unidade de atenção em regime residencial", 
+                                                                   "79" ~ "Oficina ortopédica", "80" ~ "Laboratório de saúde pública", 
+                                                                   "81" ~ "Central de regulação do acesso", "82" ~ 
+                                                                     "Central de notificação, captação e distribuição de órgãos estadual", 
+                                                                   "83" ~ "Pólo de prevenção de doenças e agravos e promoção da saúde", 
+                                                                   "84" ~ "Central de abastecimento", "85" ~ "Centro de imunização", 
+                                                                   .default = .data$TP_UNID)) %>% dplyr::mutate(TP_UNID = as.factor(.data$TP_UNID))
+      }
+      if ("TURNO_AT" %in% variables_names) {
+        data <- data %>% dplyr::mutate(TURNO_AT = dplyr::case_match(.data$TURNO_AT, 
+                                                                    "-99" ~ NA, "1" ~ "Turnos intermitentes", "2" ~ 
+                                                                      "Contínuo 24h/dia (Pl Sab Dom Fer)", "3" ~ 
+                                                                      "Manhã / Tarde / Noite", "4" ~ "Manhã", 
+                                                                    "5" ~ "Tarde", "6" ~ "Manhã / Tarde", "7" ~ 
+                                                                      "Noite", .default = .data$TURNO_AT)) %>% dplyr::mutate(TURNO_AT = as.factor(.data$TURNO_AT))
+      }
+      if ("NIV_HIER" %in% variables_names) {
+        data <- data %>% dplyr::mutate(NIV_HIER = dplyr::case_match(.data$NIV_HIER, 
+                                                                    "0" ~ NA, "-99" ~ NA, "1" ~ "PAB-PABA", "2" ~ 
+                                                                      "Média M1", "3" ~ "Média M2 e M3", "4" ~ 
+                                                                      "Alta complexidade ambulatorial", "5" ~ "Baixa M1 e M2", 
+                                                                    "6" ~ "Média M2 e M3", "7" ~ "Média M3", "8" ~ 
+                                                                      "Alta complexidade hospitalar / ambulatorial", 
+                                                                    .default = .data$NIV_HIER)) %>% dplyr::mutate(NIV_HIER = as.factor(.data$NIV_HIER))
+      }
+      if ("TP_PREST" %in% variables_names) {
+        data <- data %>% dplyr::mutate(TP_PREST = dplyr::case_match(.data$TP_PREST, 
+                                                                    "-99" ~ NA, "30" ~ "Público federal", "40" ~ 
+                                                                      "Público estadual", "50" ~ "Público municipal", 
+                                                                    "61" ~ "Filantrópico com CNAS válido", "80" ~ 
+                                                                      "Sindicato", "20" ~ "Privado com fins lucrativos", 
+                                                                    "22" ~ "Privado optantes pelo simples", "60" ~ 
+                                                                      "Privado sem fins lucrativos", .default = .data$TP_PREST)) %>% 
+          dplyr::mutate(TP_PREST = as.factor(.data$TP_PREST))
+      }
+      if ("CO_BANCO" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CO_BANCO = as.character(.data$CO_BANCO))
+      }
+      if ("CO_AGENC" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CO_AGENC = as.character(.data$CO_AGENC))
+      }
+      if ("C_CORREN" %in% variables_names) {
+        data <- data %>% dplyr::mutate(C_CORREN = as.character(.data$C_CORREN))
+      }
+      if ("CONTRATM" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CONTRATM = as.character(.data$CONTRATM))
+      }
+      if ("DT_PUBLM" %in% variables_names) {
+        data <- data %>% dplyr::mutate(DT_PUBLM = as.character(.data$DT_PUBLM))
+      }
+      if ("CONTRATE" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CONTRATE = as.character(.data$CONTRATE))
+      }
+      if ("DT_PUBLE" %in% variables_names) {
+        data <- data %>% dplyr::mutate(DT_PUBLE = as.character(.data$DT_PUBLE))
+      }
+      if ("ALVARA" %in% variables_names) {
+        data <- data %>% dplyr::mutate(ALVARA = as.character(.data$ALVARA))
+      }
+      if ("DT_EXPED" %in% variables_names) {
+        data <- data %>% dplyr::mutate(DT_EXPED = as.character(.data$DT_EXPED))
+      }
+      if ("ORGEXPED" %in% variables_names) {
+        data <- data %>% dplyr::mutate(ORGEXPED = dplyr::case_match(.data$ORGEXPED, 
+                                                                    "1" ~ "SES", "2" ~ "SMS", .default = .data$ORGEXPED)) %>% 
+          dplyr::mutate(ORGEXPED = as.factor(.data$ORGEXPED))
+      }
+      if ("AV_ACRED" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AV_ACRED = dplyr::case_match(.data$AV_ACRED, 
+                                                                    "1" ~ "Sim", "2" ~ "Não", "0" ~ "Não", .default = .data$AV_ACRED)) %>% 
+          dplyr::mutate(AV_ACRED = as.factor(.data$AV_ACRED))
+      }
+      if ("CLASAVAL" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CLASAVAL = dplyr::case_match(.data$CLASAVAL, 
+                                                                    "-9" ~ NA, "1" ~ "Acreditado no nível 1", "2" ~ 
+                                                                      "Acreditado no nível 2", "3" ~ "Acreditado no nível 3", 
+                                                                    "0" ~ "Não atendeu aos padrões mínimos", 
+                                                                    .default = .data$CLASAVAL)) %>% dplyr::mutate(CLASAVAL = as.factor(.data$CLASAVAL))
+      }
+      
+      
+      
+      if ("DT_ACRED" %in% variables_names) {
+        data <- data %>% dplyr::mutate(DT_ACRED = as.integer(.data$DT_ACRED))
+      }
+      
+      
+      if ("AV_PNASS" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AV_PNASS = dplyr::case_match(.data$AV_PNASS, 
+                                                                    "1" ~ "Sim", "2" ~ "Não", "0" ~ "Não", .default = .data$AV_PNASS)) %>% 
+          dplyr::mutate(AV_PNASS = as.factor(.data$AV_PNASS))
+      }
+      
+      
+      if ("DT_PNASS" %in% variables_names) {
+        data <- data %>% dplyr::mutate(DT_PNASS = as.integer(.data$DT_PNASS))
+      }
+      
+      
+      
+      if ("GESPRG1E" %in% variables_names) {
+        data$GESPRG1E <- as.numeric(levels(data$GESPRG1E))[data$GESPRG1E]
+        data$GESPRG1E[data$GESPRG1E == 1] <- "Sim"
+        data$GESPRG1E[data$GESPRG1E == 0] <- "Não"
+        data$GESPRG1E <- factor(data$GESPRG1E)
+      }
+      
+      
+      
+      if ("GESPRG1M" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG1M = dplyr::case_match(.data$GESPRG1M, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG1M)) %>% 
+          dplyr::mutate(GESPRG1M = as.factor(.data$GESPRG1M))
+      }
+      
+      
+      
+      if ("GESPRG2E" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG2E = dplyr::case_match(.data$GESPRG2E, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG2E)) %>% 
+          dplyr::mutate(GESPRG2E = as.factor(.data$GESPRG2E))
+      }
+      
+      
+      
+      if ("GESPRG2M" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG2M = dplyr::case_match(.data$GESPRG2M, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG2M)) %>% 
+          dplyr::mutate(GESPRG2M = as.factor(.data$GESPRG2M))
+      }
+      
+      
+      
+      if ("GESPRG4E" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG4E = dplyr::case_match(.data$GESPRG4E, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG4E)) %>% 
+          dplyr::mutate(GESPRG4E = as.factor(.data$GESPRG4E))
+      }
+      
+      
+      
+      if ("GESPRG4M" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG4M = dplyr::case_match(.data$GESPRG4M, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG4M)) %>% 
+          dplyr::mutate(GESPRG4M = as.factor(.data$GESPRG4M))
+      }
+      
+      
+      
+      if ("NIVATE_A" %in% variables_names) {
+        data <- data %>% dplyr::mutate(NIVATE_A = dplyr::case_match(.data$NIVATE_A, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$NIVATE_A)) %>% 
+          dplyr::mutate(NIVATE_A = as.factor(.data$NIVATE_A))
+      }
+      
+      
+      
+      if ("GESPRG3E" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG3E = dplyr::case_match(.data$GESPRG3E, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG3E)) %>% 
+          dplyr::mutate(GESPRG3E = as.factor(.data$GESPRG3E))
+      }
+      
+      
+      
+      if ("GESPRG3M" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG3M = dplyr::case_match(.data$GESPRG3M, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG3M)) %>% 
+          dplyr::mutate(GESPRG3M = as.factor(.data$GESPRG3M))
+      }
+      
+      
+      
+      if ("GESPRG5E" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG5E = dplyr::case_match(.data$GESPRG5E, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG5E)) %>% 
+          dplyr::mutate(GESPRG5E = as.factor(.data$GESPRG5E))
+      }
+      
+      
+      
+      if ("GESPRG5M" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG5M = dplyr::case_match(.data$GESPRG5M, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG5M)) %>% 
+          dplyr::mutate(GESPRG5M = as.factor(.data$GESPRG5M))
+      }
+      
+      
+      
+      if ("GESPRG6E" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG6E = dplyr::case_match(.data$GESPRG6E, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG6E)) %>% 
+          dplyr::mutate(GESPRG6E = as.factor(.data$GESPRG6E))
+      }
+      
+      
+      
+      if ("GESPRG6M" %in% variables_names) {
+        data <- data %>% dplyr::mutate(GESPRG6M = dplyr::case_match(.data$GESPRG6M, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$GESPRG6M)) %>% 
+          dplyr::mutate(GESPRG6M = as.factor(.data$GESPRG6M))
+      }
+      
+      
+      if ("NIVATE_H" %in% variables_names) {
+        data <- data %>% dplyr::mutate(NIVATE_H = dplyr::case_match(.data$NIVATE_H, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$NIVATE_H)) %>% 
+          dplyr::mutate(NIVATE_H = as.factor(.data$NIVATE_H))
+      }
+      
+      
+      
+      if ("URGEMERG" %in% variables_names) {
+        data <- data %>% dplyr::mutate(URGEMERG = dplyr::case_match(.data$URGEMERG, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$URGEMERG)) %>% 
+          dplyr::mutate(URGEMERG = as.factor(.data$URGEMERG))
+      }
+      
+      
+      
+      if ("ATENDAMB" %in% variables_names) {
+        data <- data %>% dplyr::mutate(ATENDAMB = dplyr::case_match(.data$ATENDAMB, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$ATENDAMB)) %>% 
+          dplyr::mutate(ATENDAMB = as.factor(.data$ATENDAMB))
+      }
+      
+      
+      
+      if ("CENTROBS" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CENTROBS = dplyr::case_match(.data$CENTROBS, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$CENTROBS)) %>% 
+          dplyr::mutate(CENTROBS = as.factor(.data$CENTROBS))
+      }
+      
+      
+      
+      if ("CENTRNEO" %in% variables_names) {
+        data <- data %>% dplyr::mutate(CENTRNEO = dplyr::case_match(.data$CENTRNEO, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$CENTRNEO)) %>% 
+          dplyr::mutate(CENTRNEO = as.factor(.data$CENTRNEO))
+      }
+      
+      
+      
+      if ("ATENDHOS" %in% variables_names) {
+        data <- data %>% dplyr::mutate(ATENDHOS = dplyr::case_match(.data$ATENDHOS, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$ATENDHOS)) %>% 
+          dplyr::mutate(ATENDHOS = as.factor(.data$ATENDHOS))
+      }
+      
+      
+      
+      if ("SERAP01P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP01P = dplyr::case_match(.data$SERAP01P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP01P)) %>% 
+          dplyr::mutate(SERAP01P = as.factor(.data$SERAP01P))
+      }
+      
+      
+      
+      if ("SERAP01T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP01T = dplyr::case_match(.data$SERAP01T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP01T)) %>% 
+          dplyr::mutate(SERAP01T = as.factor(.data$SERAP01T))
+      }
+      
+      
+      
+      if ("SERAP02P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP02P = dplyr::case_match(.data$SERAP02P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP02P)) %>% 
+          dplyr::mutate(SERAP02P = as.factor(.data$SERAP02P))
+      }
+      
+      
+      
+      if ("SERAP02T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP02T = dplyr::case_match(.data$SERAP02T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP02T)) %>% 
+          dplyr::mutate(SERAP02T = as.factor(.data$SERAP02T))
+      }
+      
+      
+      
+      if ("SERAP03P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP03P = dplyr::case_match(.data$SERAP03P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP03P)) %>% 
+          dplyr::mutate(SERAP03P = as.factor(.data$SERAP03P))
+      }
+      
+      
+      
+      if ("SERAP03T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP03T = dplyr::case_match(.data$SERAP03T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP03T)) %>% 
+          dplyr::mutate(SERAP03T = as.factor(.data$SERAP03T))
+      }
+      
+      
+      
+      if ("SERAP04P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP04P = dplyr::case_match(.data$SERAP04P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP04P)) %>% 
+          dplyr::mutate(SERAP04P = as.factor(.data$SERAP04P))
+      }
+      
+      
+      
+      if ("SERAP04T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP04T = dplyr::case_match(.data$SERAP04T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP04T)) %>% 
+          dplyr::mutate(SERAP04T = as.factor(.data$SERAP04T))
+      }
+      
+      
+      
+      if ("SERAP05P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP05P = dplyr::case_match(.data$SERAP05P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP05P)) %>% 
+          dplyr::mutate(SERAP05P = as.factor(.data$SERAP05P))
+      }
+      
+      
+      
+      
+      if ("SERAP05T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP05T = dplyr::case_match(.data$SERAP05T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP05T)) %>% 
+          dplyr::mutate(SERAP05T = as.factor(.data$SERAP05T))
+      }
+      
+      
+      
+      if ("SERAP06P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP06P = dplyr::case_match(.data$SERAP06P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP06P)) %>% 
+          dplyr::mutate(SERAP06P = as.factor(.data$SERAP06P))
+      }
+      
+      
+      
+      if ("SERAP06T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP06T = dplyr::case_match(.data$SERAP06T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP06T)) %>% 
+          dplyr::mutate(SERAP06T = as.factor(.data$SERAP06T))
+      }
+      
+      
+      
+      if ("SERAP07P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP07P = dplyr::case_match(.data$SERAP07P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP07P)) %>% 
+          dplyr::mutate(SERAP07P = as.factor(.data$SERAP07P))
+      }
+      
+      
+      
+      if ("SERAP07T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP07T = dplyr::case_match(.data$SERAP07T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP07T)) %>% 
+          dplyr::mutate(SERAP07T = as.factor(.data$SERAP07T))
+      }
+      
+      
+      
+      if ("SERAP08P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP08P = dplyr::case_match(.data$SERAP08P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP08P)) %>% 
+          dplyr::mutate(SERAP08P = as.factor(.data$SERAP08P))
+      }
+      
+      
+      
+      if ("SERAP08T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP08T = dplyr::case_match(.data$SERAP08T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP08T)) %>% 
+          dplyr::mutate(SERAP08T = as.factor(.data$SERAP08T))
+      }
+      
+      
+      
+      if ("SERAP09P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP09P = dplyr::case_match(.data$SERAP09P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP09P)) %>% 
+          dplyr::mutate(SERAP09P = as.factor(.data$SERAP09P))
+      }
+      
+      
+      
+      if ("SERAP09T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP09T = dplyr::case_match(.data$SERAP09T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP09T)) %>% 
+          dplyr::mutate(SERAP09T = as.factor(.data$SERAP09T))
+      }
+      
+      
+      
+      if ("SERAP10P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP10P = dplyr::case_match(.data$SERAP10P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP10P)) %>% 
+          dplyr::mutate(SERAP10P = as.factor(.data$SERAP10P))
+      }
+      
+      
+      
+      if ("SERAP10T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP10T = dplyr::case_match(.data$SERAP10T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP10T)) %>% 
+          dplyr::mutate(SERAP10T = as.factor(.data$SERAP10T))
+      }
+      
+      
+      
+      if ("SERAP11P" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP11P = dplyr::case_match(.data$SERAP11P, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP11P)) %>% 
+          dplyr::mutate(SERAP11P = as.factor(.data$SERAP11P))
+      }
+      
+      
+      if ("SERAP11T" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAP11T = dplyr::case_match(.data$SERAP11T, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAP11T)) %>% 
+          dplyr::mutate(SERAP11T = as.factor(.data$SERAP11T))
+      }
+      
+      
+      if ("SERAPOIO" %in% variables_names) {
+        data <- data %>% dplyr::mutate(SERAPOIO = dplyr::case_match(.data$SERAPOIO, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$SERAPOIO)) %>% 
+          dplyr::mutate(SERAPOIO = as.factor(.data$SERAPOIO))
+      }
+      
+      
+      if ("RES_BIOL" %in% variables_names) {
+        data <- data %>% dplyr::mutate(RES_BIOL = dplyr::case_match(.data$RES_BIOL, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$RES_BIOL)) %>% 
+          dplyr::mutate(RES_BIOL = as.factor(.data$RES_BIOL))
+      }
+      
+      
+      if ("RES_QUIM" %in% variables_names) {
+        data <- data %>% dplyr::mutate(RES_QUIM = dplyr::case_match(.data$RES_QUIM, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$RES_QUIM)) %>% 
+          dplyr::mutate(RES_QUIM = as.factor(.data$RES_QUIM))
+      }
+      
+      
+      if ("RES_RADI" %in% variables_names) {
+        data <- data %>% dplyr::mutate(RES_RADI = dplyr::case_match(.data$RES_RADI, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$RES_RADI)) %>% 
+          dplyr::mutate(RES_RADI = as.factor(.data$RES_RADI))
+      }
+      
+      
+      if ("RES_COMU" %in% variables_names) {
+        data <- data %>% dplyr::mutate(RES_COMU = dplyr::case_match(.data$RES_COMU, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$RES_COMU)) %>% 
+          dplyr::mutate(RES_COMU = as.factor(.data$RES_COMU))
+      }
+      
+      
+      if ("COLETRES" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COLETRES = dplyr::case_match(.data$COLETRES, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COLETRES)) %>% 
+          dplyr::mutate(COLETRES = as.factor(.data$COLETRES))
+      }
+      
+      
+      if ("COMISS01" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS01 = dplyr::case_match(.data$COMISS01, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS01)) %>% 
+          dplyr::mutate(COMISS01 = as.factor(.data$COMISS01))
+      }
+      
+      
+      if ("COMISS02" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS02 = dplyr::case_match(.data$COMISS02, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS02)) %>% 
+          dplyr::mutate(COMISS02 = as.factor(.data$COMISS02))
+      }
+      
+      
+      if ("COMISS03" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS03 = dplyr::case_match(.data$COMISS03, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS03)) %>% 
+          dplyr::mutate(COMISS03 = as.factor(.data$COMISS03))
+      }
+      
+      
+      if ("COMISS04" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS04 = dplyr::case_match(.data$COMISS04, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS04)) %>% 
+          dplyr::mutate(COMISS04 = as.factor(.data$COMISS04))
+      }
+      
+      
+      if ("COMISS05" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS05 = dplyr::case_match(.data$COMISS05, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS05)) %>% 
+          dplyr::mutate(COMISS05 = as.factor(.data$COMISS05))
+      }
+      
+      
+      if ("COMISS06" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS06 = dplyr::case_match(.data$COMISS06, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS06)) %>% 
+          dplyr::mutate(COMISS06 = as.factor(.data$COMISS06))
+      }
+      
+      
+      if ("COMISS07" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS07 = dplyr::case_match(.data$COMISS07, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS07)) %>% 
+          dplyr::mutate(COMISS07 = as.factor(.data$COMISS07))
+      }
+      
+      
+      if ("COMISS08" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS08 = dplyr::case_match(.data$COMISS08, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS08)) %>% 
+          dplyr::mutate(COMISS08 = as.factor(.data$COMISS08))
+      }
+      
+      
+      if ("COMISS09" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS09 = dplyr::case_match(.data$COMISS09, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS09)) %>% 
+          dplyr::mutate(COMISS09 = as.factor(.data$COMISS09))
+      }
+      
+      
+      if ("COMISS10" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS10 = dplyr::case_match(.data$COMISS10, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS10)) %>% 
+          dplyr::mutate(COMISS10 = as.factor(.data$COMISS10))
+      }
+      
+      
+      if ("COMISS11" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS11 = dplyr::case_match(.data$COMISS11, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS11)) %>% 
+          dplyr::mutate(COMISS11 = as.factor(.data$COMISS11))
+      }
+      
+      
+      if ("COMISS12" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISS12 = dplyr::case_match(.data$COMISS12, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISS12)) %>% 
+          dplyr::mutate(COMISS12 = as.factor(.data$COMISS12))
+      }
+      
+      
+      if ("COMISSAO" %in% variables_names) {
+        data <- data %>% dplyr::mutate(COMISSAO = dplyr::case_match(.data$COMISSAO, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$COMISSAO)) %>% 
+          dplyr::mutate(COMISSAO = as.factor(.data$COMISSAO))
+      }
+      
+      
+      if ("AP01CV01" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP01CV01 = dplyr::case_match(.data$AP01CV01, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP01CV01)) %>% 
+          dplyr::mutate(AP01CV01 = as.factor(.data$AP01CV01))
+      }
+      
+      
+      if ("AP01CV02" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP01CV02 = dplyr::case_match(.data$AP01CV02, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP01CV02)) %>% 
+          dplyr::mutate(AP01CV02 = as.factor(.data$AP01CV02))
+      }
+      
+      
+      if ("AP01CV05" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP01CV05 = dplyr::case_match(.data$AP01CV05, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP01CV05)) %>% 
+          dplyr::mutate(AP01CV05 = as.factor(.data$AP01CV05))
+      }
+      
+      
+      if ("AP01CV06" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP01CV06 = dplyr::case_match(.data$AP01CV06, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP01CV06)) %>% 
+          dplyr::mutate(AP01CV06 = as.factor(.data$AP01CV06))
+      }
+      
+      
+      if ("AP01CV03" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP01CV03 = dplyr::case_match(.data$AP01CV03, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP01CV03)) %>% 
+          dplyr::mutate(AP01CV03 = as.factor(.data$AP01CV03))
+      }
+      
+      
+      if ("AP01CV04" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP01CV04 = dplyr::case_match(.data$AP01CV04, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP01CV04)) %>% 
+          dplyr::mutate(AP01CV04 = as.factor(.data$AP01CV04))
+      }
+      
+      
+      if ("AP02CV01" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP02CV01 = dplyr::case_match(.data$AP02CV01, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP02CV01)) %>% 
+          dplyr::mutate(AP02CV01 = as.factor(.data$AP02CV01))
+      }
+      
+      
+      if ("AP02CV02" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP02CV02 = dplyr::case_match(.data$AP02CV02, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP02CV02)) %>% 
+          dplyr::mutate(AP02CV02 = as.factor(.data$AP02CV02))
+      }
+      
+      
+      if ("AP02CV05" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP02CV05 = dplyr::case_match(.data$AP02CV05, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP02CV05)) %>% 
+          dplyr::mutate(AP02CV05 = as.factor(.data$AP02CV05))
+      }
+      
+      
+      if ("AP02CV06" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP02CV06 = dplyr::case_match(.data$AP02CV06, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP02CV06)) %>% 
+          dplyr::mutate(AP02CV06 = as.factor(.data$AP02CV06))
+      }
+      
+      
+      if ("AP02CV03" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP02CV03 = dplyr::case_match(.data$AP02CV03, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP02CV03)) %>% 
+          dplyr::mutate(AP02CV03 = as.factor(.data$AP02CV03))
+      }
+      
+      
+      if ("AP02CV04" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP02CV04 = dplyr::case_match(.data$AP02CV04, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP02CV04)) %>% 
+          dplyr::mutate(AP02CV04 = as.factor(.data$AP02CV04))
+      }
+      
+      
+      if ("AP03CV01" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP03CV01 = dplyr::case_match(.data$AP03CV01, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP03CV01)) %>% 
+          dplyr::mutate(AP03CV01 = as.factor(.data$AP03CV01))
+      }
+      
+      
+      if ("AP03CV02" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP03CV02 = dplyr::case_match(.data$AP03CV02, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP03CV02)) %>% 
+          dplyr::mutate(AP03CV02 = as.factor(.data$AP03CV02))
+      }
+      
+      
+      if ("AP03CV05" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP03CV05 = dplyr::case_match(.data$AP03CV05, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP03CV05)) %>% 
+          dplyr::mutate(AP03CV05 = as.factor(.data$AP03CV05))
+      }
+      
+      
+      if ("AP03CV06" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP03CV06 = dplyr::case_match(.data$AP03CV06, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP03CV06)) %>% 
+          dplyr::mutate(AP03CV06 = as.factor(.data$AP03CV06))
+      }
+      
+      
+      if ("AP03CV03" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP03CV03 = dplyr::case_match(.data$AP03CV03, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP03CV03)) %>% 
+          dplyr::mutate(AP03CV03 = as.factor(.data$AP03CV03))
+      }
+      
+      
+      if ("AP03CV04" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP03CV04 = dplyr::case_match(.data$AP03CV04, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP03CV04)) %>% 
+          dplyr::mutate(AP03CV04 = as.factor(.data$AP03CV04))
+      }
+      
+      
+      if ("AP04CV01" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP04CV01 = dplyr::case_match(.data$AP04CV01, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP04CV01)) %>% 
+          dplyr::mutate(AP04CV01 = as.factor(.data$AP04CV01))
+      }
+      
+      
+      if ("AP04CV02" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP04CV02 = dplyr::case_match(.data$AP04CV02, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP04CV02)) %>% 
+          dplyr::mutate(AP04CV02 = as.factor(.data$AP04CV02))
+      }
+      
+      
+      if ("AP04CV05" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP04CV05 = dplyr::case_match(.data$AP04CV05, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP04CV05)) %>% 
+          dplyr::mutate(AP04CV05 = as.factor(.data$AP04CV05))
+      }
+      
+      
+      if ("AP04CV06" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP04CV06 = dplyr::case_match(.data$AP04CV06, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP04CV06)) %>% 
+          dplyr::mutate(AP04CV06 = as.factor(.data$AP04CV06))
+      }
+      
+      
+      if ("AP04CV03" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP04CV03 = dplyr::case_match(.data$AP04CV03, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP04CV03)) %>% 
+          dplyr::mutate(AP04CV03 = as.factor(.data$AP04CV03))
+      }
+      
+      
+      if ("AP04CV04" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP04CV04 = dplyr::case_match(.data$AP04CV04, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP04CV04)) %>% 
+          dplyr::mutate(AP04CV04 = as.factor(.data$AP04CV04))
+      }
+      
+      
+      if ("AP05CV01" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP05CV01 = dplyr::case_match(.data$AP05CV01, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP05CV01)) %>% 
+          dplyr::mutate(AP05CV01 = as.factor(.data$AP05CV01))
+      }
+      
+      
+      if ("AP05CV02" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP05CV02 = dplyr::case_match(.data$AP05CV02, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP05CV02)) %>% 
+          dplyr::mutate(AP05CV02 = as.factor(.data$AP05CV02))
+      }
+      
+      
+      if ("AP05CV05" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP05CV05 = dplyr::case_match(.data$AP05CV05, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP05CV05)) %>% 
+          dplyr::mutate(AP05CV05 = as.factor(.data$AP05CV05))
+      }
+      
+      
+      if ("AP05CV06" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP05CV06 = dplyr::case_match(.data$AP05CV06, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP05CV06)) %>% 
+          dplyr::mutate(AP05CV06 = as.factor(.data$AP05CV06))
+      }
+      
+      
+      if ("AP05CV03" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP05CV03 = dplyr::case_match(.data$AP05CV03, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP05CV03)) %>% 
+          dplyr::mutate(AP05CV03 = as.factor(.data$AP05CV03))
+      }
+      
+      
+      if ("AP05CV04" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP05CV04 = dplyr::case_match(.data$AP05CV04, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP05CV04)) %>% 
+          dplyr::mutate(AP05CV04 = as.factor(.data$AP05CV04))
+      }
+      
+      
+      if ("AP06CV01" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP06CV01 = dplyr::case_match(.data$AP06CV01, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP06CV01)) %>% 
+          dplyr::mutate(AP06CV01 = as.factor(.data$AP06CV01))
+      }
+      
+      
+      if ("AP06CV02" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP06CV02 = dplyr::case_match(.data$AP06CV02, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP06CV02)) %>% 
+          dplyr::mutate(AP06CV02 = as.factor(.data$AP06CV02))
+      }
+      
+      
+      if ("AP06CV05" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP06CV05 = dplyr::case_match(.data$AP06CV05, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP06CV05)) %>% 
+          dplyr::mutate(AP06CV05 = as.factor(.data$AP06CV05))
+      }
+      
+      
+      if ("AP06CV06" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP06CV06 = dplyr::case_match(.data$AP06CV06, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP06CV06)) %>% 
+          dplyr::mutate(AP06CV06 = as.factor(.data$AP06CV06))
+      }
+      
+      
+      if ("AP06CV03" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP06CV03 = dplyr::case_match(.data$AP06CV03, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP06CV03)) %>% 
+          dplyr::mutate(AP06CV03 = as.factor(.data$AP06CV03))
+      }
+      
+      
+      if ("AP06CV04" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP06CV04 = dplyr::case_match(.data$AP06CV04, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP06CV04)) %>% 
+          dplyr::mutate(AP06CV04 = as.factor(.data$AP06CV04))
+      }
+      
+      
+      if ("AP07CV01" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP07CV01 = dplyr::case_match(.data$AP07CV01, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP07CV01)) %>% 
+          dplyr::mutate(AP07CV01 = as.factor(.data$AP07CV01))
+      }
+      
+      
+      if ("AP07CV02" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP07CV02 = dplyr::case_match(.data$AP07CV02, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP07CV02)) %>% 
+          dplyr::mutate(AP07CV02 = as.factor(.data$AP07CV02))
+      }
+      
+      
+      if ("AP07CV05" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP07CV05 = dplyr::case_match(.data$AP07CV05, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP07CV05)) %>% 
+          dplyr::mutate(AP07CV05 = as.factor(.data$AP07CV05))
+      }
+      
+      
+      if ("AP07CV06" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP07CV06 = dplyr::case_match(.data$AP07CV06, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP07CV06)) %>% 
+          dplyr::mutate(AP07CV06 = as.factor(.data$AP07CV06))
+      }
+      
+      if ("AP07CV03" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP07CV03 = dplyr::case_match(.data$AP07CV03, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP07CV03)) %>% 
+          dplyr::mutate(AP07CV03 = as.factor(.data$AP07CV03))
+      }
+      
+      if ("AP07CV04" %in% variables_names) {
+        data <- data %>% dplyr::mutate(AP07CV04 = dplyr::case_match(.data$AP07CV04, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$AP07CV04)) %>% 
+          dplyr::mutate(AP07CV04 = as.factor(.data$AP07CV04))
+      }
+      
+      if ("ATEND_PR" %in% variables_names) {
+        data <- data %>% dplyr::mutate(ATEND_PR = dplyr::case_match(.data$ATEND_PR, 
+                                                                    "1" ~ "Sim", "0" ~ "Não", "2" ~ "Não", .default = .data$ATEND_PR)) %>% 
+          dplyr::mutate(ATEND_PR = as.factor(.data$ATEND_PR))
+      }
+    }
+     
+      
+      }
     
-    # #Código da Regra Contratual
-    # if ("PA_REGCT" %in% variables_names) {
-    #   
-    #   data <- data %>% dplyr::mutate(def_PA_REGCT = dplyr::case_match(.data$PA_REGCT, 
-    #                                                                   "7100" ~ "TAB.DE NÃO GERAÇÃO CRÉDITO P/PROD.INTERN./AMBULAT.", 
-    #                                                                   "7101" ~ "ESTAB.S/CRÉDITO NA MEDIA COMPLEXIDADE AMBULATORIAL", 
-    #                                                                   "7102" ~ "ESTAB.S/CRÉDITO NA MEDIA COMPLEXIDADE HOSPITALAR", 
-    #                                                                   "7103" ~ "ESTAB.S/CRÉDITO NA ALTA COMPLEXIDADE AMBULATORIAL", 
-    #                                                                   "7104" ~ "ESTAB.S/CRÉDITO NA ALTA COMPLEXIDADE HOSPITALAR", 
-    #                                                                   "7105" ~ "ESTAB.S/CRED.PROCED.FINANC.FD.AÇÕES ESTRAT/COMPENS.", 
-    #                                                                   "7106" ~ "ESTABELECIM. DE SAÚDE SEM GERAÇÃO DE CRÉDITO TOTAL", 
-    #                                                                   "7107" ~ "ESTAB.S/CRÉDITO ACOES ESPEC.ODONT(INC.CEO I,II,III)", 
-    #                                                                   "7108" ~ "ESTAB.S/GER.CRÉDITO(INCENTIVO SAUDE DO TRABALHADOR)", 
-    #                                                                   "7109" ~ "ESTAB.SAÚDE (HU/MEC) SEM GERAÇÃO DE CRÉDITO TOTAL", 
-    #                                                                   "7110" ~ "ESTAB.SAUDE (MIN.SAUDE)SEM GERAÇÃO DE CRÉDITO TOTAL", 
-    #                                                                   "7111" ~ "ESTAB.SAUDE SEM GERAÇÃO DE CRÉDITO-NASF,exceto FAEC", 
-    #                                                                   "7112" ~ "ESTAB.S/CRED.TOTAL-INCL.FAEC-EXCLUSIVO P/REDE SARAH", 
-    #                                                                   "7113" ~ "ESTAB.S/CRED.TOTAL,INCL.FAEC-OUTROS ESTAB. FEDERAIS", 
-    #                                                                   "7116" ~ "ESTAB.SAÚDE S/GER DE CRÉDITO NA MÉDIA COMPLEX-LRPD", 
-    #                                                                   "7117" ~ "ESTAB.SAÚDE S/GER DE CRÉD. MÉD COMP(EXCETO OPM)-CER", 
-    #                                                                   "0000" ~ "SEM REGRA CONTRATUAL", .default = .data$PA_REGCT))
-    # }
-    # 
-    # #Incremento Outros 
-    # if ("PA_INCOUT" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(
-    #     def_PA_INCOUT = dplyr::case_when(
-    #       .data$PA_INCOUT != "0000" ~ "Com incremento", 
-    #       .data$PA_INCOUT == "0000" ~ "Sem incremento"))
-    # }
-    # 
-    # #Incremento Urgência 
-    # if ("PA_INCURG" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(
-    #     def_PA_INCURG = dplyr::case_when(
-    #       .data$PA_INCURG != "0000" ~ "Com incremento",
-    #       .data$PA_INCURG == "0000" ~ "Sem incremento"))
-    # }
-    # 
-    # #Tipo de Estabelecimento 
-    # if ("PA_TPUPS" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(
-    #     def_PA_TPUPS = dplyr::case_match(.data$PA_TPUPS,
-    #                                      "74" ~ "ACADEMIA DA SAÚDE",
-    #                                      "81" ~ "CENTRAL DE REGULAÇÃO",
-    #                                      "76" ~ "CENTRAL DE REGULAÇÃO MÉDICA DAS URGÊNCIAS",
-    #                                      "71" ~ "CENTRO DE APOIO A SAÚDE DA FAMÍLIA-CASF",
-    #                                      "69" ~ "CENTRO DE ATENÇÃO HEMOTERÁPICA E/OU HEMATOLÓGICA",
-    #                                      "70" ~ "CENTRO DE ATENÇÃO PSICOSSOCIAL-CAPS",
-    #                                      "61" ~ "CENTRO DE PARTO NORMAL", 
-    #                                      "02" ~ "CENTRO DE SAUDE/UNIDADE BASICA DE SAUDE",
-    #                                      "64" ~ "CENTRAL DE REGULACAO DE SERVICOS DE SAUDE",
-    #                                      "36" ~ "CLINICA ESPECIALIZADA/AMBULATORIO ESPECIALIZADO",
-    #                                      "22" ~ "CONSULTORIO", 
-    #                                      "60" ~ "COOPERATIVA",
-    #                                      "43" ~ "FARMACIA", 
-    #                                      "07" ~ "HOSPITAL ESPECIALIZADO",
-    #                                      "05" ~ "HOSPITAL GERAL", 
-    #                                      "62" ~ "HOSPITAL DIA",
-    #                                      "67" ~ "LABORATORIO CENTRAL DE SAUDE PUBLICA - LACEN",
-    #                                      "80" ~ "ORIO DE SAUDE PUBLICA", 
-    #                                      "04" ~ "POLICLINICA",
-    #                                      "79" ~ "OFICINA ORTOPEDICA", 
-    #                                      "01" ~ "POSTO DE SAUDE",
-    #                                      "73" ~ "PRONTO ANTEDIMENTO", 
-    #                                      "21" ~ "PRONTO SOCORRO ESPECIALIZADO",
-    #                                      "20" ~ "PRONTO SOCORRO GERAL", 
-    #                                      "68" ~ "SECRETARIA DE SAUDE",
-    #                                      "77" ~ "SERVICO DE ATENCAO DOMICILIAR ISOLADO(HOME CARE)",
-    #                                      "63" ~ "UNIDADE AUTORIZADORA", 
-    #                                      "72" ~ "UNIDADE DE ATENÇÃO À SAÚDE INDÍGENA",
-    #                                      "78" ~ "UNIDADE DE ATENCAO EM REGIME RESIDENCIAL",
-    #                                      "39" ~ "UNIDADE DE SERVICO DE APOIO DE DIAGNOSE E TERAPIA",
-    #                                      "45" ~ "UNIDADE DE SAUDE DA FAMILIA",
-    #                                      "50" ~ "UNIDADE DE VIGILANCIA EM SAUDE", 
-    #                                      "65" ~ "UNIDADE DE VIGILANCIA EPIDEMIOLOGIA (ANTIGO)",
-    #                                      "66" ~ "UNIDADE DE VIGILANCIA SANITARIA (ANTIGO)",
-    #                                      "15" ~ "UNIDADE MISTA", 
-    #                                      "42" ~ "UNIDADE MOVEL DE NIVEL PRE-HOSP-URGENCIA/EMERGENCIA",
-    #                                      "32" ~ "UNIDADE MOVEL FLUVIAL", 
-    #                                      "40" ~ "UNIDADE MOVEL TERRESTRE",
-    #                                      "75" ~ "TELESAÚDE", 
-    #                                      "09" ~ "PRONTO SOCORRO DE HOSPITAL GERAL (ANTIGO)",
-    #                                      "12" ~ "PRONTO SOCORRO TRAUMATO-ORTOPEDICO (ANTIGO)",
-    #                                      .default = .data$PA_TPUPS)) #%>% dplyr::mutate(PA_TPUPS = as.factor(.data$PA_TPUPS))
-    # }
-    # 
-    # #Tipo de Prestador
-    # if ("PA_TIPPRE" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_TIPPRE = dplyr::case_match(
-    #     .data$PA_TIPPRE,
-    #     "20" ~ "PRIVADO COM FINS LUCRATIVOS", 
-    #     "22" ~ "PRIVADO OPTANTE PELO SIMPLES", "30" ~ "PUBLICO FEDERAL",
-    #     "40" ~ "PUBLICO ESTADUAL", "50" ~ "PUBLICO MUNICIPAL",
-    #     "60" ~ "PRIVADO SEM FINS LUCRATIVOS", 
-    #     "61" ~"FILANTROPICO COM CNAS VALIDO", 
-    #     "80" ~ "SINDICATO", .default = .data$PA_TIPPRE)) #%>% dplyr::mutate(PA_TIPPRE = as.factor(.data$PA_TIPPRE))
-    # }
-    # 
-    # #Estabelecimento Mantido / Individual 
-    # if ("PA_MN_IND" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_MN_IND = dplyr::case_match(
-    #     .data$PA_MN_IND,"M" ~ "Mantida", "I" ~ "Individual", 
-    #     .default = .data$PA_MN_IND))
-    # }
-    # 
-    # # # if (nome_proced == TRUE) {
-    # # #   sigtab_temp <- microdatasus::fetch_sigtab()
-    # # #   data <- dplyr::left_join(data, sigtab_temp, by = c(PA_PROC_ID = "COD"))
-    # # # }
-    # # 
-    # 
-    # #data[procedimentos, def_proc := i.proc, on = .(PA_PROC_ID = cod)] 
-    # # data <- data |>
-    # #    dplyr::left_join(  y = procedimentos ,
-    # #             by = join_by("PA_PROC_ID" == "cod"))
-    # 
-    # 
-    # data <- data |>
-    #   mutate(PA_PROC_ID = PA_PROC_ID |> as.integer() )
-    # 
-    # # #Procedimento
-    # data <- merge(
-    #   x = data,
-    #   y = select(procedimentos, c(cod, def_proc = proc) ),
-    #   by.x = "PA_PROC_ID",
-    #   by.y = "cod",
-    #   all.x = TRUE,
-    #   suffixes = c("", "_resd")
-    # )
-    # 
-    # 
-    # 
-    # #Tipo de Financiamento da produção 
-    # if ("PA_TPFIN" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_TPFIN = dplyr::case_match(
-    #     .data$PA_TPFIN,
-    #     "01" ~ "Atenção Básica (PAB)", 
-    #     "02" ~ "Assistência Farmacêutica",
-    #     "04" ~ "Fundo de Ações Estratégicas e Compensações FAEC",
-    #     "05" ~ "Incentivo - MAC", 
-    #     "06" ~ "Média e Alta Complexidade (MAC)",
-    #     "07" ~ "Vigilância em Saúde", .default = .data$PA_TPFIN)) #%>% dplyr::mutate(PA_TPFIN = as.factor(.data$PA_TPFIN))
-    # }
-    # 
-    # 
-    # #Complexidade do Procedimento
-    # if ("PA_NIVCPL" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_NIVCPL = dplyr::case_match(
-    #     .data$PA_NIVCPL,
-    #     "0" ~ "Não se Aplica", 
-    #     "1" ~ "Atenção Básica",
-    #     "2" ~ "Média Complexidade", 
-    #     "3" ~ "Alta Complexidade",
-    #     .default = .data$PA_NIVCPL)) #%>% dplyr::mutate(PA_NIVCPL = as.factor(.data$PA_NIVCPL))
-    # }
-    # 
-    # 
-    # #Instrumento de Registro (conforme explicado na página 2)
-    # if ("PA_DOCORIG" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_DOCORIG = dplyr::case_match(
-    #     .data$PA_DOCORIG, 
-    #     "C" ~ "BPA-C", 
-    #     "I" ~ "BPA-I", 
-    #     "P" ~ "APAC - Procedimento Principal",
-    #     "S" ~ "APAC - Procedimento Secundário", 
-    #     "A" ~ "RAAS - Atenção Domiciliar", 
-    #     "B" ~ "RAAS - Psicossocial",.default = .data$PA_DOCORIG)) #%>% dplyr::mutate(PA_DOCORIG = as.factor(.data$PA_DOCORIG))
-    # }
-    # 
-    # 
-    # #Ocupaçoes
-    # data <- 
-    #   data |>
-    #   #### Ocupações do falecido
-    #   left_join(x = _, 
-    #             y = select(ocupacao, !c(versao_cod_proc) ), 
-    #             
-    #             join_by("PA_CBOCOD" == "cod") )  
-    # 
-    # 
-    # # if (nome_ocupacao == TRUE) {
-    # #   data <- dplyr::left_join(data, microdatasus::tabCBO,
-    # #                            by = c(PA_CBOCOD = "cod"))
-    # #   data <- dplyr::rename(data, ocupacao = "nome")
-    # # }
-    # 
-    # #Motivo de saída ou zeros, caso não tenha  
-    # if ("PA_MOTSAI" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_MOTSAI = dplyr::case_match(
-    #     .data$PA_MOTSAI, 
-    #     "11" ~ "ALTA CURADO",
-    #     "12" ~ "ALTA MELHORADO",
-    #     "13" ~ "ALTA DA PUÉRPERA E PERMANÊNCIA DO RECÉM NASCIDO",
-    #     "14" ~ "ALTA A PEDIDO", 
-    #     "15" ~ "ALTA COM PREVISÃO DE RETORNO P/ ACOMPAN. DO PACIENT",
-    #     "16" ~ "ALTA POR EVASÃO", 
-    #     "17" ~ "ALTA DA PUÉRPERA E RECÉM NASCIDO",
-    #     "18" ~ "ALTA POR OUTROS MOTIVOS", 
-    #     "21" ~ "PERMANÊNCIA POR CARACTERÍSTICAS PRÓPRIAS DA DOENÇA",
-    #     "22" ~ "PERMANÊNCIA POR INTERCORRÊNCIA", 
-    #     "23" ~ "PERMANÊNCIA POR IMPOSSIBILIDADE SÓCIO-FAMILIAR",
-    #     "24" ~ "PERMAN. POR PROCESSO-DOAÇÃO DE ÓRGÃOS-DOADOR VIVO",
-    #     "25" ~ "PERMAN. POR PROCESSO-DOAÇÃO DE ÓRGÃOS-DOADOR MORTO",
-    #     "26" ~ "PERMANÊNCIA POR MUDANÇA DE PROCEDIMENTO",
-    #     "27" ~ "PERMANÊNCIA POR REOPERAÇÃO", 
-    #     "28" ~ "PERMANÊNCIA POR OUTROS MOTIVOS", 
-    #     "31" ~ "TRANSFERIDO PARA OUTRO ESTABELECIMENTO",
-    #     "41" ~ "ÓBITO COM DECLARAÇÃO DE ÓBITO FORNEC. MÉDICO ASSIST",
-    #     "42" ~ "ÓBITO COM DECLARAÇÃO DE ÓBITO FORNECIDA PELO I.M.L",
-    #     "43" ~ "ÓBITO COM DECLARAÇÃO DE ÓBITO FORNECIDA PELO I.M.L",
-    #     "51" ~ "ENCERRAMENTO ADMINSTRATIVO", 
-    #     "00" ~ "PRODUÇÃO SEM MOTIVO DE SAÍDA (BPA-C / BPA-I)",
-    #     .default = .data$PA_MOTSAI)) #%>% dplyr::mutate(PA_MOTSAI = as.factor(.data$PA_MOTSAI))
-    # }
-    # 
-    # 
-    # #Indicador de Óbito (APAC)
-    # if ("PA_OBITO" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_OBITO = dplyr::case_match(
-    #     .data$PA_OBITO, 
-    #     "1" ~ "Sim (motivo de saída-ÓBITO)", 
-    #     "0" ~"Nao houve ÓBITO", .default = .data$PA_OBITO)) # %>% dplyr::mutate(PA_OBITO = as.factor(.data$PA_OBITO))
-    # }
-    # 
-    # 
-    # #Indicador de Encerramento (APAC)
-    # if ("PA_ENCERR" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_ENCERR = dplyr::case_match(
-    #     .data$PA_ENCERR,
-    #     "1" ~ "Sim (motivo de saída-ENCERRAMENTO)",
-    #     "0" ~ "Nao houve ENCERRAMENTO", .default = .data$PA_ENCERR)) #%>% dplyr::mutate(PA_ENCERR = as.factor(.data$PA_ENCERR))
-    # }
-    # 
-    # 
-    # #Indicador de Permanência (APAC)
-    # if ("PA_PERMAN" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_PERMAN = dplyr::case_match(
-    #     .data$PA_PERMAN,
-    #     "1" ~ "Sim (motivo de saída-PERMANÊNCIA)",
-    #     "0" ~ "Nao houve a PERMANÊNCIA do paciente na unidade",
-    #     .default = .data$PA_PERMAN)) #%>% dplyr::mutate(as.factor(.data$PA_PERMAN))
-    # }
-    # 
-    # 
-    # #Indicador de Alta (APAC)  
-    # if ("PA_ALTA" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_ALTA = dplyr::case_match(
-    #     .data$PA_ALTA,
-    #     "1" ~ "Sim (motivo de saída-PERMANÊNCIA)",
-    #     "0" ~ "Nao houve a PERMANÊNCIA do paciente na unidade",
-    #     .default = .data$PA_ALTA)) #%>% dplyr::mutate(as.factor(.data$PA_ALTA))
-    # }
-    # 
-    # #Indicador de Transferência (APAC)
-    # if ("PA_TRANSF" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_TRANSF = dplyr::case_match(
-    #     .data$PA_TRANSF,
-    #     "1" ~ "Sim (motivo de saída-TRANSFERÊNCIA)",
-    #     "0" ~ "Nao houve TRANSFERÊNCIA do paciente",
-    #     .default = .data$PA_TRANSF)) #%>% dplyr::mutate(as.factor(.data$PA_TRANSF))
-    # }
-    # 
-    # #Caráter de Atendimento (APAC ou BPA-I)
-    # if ("PA_CATEND" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_CATEND = dplyr::case_match(
-    #     .data$PA_CATEND,
-    #     "01" ~ "ELETIVO", "02" ~ "URGÊNCIA",
-    #     "03" ~ "ACIDENTE NO LOCAL TRABALHO OU A SERViÇO DA EMPRESA",
-    #     "04" ~ "ACIDENTE NO TRAJETO PARA O TRABALHO",
-    #     "05" ~ "OUTROS TIPOS DE ACIDENTE DE TRÂNSITO",
-    #     "06" ~ "OUTROS TIPOS LESÕES/ENVENENAMENTOS(AGENT.FIS./QUIM.",
-    #     "99" ~ "INFORMAÇÃO INEXISTENTE  (BPA-C)",
-    #     "00" ~ "CARATER DE ATENDIMENTO NÃO INFORMADO",
-    #     "07" ~ "CARATER DE ATENDIMENTO INVALIDO", 
-    #     "10" ~ "CARATER DE ATENDIMENTO INVALIDO", 
-    #     "12" ~ "CARATER DE ATENDIMENTO INVALIDO", 
-    #     "20" ~ "CARATER DE ATENDIMENTO INVALIDO", 
-    #     "53" ~ "CARATER DE ATENDIMENTO INVALIDO", 
-    #     "54" ~ "CARATER DE ATENDIMENTO INVALIDO", 
-    #     "57" ~ "CARATER DE ATENDIMENTO INVALIDO", .default = .data$PA_CATEND)) #%>% dplyr::mutate(as.factor(.data$PA_CATEND))
-    # }
-    # 
-    # # if ("PA_IDADE" %in% variables_names) {
-    # #   data <- data %>% dplyr::mutate(PA_IDADE = as.numeric(.data$PA_IDADE)) %>%
-    # #     dplyr::mutate(PA_IDADE = dplyr::case_match(.data$PA_IDADE,
-    # #                                                999 ~ 0, .default = .data$PA_IDADE))
-    # # }
-    # 
-    # #Idade mínima do paciente para realização do procedimento 
-    # if ("IDADEMIN" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(IDADEMIN = as.numeric(.data$IDADEMIN))
-    # }
-    # 
-    # #Idade máxima do paciente para realização do procedimento
-    # if ("IDADEMAX" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(IDADEMAX = as.numeric(.data$IDADEMAX))
-    # }
-    # 
-    # 
-    # #Compatibilidade com a faixa de idade do procedimento
-    # if ("PA_FLIDADE" %in% variables_names) {
-    #   
-    #   data <- data %>% dplyr::mutate(def_PA_FLIDADE = dplyr::case_match(
-    #     .data$PA_FLIDADE,
-    #     "0" ~ "IDADE NÃO EXIGIDA", 
-    #     "1" ~ "IDADE COMPATIVEL COM O SIGTAP",
-    #     "2" ~ "IDADE FORA DA FAIXA DO SIGTAP", 
-    #     "3" ~ "IDADE INEXISTENTE", 
-    #     "4" ~ "IDADE EM BRANCO",
-    #     .default = .data$PA_FLIDADE)) #%>% dplyr::mutate(as.factor(.data$PA_FLIDADE))
-    # }
-    # 
-    # #Sexo do paciente
-    # if ("PA_SEXO" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_SEXO = dplyr::case_match(
-    #     .data$PA_SEXO,
-    #     "0" ~ "Não exigido", 
-    #     "M" ~ "Masculino", 
-    #     "F" ~ "Feminino", .default = .data$PA_SEXO)) #%>% dplyr::mutate(as.factor(.data$PA_SEXO))
-    # }
-    # 
-    # #Raça/Cor do paciente
-    # if ("PA_RACACOR" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_RACACOR = dplyr::case_match(
-    #     .data$PA_RACACOR,
-    #     "00" ~ "RAÇA/COR NÃO EXIGIDO", 
-    #     "01" ~ "BRANCA",
-    #     "02" ~ "PRETA", 
-    #     "03" ~ "PARDA", 
-    #     "04" ~ "AMARELA",
-    #     "05" ~ "INDIGENA", 
-    #     "99" ~ "SEM INFORMAÇÃO",
-    #     "06" ~ "RAÇA/COR=06 (INDEVIDO)", 
-    #     "09" ~ "RAÇA/COR=09 (INDEVIDO)",
-    #     "1M" ~ "RAÇA/COR  (OUTROS INDEVIDOS)", 
-    #     "1G" ~ "RAÇA/COR  (OUTROS INDEVIDOS)", 
-    #     "1C" ~ "RAÇA/COR  (OUTROS INDEVIDOS)",
-    #     "DE" ~ "RAÇA/COR  (OUTROS INDEVIDOS)", 
-    #     "D" ~ "RAÇA/COR  (OUTROS INDEVIDOS)", 
-    #     "87" ~ "RAÇA/COR  (OUTROS INDEVIDOS)",
-    #     .default = .data$PA_RACACOR)) #%>% dplyr::mutate(as.factor(.data$PA_RACACOR))
-    # }
-    # 
-    # #Quantidade Produzida (APRESENTADA)
-    # if ("PA_QTDPRO" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_QTDPRO = as.integer(.data$PA_QTDPRO))
-    # }
-    # 
-    # #Quantidade Aprovada do procedimento 
-    # if ("PA_QTDAPR" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_QTDAPR = as.numeric(.data$PA_QTDAPR))
-    # }
-    # 
-    # 
-    # #Valor Produzido (APRESENTADO) 
-    # if ("PA_VALPRO" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_VALPRO = as.numeric(.data$PA_VALPRO))
-    # }
-    # 
-    # #Valor Aprovado do procedimento 
-    # if ("PA_VALAPR" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_VALAPR = as.numeric(.data$PA_VALAPR))
-    # }
-    # 
-    # #Indica se a UF de residência do paciente é diferente da UF de localização do estabelecimento:
-    # if ("PA_UFDIF" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_UFDIF = dplyr::case_match(
-    #     .data$PA_UFDIF,
-    #     "1" ~ "Sim (houve invasão)", 
-    #     "0" ~ "Não houve invasão", .default = .data$PA_UFDIF)) #%>% dplyr::mutate(as.factor(.data$PA_UFDIF))
-    # }
-    # 
-    # #Indica se o município de residência do paciente é diferente do município de localização do estabelecimento:
-    # if ("PA_MNDIF" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_MNDIF = dplyr::case_match(
-    #     .data$PA_MNDIF,
-    #     "1" ~ "Sim (houve invasão)", 
-    #     "0" ~ "Não houve invasão", .default = .data$PA_MNDIF)) #%>% dplyr::mutate(as.factor(.data$PA_MNDIF))
-    # }
-    # 
-    # #Diferença do Valor Unitário do procedimento praticado na Tabela Unificada 
-    # #com Valor Unitário praticado pelo Gestor da Produção, multiplicado pela Quantidade Aprovada 
-    # if ("PA_DIF_VAL" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_DIF_VAL = as.numeric(.data$PA_DIF_VAL))
-    # }
-    # 
-    # #Valor Unitário do Procedimento da Tabela VPA 
-    # if ("NU_VPA_TOT" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(NU_VPA_TOT = as.numeric(.data$NU_VPA_TOT))
-    # }
-    # 
-    # #Valor Unitário do Procedimento da Tabela SIGTAP
-    # if ("NU_PA_TOT" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(NU_PA_TOT = as.numeric(.data$NU_PA_TOT))
-    # }
-    # 
-    # 
-    # #Indicativo de situação da produção produzida: 
-    # if ("PA_INDICA" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_INDICA = dplyr::case_match(
-    #     .data$PA_INDICA,
-    #     "5" ~ "Aprovado totalmente", 
-    #     "6" ~ "Aprovado parcialmente",
-    #     "0" ~ "Não aprovado", .default = .data$PA_INDICA)) #%>% dplyr::mutate(as.factor(.data$PA_INDICA))
-    # }
-    # 
-    # #Etnia do paciente
-    # if ("PA_ETNIA" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(def_PA_ETNIA = dplyr::case_match(
-    #     .data$PA_ETNIA,
-    #     "0001" ~ "ACONA (WAKONAS, NACONAS, JAKONA, ACORANES)",
-    #     "0002" ~ "AIKANA (AIKANA, MAS SAKA,TUBARAO)",
-    #     "0003" ~ "AJURU", 
-    #     "0004" ~ "AKUNSU (AKUNT'SU)",
-    #     "0005" ~ "AMANAYE", 
-    #     "0006" ~ "AMONDAWA", 
-    #     "0007" ~ "ANAMBE", 
-    #     "0008" ~ "APARAI (APALAI)",
-    #     "0009" ~ "APIAKA (APIACA)", 
-    #     "0010" ~ "APINAYE (APINAJE/APINAIE/APINAGE)",
-    #     "0011" ~ "APURINA (APORINA, IPURINA, IPURINA, IPURINAN)",
-    #     "0012" ~ "ARANA (ARACUAI DO VALE DO JEQUITINHONHA)",
-    #     "0013" ~ "ARAPASO (ARAPACO)", 
-    #     "0014" ~ "ARARA DE RONDONIA (KARO, URUCU, URUKU)",
-    #     "0015" ~ "ARARA DO ACRE (SHAWANAUA, AMAWAKA)",
-    #     "0016" ~ "ARARA DO ARIPUANA (ARARA DO BEIRADAO/ARI-PUANA)",
-    #     "0017" ~ "ARARA DO PARA (UKARAGMA, UKARAMMA)",
-    #     "0018" ~ "ARAWETE (ARAUETE)", 
-    #     "0019" ~ "ARIKAPU (ARICAPU, ARIKAPO, MASUBI, MAXUBI)",
-    #     "0020" ~ "ARIKEM (ARIQUEN, ARIQUEME, ARIKEME)",
-    #     "0021" ~ "ARIKOSE (ARICOBE)", 
-    #     "0022" ~ "ARUA",
-    #     "0023" ~ "ARUAK (ARAWAK)", 
-    #     "0024" ~ "ASHANINKA (KAMPA)",
-    #     "0025" ~ "ASURINI DO TOCANTINS (AKUAWA/AKWAWA)",
-    #     "0026" ~ "ASURINI DO XINGU (AWAETE)", 
-    #     "0027" ~ "ATIKUM (ATICUM)", 
-    #     "0028" ~ "AVA - CANOEIRO",
-    #     "0029" ~ "AWETI (AUETI/AUETO)", 
-    #     "0030" ~ "BAKAIRI (KURA, BACAIRI)",
-    #     "0031" ~ "BANAWA YAFI (BANAWA, BANAWA-JAFI)",
-    #     "0032" ~ "BANIWA (BANIUA, BANIVA, WALIMANAI, WAKUENAI)",
-    #     "0033" ~ "BARA (WAIPINOMAKA)", 
-    #     "0034" ~ "BARASANA (HANERA)",
-    #     "0035" ~ "BARE", 
-    #     "0036" ~ "BORORO (BOE)", 
-    #     "0037" ~ "BOTOCUDO (GEREN)", 
-    #     "0038" ~ "CANOE", 
-    #     "0039" ~ "CASSUPA", 
-    #     "0040" ~ "CHAMACOCO", 
-    #     "0041" ~ "CHIQUITANO (XIQUITANO)", 
-    #     "0042" ~ "CIKIYANA (SIKIANA)", 
-    #     "0043" ~ "CINTA LARGA (MATETAMAE)", 
-    #     "0044" ~ "COLUMBIARA (CORUMBIARA)", 
-    #     "0045" ~ "DENI",
-    #     "0046" ~ "DESANA (DESANA, DESANO, DESSANO, WIRA, UMUKOMASA)",
-    #     "0047" ~ "DIAHUI (JAHOI, JAHUI, DIARROI)", 
-    #     "0048" ~ "ENAWENE-NAWE (SALUMA)", 
-    #     "0049" ~ "FULNI-O",
-    #     "0050" ~ "GALIBI (GALIBI DO OIAPOQUE, KARINHA)",
-    #     "0051" ~ "GALIBI MARWORNO (GALIBI DO UACA, ARUA)",
-    #     "0052" ~ "GAVIAO DE RONDONIA (DIGUT)", 
-    #     "0053" ~ "GAVIAO KRIKATEJE", 
-    #     "0054" ~ "GAVIAO PARKATEJE (PARKATEJE)",
-    #     "0055" ~ "GAVIAO PUKOBIE (PUKOBIE, PYKOPJE, GAVIAO DO MARANHAO)",
-    #     "0056" ~ "GUAJA (AWA, AVA)", 
-    #     "0057" ~ "GUAJAJARA (TENETEHARA)",
-    #     "0058" ~ "GUARANI KAIOWA (PAI TAVYTERA)", 
-    #     "0059" ~ "GUARANI M'BYA", 
-    #     "0060" ~ "GUARANI NANDEVA (AVAKATUETE, CHIRIPA,NHANDEWA, AVA GUARANI)",
-    #     "0061" ~ "GUATO", 
-    #     "0062" ~ "HIMARIMA (HIMERIMA)",
-    #     "0063" ~ "INGARIKO (INGARICO, AKAWAIO, KAPON)",
-    #     "0064" ~ "IRANXE (IRANTXE)", 
-    #     "0065" ~ "ISSE",
-    #     "0066" ~ "JABOTI (JABUTI, KIPIU, YABYTI)", 
-    #     "0067" ~ "JAMAMADI (YAMAMADI, DJEOROMITXI)", 
-    #     "0068" ~ "JARAWARA", 
-    #     "0069" ~ "JIRIPANCO (JERIPANCO, GERIPANCO)",
-    #     "0070" ~ "JUMA (YUMA)", 
-    #     "0071" ~ "JURUNA", 
-    #     "0072" ~ "JURUTI (YURITI)",
-    #     "0073" ~ "KAAPOR (URUBU-KAAPOR, KA'APOR, KAAPORTE)",
-    #     "0074" ~ "KADIWEU (CADUVEO, CADIUEU)",
-    #     "0075" ~ "KAIABI (CAIABI, KAYABI)", 
-    #     "0076" ~ "KAIMBE (CAIMBE)",
-    #     "0077" ~ "KAINGANG (CAINGANGUE)", 
-    #     "0078" ~ "KAIXANA (CAIXANA)",
-    #     "0079" ~ "KALABASSA (CALABASSA, CALABACAS)",
-    #     "0080" ~ "KALANCO", 
-    #     "0081" ~ "KALAPALO (CALAPALO)",
-    #     "0082" ~ "KAMAYURA (CAMAIURA, KAMAIURA)", 
-    #     "0083" ~ "KAMBA (CAMBA)", "0084" ~ "KAMBEBA (CAMBEBA, OMAGUA)",
-    #     "0085" ~ "KAMBIWA (CAMBIUA)", "0086" ~ "KAMBIWA PIPIPA (PIPIPA)",
-    #     "0087" ~ "KAMPE", "0088" ~ "KANAMANTI (KANAMATI, CANAMANTI)",
-    #     "0089" ~ "KANAMARI (CANAMARI, KANAMARY, TUKUNA)",
-    #     "0090" ~ "KANELA APANIEKRA (CANELA)", "0091" ~
-    #       "KANELA RANKOKAMEKRA (CANELA)", "0092" ~ "KANINDE",
-    #     "0093" ~ "KANOE (CANOE)", "0094" ~ "KANTARURE (CANTARURE)",
-    #     "0095" ~ "KAPINAWA (CAPINAUA)", "0096" ~ "KARAJA (CARAJA)",
-    #     "0097" ~ "KARAJA/JAVAE (JAVAE)", "0098" ~ "KARAJA/XAMBIOA (KARAJA DO NORTE)",
-    #     "0099" ~ "KARAPANA (CARAPANA, MUTEAMASA, UKOPINOPONA)",
-    #     "0100" ~ "KARAPOTO (CARAPOTO)", "0101" ~ "KARIPUNA (CARIPUNA)",
-    #     "0102" ~ "KARIPUNA DO AMAPA (CARIPUNA)", "0103" ~
-    #       "KARIRI (CARIRI)", "0104" ~ "KARIRI-XOCO (CARIRI-CHOCO)",
-    #     "0105" ~ "KARITIANA (CARITIANA)", "0106" ~ "KATAWIXI (KATAUIXI,KATAWIN, KATAWISI, CATAUICHI)",
-    #     "0107" ~ "KATUENA (CATUENA, KATWENA)", "0108" ~
-    #       "KATUKINA (PEDA DJAPA)", "0109" ~ "KATUKINA DO ACRE",
-    #     "0110" ~ "KAXARARI (CAXARARI)", "0111" ~ "KAXINAWA (HUNI-KUIN, CASHINAUA, CAXINAUA)",
-    #     "0112" ~ "KAXIXO", "0113" ~ "KAXUYANA (CAXUIANA)",
-    #     "0114" ~ "KAYAPO (CAIAPO)", "0115" ~ "KAYAPO KARARAO (KARARAO)",
-    #     "0116" ~ "KAYAPO TXUKAHAMAE (TXUKAHAMAE)", "0117" ~
-    #       "KAYAPO XICRIM (XIKRIN)", "0118" ~ "KAYUISANA (CAIXANA, CAUIXANA, KAIXANA)",
-    #     "0119" ~ "KINIKINAWA (GUAN, KOINUKOEN, KINIKINAO)",
-    #     "0120" ~ "KIRIRI", "0121" ~ "KOCAMA (COCAMA, KOKAMA)",
-    #     "0122" ~ "KOKUIREGATEJE", "0123" ~ "KORUBO",
-    #     "0124" ~ "KRAHO (CRAO, KRAO)", "0125" ~ "KREJE (KRENYE)",
-    #     "0126" ~ "KRENAK (BORUN, CRENAQUE)", "0127" ~
-    #       "KRIKATI (KRINKATI)", "0128" ~ "KUBEO (CUBEO, COBEWA, KUBEWA, PAMIWA, CUBEU)",
-    #     "0129" ~ "KUIKURO (KUIKURU, CUICURO)", "0130" ~
-    #       "KUJUBIM (KUYUBI, CUJUBIM)", "0131" ~ "KULINA PANO (CULINA)",
-    #     "0132" ~ "KULINA/MADIHA (CULINA, MADIJA, MADIHA)",
-    #     "0133" ~ "KURIPAKO (CURIPACO, CURRIPACO, CORIPACO, WAKUENAI)",
-    #     "0134" ~ "KURUAIA (CURUAIA)", "0135" ~ "KWAZA (COAIA, KOAIA)",
-    #     "0136" ~ "MACHINERI (MANCHINERI, MANXINERI)",
-    #     "0137" ~ "MACURAP (MAKURAP)", "0138" ~ "MAKU DOW (DOW)",
-    #     "0139" ~ "MAKU HUPDA (HUPDA)", "0140" ~ "MAKU NADEB (NADEB)",
-    #     "0141" ~ "MAKU YUHUPDE (YUHUPDE)", "0142" ~
-    #       "MAKUNA (MACUNA, YEBA-MASA)", "0143" ~ "MAKUXI (MACUXI, MACHUSI, PEMON)",
-    #     "0144" ~ "MARIMAM (MARIMA)", "0145" ~ "MARUBO",
-    #     "0146" ~ "MATIPU", "0147" ~ "MATIS", "0148" ~
-    #       "MATSE (MAYORUNA)", "0149" ~ "MAXAKALI (MAXACALI)",
-    #     "0150" ~ "MAYA (MAYA)", "0151" ~ "MAYTAPU",
-    #     "0152" ~ "MEHINAKO (MEINAKU, MEINACU)", "0153" ~
-    #       "MEKEN (MEQUEM, MEKHEM, MICHENS)", "0154" ~
-    #       "MENKY (MYKY, MUNKU, MENKI, MYNKY)", "0155" ~
-    #       "MIRANHA (MIRANHA, MIRANA)", "0156" ~ "MIRITI TAPUIA (MIRITI-TAPUYA, BUIA-TAPUYA)",
-    #     "0157" ~ "MUNDURUKU (MUNDURUCU)", "0158" ~ "MURA",
-    #     "0159" ~ "NAHUKWA (NAFUQUA)", "0160" ~ "NAMBIKWARA DO CAMPO (HALOTESU, KITHAULU, WAKALITESU, SAWENTES, MANDUKA)",
-    #     "0161" ~ "NAMBIKWARA DO NORTE (NEGAROTE ,MAMAINDE, LATUNDE, SABANE E MANDUKA, TAWANDE)",
-    #     "0162" ~ "NAMBIKWARA DO SUL (WASUSU ,HAHAINTESU, ALANTESU, WAIKISU, ALAKETESU, WASUSU, SARARE)",
-    #     "0163" ~ "NARAVUTE (NARUVOTO)", "0164" ~ "NAWA (NAUA)",
-    #     "0165" ~ "NUKINI (NUQUINI, NUKUINI)", "0166" ~
-    #       "OFAIE (OFAYE-XAVANTE)", "0167" ~ "ORO WIN",
-    #     "0168" ~ "PAIAKU (JENIPAPO-KANINDE)", "0169" ~
-    #       "PAKAA NOVA (WARI, PACAAS NOVOS)", "0170" ~
-    #       "PALIKUR (AUKWAYENE, AUKUYENE, PALIKU'ENE)",
-    #     "0171" ~ "PANARA (KRENHAKARORE , KRENAKORE, KRENA-KARORE)",
-    #     "0172" ~ "PANKARARE (PANCARARE)", "0173" ~ "PANKARARU (PANCARARU)",
-    #     "0174" ~ "PANKARARU KALANKO (KALANKO)", "0175" ~
-    #       "PANKARARU KARUAZU (KARUAZU)", "0176" ~ "PANKARU (PANCARU)",
-    #     "0177" ~ "PARAKANA (PARACANA, APITEREWA, AWAETE)",
-    #     "0178" ~ "PARECI (PARESI, HALITI)", "0179" ~
-    #       "PARINTINTIN", "0180" ~ "PATAMONA (KAPON)",
-    #     "0181" ~ "PATAXO", "0182" ~ "PATAXO HA-HA-HAE",
-    #     "0183" ~ "PAUMARI (PALMARI)", "0184" ~ "PAUMELENHO",
-    #     "0185" ~ "PIRAHA (MURA PIRAHA)", "0186" ~ "PIRATUAPUIA (PIRATAPUYA, PIRATAPUYO, PIRA-TAPUYA, WAIKANA)",
-    #     "0187" ~ "PITAGUARI", "0188" ~ "POTIGUARA",
-    #     "0189" ~ "POYANAWA (POIANAUA)", "0190" ~ "RIKBAKTSA (CANOEIROS, ERIGPAKTSA)",
-    #     "0191" ~ "SAKURABIAT(MEKENS, SAKIRABIAP, SAKIRABIAR)",
-    #     "0192" ~ "SATERE-MAWE (SATERE-MAUE)", "0193" ~
-    #       "SHANENAWA (KATUKINA)", "0194" ~ "SIRIANO (SIRIA-MASA)",
-    #     "0195" ~ "SURIANA", "0196" ~ "SURUI DE RONDONIA (PAITER)",
-    #     "0197" ~ "SURUI DO PARA (AIKEWARA)", "0198" ~
-    #       "SUYA (SUIA/KISEDJE)", "0199" ~ "TAPAYUNA (BEICO-DE-PAU)",
-    #     "0200" ~ "TAPEBA", "0201" ~ "TAPIRAPE (TAPI'IRAPE)",
-    #     "0202" ~ "TAPUIA (TAPUIA-XAVANTE, TAPUIO)",
-    #     "0203" ~ "TARIANO (TARIANA, TALIASERI)", "0204" ~
-    #       "TAUREPANG (TAULIPANG, PEMON, AREKUNA, PAGEYN)",
-    #     "0205" ~ "TEMBE", "0206" ~ "TENHARIM", "0207" ~
-    #       "TERENA", "0208" ~ "TICUNA (TIKUNA, TUKUNA, MAGUTA)",
-    #     "0209" ~ "TINGUI BOTO", "0210" ~ "TIRIYO EWARHUYANA (TIRIYO, TRIO, TARONA, YAWI, PIANOKOTO)",
-    #     "0211" ~ "TIRIYO KAH'YANA (TIRIYO, TRIO, TARONA, YAWI, PIANOKOTO)",
-    #     "0212" ~ "TIRIYO TSIKUYANA (TIRIYO, TRIO, TARONA, YAWI, PIANOKOTO)",
-    #     "0213" ~ "TORA", "0214" ~ "TREMEMBE", "0215" ~
-    #       "TRUKA", "0216" ~ "TRUMAI", "0217" ~ "TSOHOM DJAPA (TSUNHUM-DJAPA)",
-    #     "0218" ~ "TUKANO (TUCANO, YE'PA-MASA, DASEA)",
-    #     "0219" ~ "TUMBALALA", "0220" ~ "TUNAYANA", "0221" ~
-    #       "TUPARI", "0222" ~ "TUPINAMBA", "0223" ~ "TUPINIQUIM",
-    #     "0224" ~ "TURIWARA", "0225" ~ "TUXA", "0226" ~
-    #       "TUYUKA (TUIUCA, DOKAPUARA, UTAPINOMAKAPHONA)",
-    #     "0227" ~ "TXIKAO (TXICAO, IKPENG)", "0228" ~
-    #       "UMUTINA (OMOTINA, BARBADOS)", "0229" ~ "URU-EU-WAU-WAU (URUEU-UAU-UAU, URUPAIN, URUPA)",
-    #     "0230" ~ "WAI WAI HIXKARYANA (HIXKARYANA)",
-    #     "0231" ~ "WAI WAI KARAFAWYANA (KARAFAWYANA, KARA-PAWYANA)",
-    #     "0232" ~ "WAI WAI XEREU (XEREU)", "0233" ~ "WAI WAI KATUENA (KATUENA)",
-    #     "0234" ~ "WAI WAI MAWAYANA (MAWAYANA)", "0235" ~
-    #       "WAIAPI (WAYAMPI, OYAMPI, WAYAPY, )", "0236" ~
-    #       "WAIMIRI ATROARI (KINA)", "0237" ~ "WANANO (UANANO, WANANA)",
-    #     "0238" ~ "WAPIXANA (UAPIXANA, VAPIDIANA, WAPISIANA, WAPISHANA)",
-    #     "0239" ~ "WAREKENA (UAREQUENA, WEREKENA)", "0240" ~
-    #       "WASSU", "0241" ~ "WAURA (UAURA, WAUJA)",
-    #     "0242" ~ "WAYANA (WAIANA, UAIANA)", "0243" ~
-    #       "WITOTO (UITOTO, HUITOTO)", "0244" ~ "XAKRIABA (XACRIABA)",
-    #     "0245" ~ "XAVANTE (A'UWE, AKWE, AWEN, AKWEN)",
-    #     "0246" ~ "XERENTE (AKWE, AWEN, AKWEN)", "0247" ~
-    #       "XETA", "0248" ~ "XIPAIA (SHIPAYA, XIPAYA)",
-    #     "0249" ~ "XOKLENG (SHOKLENG, XOCLENG)", "0250" ~
-    #       "XOKO (XOCO, CHOCO)", "0251" ~ "XUKURU (XUCURU)",
-    #     "0252" ~ "XUKURU KARIRI (XUCURU-KARIRI)", "0253" ~
-    #       "YAIPIYANA", "0254" ~ "YAMINAWA (JAMINAWA, IAMINAWA)",
-    #     "0255" ~ "YANOMAMI NINAM (IANOMAMI, IANOAMA, XIRIANA)",
-    #     "0256" ~ "YANOMAMI SANUMA (IANOMAMI, IANOAMA, XIRIANA)",
-    #     "0257" ~ "YANOMAMI YANOMAM (IANOMAMI, IANOAMA, XIRIANA)",
-    #     "0258" ~ "YAWALAPITI (IAUALAPITI)", "0259" ~
-    #       "YAWANAWA (IAUANAUA)", "0260" ~ "YEKUANA (MAIONGON, YE'KUANA, YEKWANA, MAYONGONG)",
-    #     "0261" ~ "YUDJA (JURUNA, YURUNA)", "0262" ~
-    #       "ZO'E (POTURU)", "0263" ~ "ZORO (PAGEYN)",
-    #     "0264" ~ "ZURUAHA (SOROWAHA, SURUWAHA)", "X265" ~
-    #       "AHANENAWA", "X266" ~ "AICABA", "X267" ~ "AIKAN\\u00c3-KWAS\\u00c1",
-    #     "X268" ~ "AKUNTSU", "X269" ~ "ALANTESU", "X271" ~
-    #       "AMAW\\u00c1KA", "X272" ~ "ANAC\\u00c9", "X273" ~
-    #       "APURIN\\u00c3", "X274" ~ "ARAN\\u00c3", "X275" ~
-    #       "ARAPA\\u00c7O", "X276" ~ "ARARA APOLIMA",
-    #     "X277" ~ "ARARA DO ARIPUANA", "X278" ~ "ARIPUAN\\u00c1",
-    #     "X279" ~ "ASSURINI", "X280" ~ "AWUAR\\u00c1",
-    #     "X281" ~ "BORBA", "X282" ~ "CABIXI", "X283" ~
-    #       "CAMARAR\\u00c9", "X284" ~ "CAMASURI", "X285" ~
-    #       "CARA PRETA", "X286" ~ "CHARRUA", "X287" ~
-    #       "CUJUBIM", "X288" ~ "DAW", "X289" ~ "GAVI\\u00c3O",
-    #     "X290" ~ "GUARANI", "X291" ~ "HALANTESU", "X292" ~
-    #       "HALOTESU", "X293" ~ "HENGAT\\u00da", "X294" ~
-    #       "HIXKARYANA", "X295" ~ "HUPDE", "X296" ~ "HUPDES",
-    #     "X297" ~ "IAUANAUA", "X298" ~ "IAUARETE A\\u00c7U",
-    #     "X299" ~ "IKPENG", "X300" ~ "INAMBU", "X301" ~
-    #       "INHABARANA", "X302" ~ "JAVAE", "X303" ~ "JENIPAPO",
-    #     "X304" ~ "JENIPAPO-KANINDE", "X305" ~ "JIAHOI",
-    #     "X306" ~ "KAIOWA", "X307" ~ "KAMPA", "X308" ~
-    #       "KANELA", "X309" ~ "KARAFAWYANA", "X310" ~
-    #       "KARARAO", "X311" ~ "KARUBO", "X312" ~ "KASSUP\\u00c1",
-    #     "X313" ~ "KATITH\\u00c3ULU", "X314" ~ "KATOKIN",
-    #     "X315" ~ "KATUKINA PANO", "X316" ~ "KATUKINA PEDA DJAPA",
-    #     "X317" ~ "KATUKINA SHANENAUWA", "X318" ~ "KAXAGO",
-    #     "X319" ~ "KAYABI", "X320" ~ "KIN\\u00c3 (WAIMIRI-ATROARI)",
-    #     "X321" ~ "KIRIRI-BARRA", "X322" ~ "KITH\\u00c3ULU",
-    #     "X323" ~ "KOIAI\\u00c1", "X324" ~ "KOIUPANK\\u00c1",
-    #     "X325" ~ "KONTANAWA", "X326" ~ "KRAH\\u00d4 KANELA",
-    #     "X327" ~ "KULINA", "X328" ~ "LATUND\\u00ca",
-    #     "X329" ~ "MAKU", "X330" ~ "MAKUNAMB\\u00c9",
-    #     "X331" ~ "MAMAIND\\u00ca", "X332" ~ "MAMURI",
-    #     "X333" ~ "MANACAPURU", "X334" ~ "MANAIRISSU",
-    #     "X335" ~ "MANCHINERI", "X336" ~ "MANDUCA", "X337" ~
-    #       "MARIBONDO", "X338" ~ "MASSAKA", "X339" ~
-    #       "MAWAYANA", "X340" ~ "MAW\\u00c9", "X341" ~
-    #       "MAYORUNA", "X342" ~ "MIQUELENO", "X343" ~
-    #       "MOKURI\\u00d1", "X344" ~ "MON ORO WARAM",
-    #     "X345" ~ "MUTUM", "X346" ~ "MYKY", "X347" ~
-    #       "NADEB", "X348" ~ "NAMBIKWARA", "X349" ~ "NEGAROT\\u00ca",
-    #     "X350" ~ "NHENGATU", "X351" ~ "OFAIE XAVANTE",
-    #     "X352" ~ "ON\\u00c7A", "X353" ~ "ORO AT", "X354" ~
-    #       "ORO EO", "X355" ~ "ORO JOWIN", "X356" ~ "ORO MIYLIN",
-    #     "X357" ~ "ORO MON", "X358" ~ "ORO N\\u00c1O",
-    #     "X359" ~ "ORO WAM", "X360" ~ "ORO WARAM", "X361" ~
-    #       "ORO WARAM XIJEIN", "X362" ~ "PACA", "X363" ~
-    #       "PANKAR\\u00c1", "X364" ~ "PAPAGAIO", "X365" ~
-    #       "PAYAY\\u00c1", "X366" ~ "PIPIPAN", "X367" ~
-    #       "PIRATA", "X368" ~ "PUROBOR\\u00c1", "X369" ~
-    #       "SABAN\\u00ca", "X370" ~ "SANUMA", "X371" ~
-    #       "SAWENTES\\u00da", "X372" ~ "SILCY-TAPUYA",
-    #     "X373" ~ "SIUCI", "X374" ~ "TABAJARA", "X375" ~
-    #       "TAKUARA", "X376" ~ "TATU", "X377" ~ "TAWAND\\u00ca",
-    #     "X378" ~ "TEF\\u00c9", "X379" ~ "TIMBIRA", "X380" ~
-    #       "TOR\\u00c1 DO BAIXO GRANDE", "X381" ~ "TSUNHUM-DJAP\\u00c1",
-    #     "X382" ~ "TUBAR\\u00c3O", "X383" ~ "TUPAIU",
-    #     "X384" ~ "TUPI", "X385" ~ "TUPINAMB\\u00c1 DE BELMONTE",
-    #     "X386" ~ "URUBU", "X387" ~ "URUBU KAAPOR", "X388" ~
-    #       "URUP\\u00c1", "X389" ~ "WAI WAI", "X390" ~
-    #       "WAIKISU", "X391" ~ "WAKALITES\\u00da", "X392" ~
-    #       "WASSUSU", "X393" ~ "XEREU", "X394" ~ "XI EIN",
-    #     "X395" ~ "XICRIN", "X396" ~ "XIPAYA", "X397" ~
-    #       "XIRIANA", "X398" ~ "XIRUAI", "X399" ~ "YEPAMASS\\u00c3",
-    #     "X400" ~ "TIRIY\\u00d3", "X401" ~ "YANOMAMI",
-    #     "X402" ~ "ARARA", "X403" ~ "SAKIRIABAR", "X404" ~
-    #       "TATZ", "X405" ~ "SEM INFORMACAO", .default = .data$PA_ETNIA)) #%>% dplyr::mutate(as.factor(.data$PA_ETNIA))
-    # }
-    # 
-    # #Valor do Complemento Federal 
-    # if ("PA_VL_CF" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_VL_CF = as.numeric(.data$PA_VL_CF))
-    # }
-    # 
-    # #Valor do Complemento Local
-    # if ("PA_VL_CL" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_VL_CL = as.numeric(.data$PA_VL_CL))
-    # }
-    # 
-    # 
-    # #Valor do Incremento
-    # if ("PA_VL_INC" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_VL_INC = as.numeric(.data$PA_VL_INC))
-    # }
-    # 
-    # 
-    # #Código de Identificação Nacional de Equipes,
-    # #para registrar a atuação das equipes na execução de ações de saúde 
-    # if ("PA_INE" %in% variables_names) {
-    #   data <- data %>% dplyr::mutate(PA_INE = as.character(.data$PA_INE)) %>%
-    #     dplyr::left_join(microdatasus::equipe, by = c(PA_INE = "COD"))
-    # }
-    # 
-    # #UF e município do estabelecimento
-    # data <- data |>
-    #   
-    #   #Correção de ids com código de regiões administrativas do Distrito Federal.
-    #   #Vou assumir que ids começando em 53 são do Distrito Federal
-    #   mutate(
-    #     
-    #     across(.cols = any_of( c("PA_MUNPCN", "PA_UFMUN") ),
-    #            #Caso id comece em 53, então valor do Distrito Federal 530010
-    #            .fns = ~  case_when(str_sub(., 1, 2) == "53" ~ "530010",
-    #                                .default = .) |> as_factor() ),  
-    #     
-    #     #capturar o código da UF onde está localizado o estabelecimento e
-    #     #UF Código do Município de residência do paciente ou do estabelecimento,
-    #     #caso não se tenha a identificação do paciente
-    #     across(.cols = any_of(
-    #       
-    #       c("PA_MUNPCN", "PA_UFMUN") ),
-    #       
-    #       #Dois primeiros dígitos são o código da UF
-    #       .fns = ~ as.numeric( substr(.,1,2) ),
-    #       
-    #       #Extração do nome a partir do 4º e até 9º dígito do nome das variáveis de origem. (codmunxxx)
-    #       .names = "cod_uf_{str_sub(.col, start = 4, end = 9)}"), 
-    #     
-    #     
-    #     #Nome da UF de registro e UF de residência.
-    #     across(.cols = any_of(
-    #       c("cod_uf_MUNPCN", "cod_uf_UFMUN") ),
-    #       .fns = ~  recode(.,
-    #                        '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas",
-    #                        '14'= "Roraima", '15'= "Pará",'16'= "Amapá",'17'= "Tocantins",
-    #                        '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte",
-    #                        '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas",
-    #                        '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais",
-    #                        '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo",
-    #                        '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul",
-    #                        '50'= "Mato Grosso do Sul",'51'= "Mato Grosso",
-    #                        '52'= "Goiás", '53'= "Distrito Federal", '99'= "CNRAC",
-    #                        .default = "Cod Munic Erro",
-    #                        .missing = "Missing") |> as_factor(),
-    #       .names = "def_uf_{str_sub(.col, start = 8, end = 11)}"),
-    #     
-    #     #Nome da região de ocorrência e região de residência.
-    #     across(.cols = any_of(
-    #       c("def_uf_MUNP", "def_uf_UFMU") ),
-    #       
-    #       .fns = ~ case_when(
-    #         #Região Norte
-    #         . %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima", "Tocantins") ~ "Norte",
-    #         #Região Nordeste
-    #         . %in% c("Alagoas","Bahia","Ceará","Maranhão","Paraíba","Pernambuco","Piauí","Rio Grande do Norte","Sergipe") ~ "Nordeste",
-    #         #Região Centro-Oeste
-    #         . %in% c("Goiás","Mato Grosso", "Mato Grosso do Sul","Distrito Federal") ~ "Centro Oeste",
-    #         #Região Sudeste
-    #         . %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste",
-    #         #Região Sul
-    #         . %in% c("Paraná", "Rio Grande do Sul", "Santa Catarina" ) ~ "Sul",
-    #         
-    #         .default ="Missing") |> as_factor(),
-    #       
-    #       .names = "def_reg_{str_sub(.col, start = 8, end = 11)}") ) 
-    # 
-    # #Municípios do estabelecimento e município de residência.
-    # #Município do estabelecimento
-    # data <- merge(
-    #   x = data,
-    #   y = select(munics, c(code_muni, def_munic_UFMUN = name_muni) ),
-    #   by.x = "PA_UFMUN",
-    #   by.y = "code_muni",
-    #   all.x = TRUE,
-    #   suffixes = c("", "_resd")
-    # )
-    # 
-    # #   #Município de residência
-    # data <- merge(
-    #   x = data,
-    #   y = select(munics, c(code_muni, def_munic_MUNPCN = name_muni) ),
-    #   by.x = "PA_MUNPCN",
-    #   by.y = "code_muni",
-    #   all.x = TRUE,
-    #   suffixes = c("", "_resd")
-    # )
-    # 
+    
+    
+    
+    
+    
+    
+    
     
     
     data <- tibble::as_tibble(data)
