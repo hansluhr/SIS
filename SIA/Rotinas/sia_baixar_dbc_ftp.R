@@ -18,7 +18,7 @@ baixar_dbc_sia <- function(anos,
   ftp_url <- "ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/"
   
   #lista com dbcs disponíveis no FTP 
-  arquivos <- getURL(ftp_url, #Endereço FTP onde estão os dbcs rejeitados 
+  arquivos <- getURL(ftp_url, #Endereço FTP onde estão os dbcs  
                      ftp.use.epsv = FALSE, 
                      dirlistonly = TRUE, #Lista com somente os diretórios.
                      timeout = 120, #Tempo para tentar conexão
@@ -38,7 +38,7 @@ baixar_dbc_sia <- function(anos,
   #Garantir que os meses tenham 2 dígitos (exemplo: 8 → "08")
   meses_str <- sprintf("%02d", meses)  
   
-  #Dowloado dos dbcs rejeitados
+  
   #Para as UF selecionadas
   for (uf in ufs) {
     
@@ -48,14 +48,11 @@ baixar_dbc_sia <- function(anos,
       #No mês de interesse    
       for (mes in meses_str) {
         
-        #A função faz o download de AIHs reduzidas e rejeitadas. Para realizar o download
+        #A função faz o download dos dbcs desejados. Para realizar o download
         #é necessário identificar em lista_arquivos, os dbcs de interesse. 
         #A sequência a seguir identifica os dbcs de interesse. 
         
-        #O prefixo do dbc identifica o tipo de AIH. 
-        #RD é reduzida e ER é rejeitada com erro. 
-        #Se o parâmetro tipo for reduzida, então o prefixo será RD, de outro caso ER
-        #de rejeitada com erro.
+      #O prefixo do dbc identifica o tipo de SIA. 
         
         
         #Criar padrão de busca para os dbcs de interesse, na uf, ano e mês 
