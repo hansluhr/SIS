@@ -2,14 +2,33 @@ library(RCurl)
 library(stringr)
 library(digest)
 
-baixar_cnes <- function(anos, meses, ufs = "ALL", destino ) {
+baixar_cnes <- function(anos, 
+                        meses, 
+                        ufs = "ALL", 
+                        destino = "dados_sihsus/",
+                        cnes = c("Estabelecimentos","Equipamentos", "Equipes", "Leitos") ) {
   
   #Criar diretório de destino se não existir
   if (!dir.exists(destino)) dir.create(destino, recursive = TRUE)
   
-  #URL do FTP do DataSUS - CNES estabelecimentos (ST)
-  ftp_url <- "ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/200508_/Dados/ST/"
-  
+  #URL do FTP do DataSUS - CNES
+  ftp_url <- 
+    dplyr::case_when(
+    #Equipes
+    cnes == "Equipes" ~   
+      "ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/200508_/Dados/EP/",
+    
+    #Estabelecimentos
+    cnes == "Estabelecimentos" ~ 
+                       "ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/200508_/Dados/ST/",
+    #Leitos
+    cnes == "Leitos" ~
+      "ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/200508_/Dados/LT/",
+    
+    #Equipamentos
+    cnes == "Equipamentos" ~ 
+      "ftp://ftp.datasus.gov.br/dissemin/publicos/CNES/200508_/Dados/EQ/")
+
   #Listar arquivos disponíveis no FTP **apenas uma vez**
   arquivos <- getURL(ftp_url, ftp.use.epsv = FALSE, dirlistonly = TRUE)
   #Retira \r\n do nome dos arquivos e faz listagem dos arquivos.
@@ -26,16 +45,29 @@ baixar_cnes <- function(anos, meses, ufs = "ALL", destino ) {
   #Garantir que os meses tenham 2 dígitos (exemplo: 8 → "08")
   meses_str <- sprintf("%02d", meses)  
   
-  # Baixar arquivos
+  #Baixar arquivos
   for (uf in ufs) {
+    
     message("Processando UF: ", uf)
     
     for (ano in anos_str) {
+      
       for (mes in meses_str) {
         #Criar padrão de busca para os arquivos daquela UF, ano e mês
         #Padrão são as UFs ano_mes de interesse, que serão filtradas na lista_arquivos.
         #Aqui é feito ajute para compatibilizar os nomes de interesse 
-        padrao <- paste0("^ST", uf, ano, mes, "\\.dbc$")
+        
+        prefixo <- dplyr::case_when(
+          cnes == "Equipes" ~ "EP",
+          
+          cnes == "Estabelecimentos"  ~ "ST",
+          
+          cnes == "Leitos" ~ "LT",
+          
+          cnes == "Equipamentos" ~ "EQ")
+        
+        padrao <- paste0(prefixo, uf, ano, mes, ".dbc")
+        
         #Aqui são os arquivos de interesse. 
         arquivos_filtrados <- lista_arquivos[str_detect(lista_arquivos, padrao)]
         
