@@ -23,23 +23,28 @@ tratar_sia <-
       if ("PA_REGCT" %in% variables_names) {
         
         data <- data %>% dplyr::mutate(def_PA_REGCT = dplyr::case_match(.data$PA_REGCT, 
-                                                                    "7100" ~ "TAB.DE NÃO GERAÇÃO CRÉDITO P/PROD.INTERN./AMBULAT.", 
-                                                                    "7101" ~ "ESTAB.S/CRÉDITO NA MEDIA COMPLEXIDADE AMBULATORIAL", 
-                                                                    "7102" ~ "ESTAB.S/CRÉDITO NA MEDIA COMPLEXIDADE HOSPITALAR", 
-                                                                    "7103" ~ "ESTAB.S/CRÉDITO NA ALTA COMPLEXIDADE AMBULATORIAL", 
-                                                                    "7104" ~ "ESTAB.S/CRÉDITO NA ALTA COMPLEXIDADE HOSPITALAR", 
-                                                                    "7105" ~ "ESTAB.S/CRED.PROCED.FINANC.FD.AÇÕES ESTRAT/COMPENS.", 
-                                                                    "7106" ~ "ESTABELECIM. DE SAÚDE SEM GERAÇÃO DE CRÉDITO TOTAL", 
-                                                                    "7107" ~ "ESTAB.S/CRÉDITO ACOES ESPEC.ODONT(INC.CEO I,II,III)", 
-                                                                    "7108" ~ "ESTAB.S/GER.CRÉDITO(INCENTIVO SAUDE DO TRABALHADOR)", 
-                                                                    "7109" ~ "ESTAB.SAÚDE (HU/MEC) SEM GERAÇÃO DE CRÉDITO TOTAL", 
-                                                                    "7110" ~ "ESTAB.SAUDE (MIN.SAUDE)SEM GERAÇÃO DE CRÉDITO TOTAL", 
-                                                                    "7111" ~ "ESTAB.SAUDE SEM GERAÇÃO DE CRÉDITO-NASF,exceto FAEC", 
-                                                                    "7112" ~ "ESTAB.S/CRED.TOTAL-INCL.FAEC-EXCLUSIVO P/REDE SARAH", 
-                                                                    "7113" ~ "ESTAB.S/CRED.TOTAL,INCL.FAEC-OUTROS ESTAB. FEDERAIS", 
-                                                                    "7116" ~ "ESTAB.SAÚDE S/GER DE CRÉDITO NA MÉDIA COMPLEX-LRPD", 
-                                                                    "7117" ~ "ESTAB.SAÚDE S/GER DE CRÉD. MÉD COMP(EXCETO OPM)-CER", 
-                                                                    "0000" ~ "SEM REGRA CONTRATUAL", .default = .data$PA_REGCT))
+               "7010" ~ "SEM GERACAO DE CREDITO NO GRUPO 10 - ACOES ESPECIALIZADAS EM ODONTOLOGIA DA TABELA SIA/SUS" #https://sistemas.saude.rj.gov.br/tabnetbd/dhx.exe?cnes/tf_cnes_regras_contratuais.def                                                         
+               "7100" ~ "TAB.DE NÃO GERAÇÃO CRÉDITO P/PROD.INTERN./AMBULAT.", 
+               "7101" ~ "ESTAB.S/CRÉDITO NA MEDIA COMPLEXIDADE AMBULATORIAL", 
+               "7102" ~ "ESTAB.S/CRÉDITO NA MEDIA COMPLEXIDADE HOSPITALAR", 
+               "7103" ~ "ESTAB.S/CRÉDITO NA ALTA COMPLEXIDADE AMBULATORIAL", 
+               "7104" ~ "ESTAB.S/CRÉDITO NA ALTA COMPLEXIDADE HOSPITALAR", 
+               "7105" ~ "ESTAB.S/CRED.PROCED.FINANC.FD.AÇÕES ESTRAT/COMPENS.", 
+               "7106" ~ "ESTABELECIM. DE SAÚDE SEM GERAÇÃO DE CRÉDITO TOTAL", 
+               "7107" ~ "ESTAB.S/CRÉDITO ACOES ESPEC.ODONT(INC.CEO I,II,III)", 
+               "7108" ~ "ESTAB.S/GER.CRÉDITO(INCENTIVO SAUDE DO TRABALHADOR)", 
+               "7109" ~ "ESTAB.SAÚDE (HU/MEC) SEM GERAÇÃO DE CRÉDITO TOTAL", 
+               "7110" ~ "ESTAB.SAUDE (MIN.SAUDE)SEM GERAÇÃO DE CRÉDITO TOTAL", 
+               "7111" ~ "ESTAB.SAUDE SEM GERAÇÃO DE CRÉDITO-NASF,exceto FAEC", 
+               "7112" ~ "ESTAB.S/CRED.TOTAL-INCL.FAEC-EXCLUSIVO P/REDE SARAH", 
+               "7113" ~ "ESTAB.S/CRED.TOTAL,INCL.FAEC-OUTROS ESTAB. FEDERAIS",
+               "7114" ~ "ESTAB.S/CRED.TOTAL,INCL.FAEC-PRONTO ATENDIMENTO",
+               "7115" ~ "ESTAB.SAÚDE S/GER DE CRÉDITO NA MÉDIA COMPLEX-HU/MEC"
+               "7116" ~ "ESTAB.SAÚDE S/GER DE CRÉDITO NA MÉDIA COMPLEX-LRPD", 
+               "7117" ~ "ESTAB.SAÚDE S/GER DE CRÉD. MÉD COMP(EXCETO OPM)-CER",
+               "7118" ~ "SEM GERAÇÃO DE CRÉDITO TOTAL" #https://sistemas.saude.rj.gov.br/tabnetbd/dhx.exe?cnes/tf_cnes_regras_contratuais.def
+               "0000" ~ "SEM REGRA CONTRATUAL", 
+               .default = .data$PA_REGCT))
       }
     
       #Incremento Outros 
@@ -388,16 +393,18 @@ tratar_sia <-
       if ("PA_UFDIF" %in% variables_names) {
         data <- data %>% dplyr::mutate(def_PA_UFDIF = dplyr::case_match(
         .data$PA_UFDIF,
-        "1" ~ "Sim (houve invasão)", 
-        "0" ~ "Não houve invasão", .default = .data$PA_UFDIF)) #%>% dplyr::mutate(as.factor(.data$PA_UFDIF))
+        "1" ~ "Mesma UF", 
+        "0" ~ "UF diferente",
+        .default = "Código Inexistente") |> replace_na("Missing") ) #%>% dplyr::mutate(as.factor(.data$PA_UFDIF))
       }
     
       #Indica se o município de residência do paciente é diferente do município de localização do estabelecimento:
       if ("PA_MNDIF" %in% variables_names) {
         data <- data %>% dplyr::mutate(def_PA_MNDIF = dplyr::case_match(
         .data$PA_MNDIF,
-        "1" ~ "Sim (houve invasão)", 
-        "0" ~ "Não houve invasão", .default = .data$PA_MNDIF)) #%>% dplyr::mutate(as.factor(.data$PA_MNDIF))
+        "1" ~ "Mesma UF", 
+        "0" ~ "UF diferente",
+        .default = "Código Inexistente") |> replace_na("Missing") ) #%>% dplyr::mutate(as.factor(.data$PA_MNDIF))
       }
 
       #Diferença do Valor Unitário do procedimento praticado na Tabela Unificada 
@@ -720,6 +727,8 @@ tratar_sia <-
           dplyr::left_join(microdatasus::equipe, by = c(PA_INE = "COD"))
       }
 
+
+# Regiões, UFs e municípios -----------------------------------------------
     #UF e município do estabelecimento
     data <- data |>
 
@@ -802,7 +811,19 @@ tratar_sia <-
       by.y = "code_muni",
       all.x = TRUE,
       suffixes = c("", "_resd")
-    )
+    )  |>
+  
+  dplyr::mutate(
+    
+    def_munic_MUNPCN = dplyr::case_when(
+      #Quando o código não é preenchdio.
+      is.na(PA_MUNPCN) ~ "Missing",
+      #Quando o código é preenchido com código inexistente 
+      is.na(def_munic_MUNPCN) ~ "Código Inexistente",
+      
+      .default = def_munic_MUNPCN ) )
+    
+    
     data <- tibble::as_tibble(data)
     data <- droplevels(data.table::as.data.table(data))
     data <- suppressWarnings(tibble::as_tibble(lapply(X = data, 
