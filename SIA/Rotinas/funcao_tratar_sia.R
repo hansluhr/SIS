@@ -122,10 +122,12 @@ tratar_sia <-
         data <- data %>% dplyr::mutate(def_PA_TIPPRE = dplyr::case_match(
         .data$PA_TIPPRE,
         "20" ~ "PRIVADO COM FINS LUCRATIVOS", 
-        "22" ~ "PRIVADO OPTANTE PELO SIMPLES", "30" ~ "PUBLICO FEDERAL",
-        "40" ~ "PUBLICO ESTADUAL", "50" ~ "PUBLICO MUNICIPAL",
+        "22" ~ "PRIVADO OPTANTE PELO SIMPLES", 
+        "30" ~ "PÚBLICO FEDERAL",
+        "40" ~ "PÚBLICO ESTADUAL", 
+        "50" ~ "PÚBLICO MUNICIPAL",
         "60" ~ "PRIVADO SEM FINS LUCRATIVOS", 
-        "61" ~"FILANTROPICO COM CNAS VALIDO", 
+        "61" ~ "FILANTRÓPICO COM CNAS VALIDO", 
         "80" ~ "SINDICATO", .default = .data$PA_TIPPRE)) #%>% dplyr::mutate(PA_TIPPRE = as.factor(.data$PA_TIPPRE))
       }
 
@@ -136,32 +138,17 @@ tratar_sia <-
         .default = .data$PA_MN_IND))
       }
     
-        # # if (nome_proced == TRUE) {
-      # #   sigtab_temp <- microdatasus::fetch_sigtab()
-      # #   data <- dplyr::left_join(data, sigtab_temp, by = c(PA_PROC_ID = "COD"))
-      # # }
-      # 
-    
-    #data[procedimentos, def_proc := i.proc, on = .(PA_PROC_ID = cod)] 
-   # data <- data |>
-   #    dplyr::left_join(  y = procedimentos ,
-   #             by = join_by("PA_PROC_ID" == "cod"))
-   
-   
+    #Procedimentos
     data <- data |>
       mutate(PA_PROC_ID = PA_PROC_ID |> as.integer() )
-    
-    # #Procedimento
+    #Join de procedimentos
     data <- merge(
       x = data,
       y = select(procedimentos, c(cod, def_proc = proc) ),
       by.x = "PA_PROC_ID",
       by.y = "cod",
       all.x = TRUE,
-      suffixes = c("", "_resd")
-    )
-    
-    
+      suffixes = c("", "_resd") )
     
       #Tipo de Financiamento da produção 
       if ("PA_TPFIN" %in% variables_names) {
@@ -172,7 +159,7 @@ tratar_sia <-
         "04" ~ "Fundo de Ações Estratégicas e Compensações FAEC",
         "05" ~ "Incentivo - MAC", 
         "06" ~ "Média e Alta Complexidade (MAC)",
-        "07" ~ "Vigilância em Saúde", .default = .data$PA_TPFIN)) #%>% dplyr::mutate(PA_TPFIN = as.factor(.data$PA_TPFIN))
+        "07" ~ "Vigilância em Saúde", .default = .data$PA_TPFIN)) 
       }
 
     
@@ -184,11 +171,11 @@ tratar_sia <-
         "1" ~ "Atenção Básica",
         "2" ~ "Média Complexidade", 
         "3" ~ "Alta Complexidade",
-        .default = .data$PA_NIVCPL)) #%>% dplyr::mutate(PA_NIVCPL = as.factor(.data$PA_NIVCPL))
+        .default = .data$PA_NIVCPL)) 
       }
   
       
-      #Instrumento de Registro (conforme explicado na página 2)
+      #Instrumento de Registro (conforme explicado na página 2, manual do SIA)
       if ("PA_DOCORIG" %in% variables_names) {
         data <- data %>% dplyr::mutate(def_PA_DOCORIG = dplyr::case_match(
         .data$PA_DOCORIG, 
@@ -197,27 +184,20 @@ tratar_sia <-
         "P" ~ "APAC - Procedimento Principal",
         "S" ~ "APAC - Procedimento Secundário", 
         "A" ~ "RAAS - Atenção Domiciliar", 
-        "B" ~ "RAAS - Psicossocial",.default = .data$PA_DOCORIG)) #%>% dplyr::mutate(PA_DOCORIG = as.factor(.data$PA_DOCORIG))
+        "B" ~ "RAAS - Psicossocial",.default = .data$PA_DOCORIG)) 
       }
      
     
       #Ocupaçoes
     data <- 
       data |>
-      #### Ocupações do falecido
+      ####Ocupações do paciente
       left_join(x = _, 
                 y = select(ocupacao, !c(versao_cod_proc) ), 
                 
                 join_by("PA_CBOCOD" == "cod") )  
     
-    
-      # if (nome_ocupacao == TRUE) {
-      #   data <- dplyr::left_join(data, microdatasus::tabCBO,
-      #                            by = c(PA_CBOCOD = "cod"))
-      #   data <- dplyr::rename(data, ocupacao = "nome")
-      # }
-
-      #Motivo de saída ou zeros, caso não tenha  
+    #Motivo de saída ou zeros, caso não tenha  
       if ("PA_MOTSAI" %in% variables_names) {
         data <- data %>% dplyr::mutate(def_PA_MOTSAI = dplyr::case_match(
           .data$PA_MOTSAI, 
@@ -243,7 +223,7 @@ tratar_sia <-
           "43" ~ "ÓBITO COM DECLARAÇÃO DE ÓBITO FORNECIDA PELO I.M.L",
           "51" ~ "ENCERRAMENTO ADMINSTRATIVO", 
           "00" ~ "PRODUÇÃO SEM MOTIVO DE SAÍDA (BPA-C / BPA-I)",
-          .default = .data$PA_MOTSAI)) #%>% dplyr::mutate(PA_MOTSAI = as.factor(.data$PA_MOTSAI))
+          .default = .data$PA_MOTSAI)) 
       }
 
     
@@ -252,7 +232,7 @@ tratar_sia <-
         data <- data %>% dplyr::mutate(def_PA_OBITO = dplyr::case_match(
         .data$PA_OBITO, 
         "1" ~ "Sim (motivo de saída-ÓBITO)", 
-        "0" ~"Nao houve ÓBITO", .default = .data$PA_OBITO)) # %>% dplyr::mutate(PA_OBITO = as.factor(.data$PA_OBITO))
+        "0" ~"Não houve ÓBITO", .default = .data$PA_OBITO)) 
       }
      
     
@@ -261,7 +241,7 @@ tratar_sia <-
         data <- data %>% dplyr::mutate(def_PA_ENCERR = dplyr::case_match(
         .data$PA_ENCERR,
         "1" ~ "Sim (motivo de saída-ENCERRAMENTO)",
-        "0" ~ "Nao houve ENCERRAMENTO", .default = .data$PA_ENCERR)) #%>% dplyr::mutate(PA_ENCERR = as.factor(.data$PA_ENCERR))
+        "0" ~ "Não houve ENCERRAMENTO", .default = .data$PA_ENCERR)) 
       }
 
     
@@ -270,7 +250,7 @@ tratar_sia <-
         data <- data %>% dplyr::mutate(def_PA_PERMAN = dplyr::case_match(
         .data$PA_PERMAN,
         "1" ~ "Sim (motivo de saída-PERMANÊNCIA)",
-        "0" ~ "Nao houve a PERMANÊNCIA do paciente na unidade",
+        "0" ~ "Não houve a PERMANÊNCIA do paciente na unidade",
         .default = .data$PA_PERMAN)) #%>% dplyr::mutate(as.factor(.data$PA_PERMAN))
       }
 
@@ -297,12 +277,13 @@ tratar_sia <-
       if ("PA_CATEND" %in% variables_names) {
         data <- data %>% dplyr::mutate(def_PA_CATEND = dplyr::case_match(
         .data$PA_CATEND,
-        "01" ~ "ELETIVO", "02" ~ "URGÊNCIA",
+        "01" ~ "ELETIVO", 
+        "02" ~ "URGÊNCIA",
         "03" ~ "ACIDENTE NO LOCAL TRABALHO OU A SERViÇO DA EMPRESA",
         "04" ~ "ACIDENTE NO TRAJETO PARA O TRABALHO",
         "05" ~ "OUTROS TIPOS DE ACIDENTE DE TRÂNSITO",
-        "06" ~ "OUTROS TIPOS LESÕES/ENVENENAMENTOS(AGENT.FIS./QUIM.",
-        "99" ~ "INFORMAÇÃO INEXISTENTE  (BPA-C)",
+        "06" ~ "OUTROS TIPOS LESÕES/ENVENENAMENTOS(AGENT.FIS./QUIM.)",
+        "99" ~ "INFORMAÇÃO INEXISTENTE (BPA-C)",
         "00" ~ "CARATER DE ATENDIMENTO NÃO INFORMADO",
         "07" ~ "CARATER DE ATENDIMENTO INVALIDO", 
         "10" ~ "CARATER DE ATENDIMENTO INVALIDO", 
@@ -310,23 +291,37 @@ tratar_sia <-
         "20" ~ "CARATER DE ATENDIMENTO INVALIDO", 
         "53" ~ "CARATER DE ATENDIMENTO INVALIDO", 
         "54" ~ "CARATER DE ATENDIMENTO INVALIDO", 
-        "57" ~ "CARATER DE ATENDIMENTO INVALIDO", .default = .data$PA_CATEND)) #%>% dplyr::mutate(as.factor(.data$PA_CATEND))
+        "57" ~ "CARATER DE ATENDIMENTO INVALIDO", .default = .data$PA_CATEND)) 
       }
 
-      # if ("PA_IDADE" %in% variables_names) {
-      #   data <- data %>% dplyr::mutate(PA_IDADE = as.numeric(.data$PA_IDADE)) %>%
-      #     dplyr::mutate(PA_IDADE = dplyr::case_match(.data$PA_IDADE,
-      #                                                999 ~ 0, .default = .data$PA_IDADE))
-      # }
+    #Idade do paciente em anos.
+      if ("PA_IDADE" %in% variables_names) {
+        data <- data %>% 
+          #Transforma em numeric
+          dplyr::mutate(PA_IDADE = as.numeric(.data$PA_IDADE)) %>%
+          
+          dplyr::mutate(PA_IDADE = dplyr::case_match(
+            .data$PA_IDADE,
+            999 ~ 0, #Quando idade em anos for 999, então idade 0
+            .default = .data$PA_IDADE))
+      }
 
       #Idade mínima do paciente para realização do procedimento 
       if ("IDADEMIN" %in% variables_names) {
-        data <- data %>% dplyr::mutate(IDADEMIN = as.numeric(.data$IDADEMIN))
+        data <- data %>% dplyr::mutate(
+          #IDADEMIN = as.numeric(.data$IDADEMIN), 
+            
+          IDADEMIN = case_when(is.na(IDADEMIN) ~ "Não se aplica",
+                      .default = .data$IDADEMIN) )
       }
 
       #Idade máxima do paciente para realização do procedimento
       if ("IDADEMAX" %in% variables_names) {
-        data <- data %>% dplyr::mutate(IDADEMAX = as.numeric(.data$IDADEMAX))
+        data <- data %>% dplyr::mutate(
+          #IDADEMAX = as.numeric(.data$IDADEMAX) |>
+               
+          IDADEMAX =case_when(is.na(IDADEMAX) ~ "Não se aplica",
+                          .default = .data$IDADEMAX) ) 
       }
 
     
