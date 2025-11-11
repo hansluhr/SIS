@@ -52,9 +52,20 @@ trat_super, doenca_tra
 situa_9m, situa_12m
 test_sensi,test_molec 
 
+
+REGIONET.DBF parece conter os códigos das regiões de saúde.
+
+
+
+
+
 set.seed(787)
 base |> slice_sample(n = 10000) |>
   mutate(    
+    
+    
+    tp_not = case_when(tp_not == 2 ~ "Individual", 
+                       .default = tp_not),
     
     #Criando Variável idade
     idade = case_when(nu_idade_n <= 4000 ~ 0, nu_idade_n > 4000 ~ nu_idade_n - 4000, TRUE ~ NA),
