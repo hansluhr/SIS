@@ -48,7 +48,9 @@ rm(importar_empilhar_dbc)
 # Tratamento base SIA tuberculose -----------------------------------------
 
 #Variáveis sem label
-teste_tube
+trat_super, doenca_tra
+situa_9m, situa_12m
+test_sensi,test_molec 
 
 set.seed(787)
 base |> slice_sample(n = 10000) |>
@@ -169,15 +171,89 @@ base |> slice_sample(n = 10000) |>
                               extrapu2_n == 10 ~ "Outra",
                               .default = "Missing") |> as_factor(), 
    
-   #Informar se existem agravos associados à tuberculose por ocasião da notificação
+  #Informar se existem agravos associados à tuberculose por ocasião da notificação
   across(.cols =  c( starts_with("agrav") & !c(agravoutde) ), 
          .names = "def_{.col}", 
          \(x)
           case_match(x, 
                      "1" ~ "Sim", 
                      "2" ~ "Não", 
-                     "9" ~ "Ignorado", .default = "Missing") |> as_factor() ) )  |>
+                     "9" ~ "Ignorado", .default = "Missing") |> as_factor() ), 
   
-  count(def_agravaids)
-
+  #Baciloscopia de escarro (diagnóstico)
+  across(.cols = c( starts_with("bacilo") |
+  #Cultura de escarro              
+                c(cultura_es, cultura_ou, hiv) ),
+  .names = "def_{.col}", 
+  \(x)
+  case_match(as.numeric(x), 
+             1 ~ "Positiva", 
+             2 ~ "Negativa", 
+             3 ~ "Não realizada",
+             4 ~ "Não se aplica", .default = "Missing") |> as_factor() ),
+  
+  #Histopatologia - Resultado do exame histopatólogico para diagnóstico de TB
+  def_histopatol = case_when(histopatol == 1 ~ "Baar Positivo",
+                             histopatol == 2 ~ "Sugestivo de TB",
+                             histopatol == 3 ~ "Não sugestivo de TB",
+                             histopatol == 4 ~ "Em andamento",
+                             histopatol == 5 ~ "Não realizado",
+                   .default = "Missing") |> as_factor(),
+  #Drogas
+  #rifampicin, isoniazida, etambutol, estreptomi, pirazinami, etionamida, outras
+  across(.cols = c(rifampicin, isoniazida, etambutol, 
+                   estreptomi, pirazinami, etionamida,
+                   outras),
+         
+         .names = "def_{.col}", 
+         \(x)
+         case_match(as.numeric(x), 
+                    1 ~ "Sim", 
+                    2 ~ "Não", 
+                    
+                    .default = "Missing") |> as_factor() ),
+  
+  #Situação de encerramento (situa_ence)
+  def_situa_ence = case_when(situa_ence == 1 ~ "Cura",
+                             situa_ence == 2 ~ "Abandono",
+                             situa_ence == 3 ~ "Óbito por TB",
+                             situa_ence == 4 ~ "Óbito por outras causas",
+                             situa_ence == 5 ~ "Transferência",
+                             situa_ence == 6 ~ "Mudança de Diagnóstico",
+                             situa_ence == 7 ~ "TB-DR",
+                             situa_ence == 8 ~ "Mudança de Esquema",
+                             situa_ence == 9 ~ "Falência",
+                             situa_ence == 10 ~ "Abandono Primário",
+                             .default = "Missing") |> as_factor(),
+   
+   #População privada de liberdade, população de rua, profissionais de saúde, 
+   #imigrantes, beneficiário
+   across(.cols = c(pop_liber, pop_rua, pop_saude, pop_imig, benef_gov),
+  
+  .names = "def_{.col}", 
+  \(x)
+  case_match(as.numeric(x), 
+             1 ~ "Sim", 
+             2 ~ "Não", 
+             9 ~ "Ignorado",
+             .default = "Missing") |> as_factor() ),
+  
+  #Se Transferência
+  def_transf = case_when(transf == 1 ~ "Mesmo município",
+                         transf == 2 ~ "Município diferente (mesma UF)",
+                         transf == 3 ~ "UF diferente",
+                         transf == 4 ~ "País diferente",
+                         transf == 9 ~ "Ignorado",
+                         .default = "Missing") |> as_factor() ) |>
+  
+  count(def_transf)
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
