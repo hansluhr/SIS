@@ -335,25 +335,49 @@ base |>
   
 
 # Regiões, UF e municípios  -----------------------------------------------
+source("https://raw.githubusercontent.com/hansluhr/SIS/refs/heads/main/Rotinas%20Gerais/funcao_importar_munics.R")
+
+
+#Código das UFs. Utilizado para identificar preenchimento missing.
+#Preenchimento com código diferente do informado é considerado missing
+c_ufs <- c(11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 35, 41, 42, 43, 50, 51, 52, 53)
+
 
 base |>
+  
   slice_sample(n = 10000) |>
+  
   mutate( 
     #Adicionar "Missing" a erros de preenchimento no código das UFs.
     #Código de UF diferente dos presentes em c_ufs (códigos correto das ufs), então missing.
-    across( c(sg_uf_ocor, sg_uf_not, sg_uf), ~ case_when(!.x %in% c_ufs ~ "Missing", .default = .x )  |> as_factor() ),
+    across( c(sg_uf_not, sg_uf_at, sg_uf, sg_uf_2, uf_transf), ~ case_when(!.x %in% c_ufs ~ "Missing", .default = .x )  |> as_factor() ), 
     
+
     #sg_uf_ocor = case_when(!sg_uf_ocor %in% c_ufs ~ "Missing", .default = sg_uf_ocor) |> as_factor(),
     #sg_uf_not = case_when(!sg_uf_not %in% c_ufs ~ "Missing", .default = sg_uf_not) |> as_factor(),
     #sg_uf = case_when(!sg_uf %in% c_ufs ~ "Missing", .default = sg_uf) |> as_factor() ) 
     
     #Copiar variáveis com código da UF. 
     #A ideia é utilizar variáveis com código para fazer os joins e utilizar variáveis com label nas tabelas.
-    uf_not = sg_uf_not, 
+    
+    #Sigla da Unidade Federativa onde está localizada a unidade
+    #de saúde (ou outra fonte notificadora) que realizou a notificação
+    uf_not = sg_uf_not,
+    
+    #UF de notificação atual.
+    uf_at  = sg_uf_at,
+    
+    #Sigla da Unidade Federada de residência do paciente por ocasião da notificação
     uf_resd = sg_uf, 
-    uf_ocor = sg_uf_ocor, 
-    #Colocando label nas variáveis de interesse.
-    across( c(uf_not, uf_resd, uf_ocor), ~ 
+    
+    #UF de residência atual
+    uf_resd_at = sg_uf_2,
+    
+    #UF de transferência
+    #uf_transf
+    
+    #Criando variável com labels das UFs.
+    across( c(uf_not, uf_at, uf_resd, uf_resd_at, uf_transf,), ~ 
               recode(., '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", '14'= "Roraima", '15'= "Pará",'16'= "Amapá", '17'= "Tocantins", 
                      '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte", '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas", 
                      '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais", '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo", 
@@ -362,9 +386,14 @@ base |>
                      #Matém o missing nas UFs com código errado
                      "Missing" = "Missing", 
                      #Indica algum erro de preenchimento
-                     .default = "Erro Preenchimento") |> as_factor() ),
+                     .default = "Erro Preenchimento") |> as_factor(),
+   
+    #Atribuição dos nomes das UFs      
+    .names = "def_{.col}" ),
+
     #Criando região de residência, ocorrência e notificação
-    across( c(uf_not, uf_resd, uf_ocor), ~ case_when(
+    across( c(def_uf_not, def_uf_at, def_uf_resd,
+              def_uf_resd_at, def_uf_transf), ~ case_when(
       #Região desconhecida
       .x == "Missing" ~ "Missing",
       #Região Norte
@@ -376,9 +405,38 @@ base |>
       #Região Sudeste
       .x %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste", TRUE ~ "Sul") |> as_factor(),
       #Nomeando as regiões. Extração do nomes das variáveis de origem.
-      .names = "reg_{str_sub(.col, start = 4, end = 7)}"), 
+      .names = "reg{str_sub(.col, start = 4)}") ) 
 
 
+
+
+
+base |> 
+  #Mmunicípio onde está localizada a unidade de saúde 
+  #(ou outra fonte notificadora) que realizou a notificação.  
+  left_join(x = _ , y = select(munics, code_muni, def_munic_not = name_muni, def_reg_not = name_region), 
+            by = join_by("id_municip" == "code_muni" ) ) |>
+  
+  #Código e nome dos municípios do cadastro do IBGE
+  left_join(x = _, y = select(munics, code_muni, def_munic_not_at = name_muni, def_reg_not_at = name_region),
+            by = join_by("id_munic_a" == "code_muni" ) ) |>
+  
+  #Código do município de residência do caso notificado.
+  left_join(x = _, y = select(munics, code_muni, def_munic_resd = name_muni, def_reg_resd = name_region),
+            by = join_by("id_mn_resi" == "code_muni" ) ) |>
+  
+  #Identificação do município de residência atual
+  left_join(x = _, y = select(munics, code_muni, def_munic_resd_at = name_muni, def_reg_resd_at = name_region),
+            by = join_by("id_munic_2" == "code_muni" ) ) |> 
+   
+  #Município de transferência para onde o paciente foi transferido
+  left_join(x = _, y = select(munics, code_muni, def_munic_transf = name_muni, def_reg_transf = name_region),
+          by = join_by("mun_transf" == "code_muni" ) )  
+
+
+
+
+#Regiões de sáude
 
 
 
@@ -406,3 +464,12 @@ id_municip
 sg_uf  
 id_mn_resi  
 
+#Identificação do município de residência atual
+id_munic_2
+
+#Município de notificação atual
+id_munic_a
+
+
+#Transferência
+mun_transf #Município para onde o paiente foi transferido.
