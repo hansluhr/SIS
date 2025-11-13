@@ -408,9 +408,6 @@ base |>
       .names = "reg{str_sub(.col, start = 4)}") ) 
 
 
-
-
-
 base |> 
   #Mmunicípio onde está localizada a unidade de saúde 
   #(ou outra fonte notificadora) que realizou a notificação.  
@@ -435,13 +432,17 @@ base |>
 
 
 
+# Regiões de saúde --------------------------------------------------------
+#Fonte:ftp://ftp.datasus.gov.br/territorio/tabelas
+regs <- readr::read_csv("C:/Users/P224552695/Desktop/rl_municip_regsaud.csv", 
+                 trim_ws = FALSE) |> clean_names()
 
-#Regiões de sáude
-base$id_regiona
+
 
 
 base |> 
-  count(id_regiona)
+  mutate(x = nchar( as.character(id_regiona) ) ) |>
+  count(x)
 
 
 #Regional de saúde onde está localizado o município da
