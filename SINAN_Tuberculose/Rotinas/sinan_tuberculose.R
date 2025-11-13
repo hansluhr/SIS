@@ -437,14 +437,11 @@ base |>
 
 
 #Regiões de sáude
+base$id_regiona
 
 
-
-
-
-
-
-
+base |> 
+  count(id_regiona)
 
 
 #Regional de saúde onde está localizado o município da
