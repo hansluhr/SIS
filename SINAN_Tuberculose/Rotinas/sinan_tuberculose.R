@@ -46,24 +46,97 @@ rm(importar_empilhar_dbc)
 
 
 # Tratamento base SIA tuberculose -----------------------------------------
+library(tidyverse)
+library(janitor)
 
 #Variáveis sem label
-trat_super, doenca_tra
-situa_9m, situa_12m
-test_sensi,test_molec 
+#trat_super, doenca_tra
+#situa_9m, situa_12m
+#test_sensi,test_molec 
 
 
 REGIONET.DBF parece conter os códigos das regiões de saúde.
 
 
-
-
-
 set.seed(787)
-base |> slice_sample(n = 10000) |>
+base |> 
+  
+  slice_sample(n = 10000) |>
+  
   mutate(    
     
-    
+    #Variáveis que estsavam sem label.
+    #Arquivo tuberculnet.def parace indicar que os labels estão no arquivo sim_nao
+    across(.cols =  c( trat_super, doenca_tra  ), 
+           .names = "def_{.col}", 
+           \(x)
+           case_match(x, 
+                      "1" ~ "Sim", 
+                      "2" ~ "Não", 
+                      c("0", "9") ~ "Ignorado",
+                      .default = "Missing") |> as_factor() ),
+           
+   #Variáveis que estsavam sem label. 
+   #Arquivo tuberculnet.def parace indicar que os labels estão no arquivo Cuabobt9net.cnv       
+   def_situa_9m = case_match(situa_9_m,
+                            "0" ~ "Ign/Branco",
+                            "1" ~ "Cura",
+                            "2" ~ "Abandono",
+                            "3" ~ "Óbito por tuberculose",
+                            "4" ~ "Óbito por outras causas",
+                            "5" ~ "Transferência p/ mesmo município", 
+                            "6" ~ "Transferência p/ Outro Município",
+                            "7" ~ "Transferência p/ Outra UF",
+                            "8" ~ "Transferência p/ Outro País",
+                            "9" ~ "Mudança de Esquema",
+                            "10" ~ "Mudança de Diagnóstico",
+                            "11" ~ "Falência",
+                            "12" ~ "Continua em Tratamento",
+                            "13" ~ "TB Multirresistente",
+                            .default = "Missing") |> as_factor(),
+   
+   #Variáveis que estsavam sem label. 
+   #Arquivo tuberculnet.def parace indicar que os labels estão no arquivo Cuabobt12net.cnv       
+   def_situa_12m = case_match(as.character(situa_12_m),
+                             "0" ~ "Ign/Branco",
+                             "1" ~ "Cura",
+                             "2" ~ "Abandono",
+                             "3" ~ "Óbito por tuberculose",
+                             "4" ~ "Óbito por outras causas",
+                             "5" ~ "Transferência p/ mesmo município", 
+                             "6" ~ "Transferência p/ Outro Município",
+                             "7" ~ "Transferência p/ Outra UF",
+                             "8" ~ "Transferência p/ Outro País",
+                             "9" ~ "Mudança de Esquema",
+                             "10" ~ "Mudança de Diagnóstico",
+                             "11" ~ "Continua em Tratamento",
+                             .default = "Missing") |> as_factor(),         
+
+   #Variáveis que estsavam sem label. 
+   #Arquivo tuberculnet.def parace indicar que os labels estão no arquivo SENSIBIL.CNV
+   def_test_sensi = case_match(test_sensi,
+                               c("0","9") ~ "Ign/Branco",
+                               "1" ~ "Resist Isoniazida",
+                               "2" ~ "Resist Rifampicina",
+                               "3" ~ "Resist Isoniazida e Rifampicina",
+                               "4" ~ "Resist outras drogas 1ªlinha",
+                               "5" ~ "Sensível",
+                               "6" ~ "Em andamento",
+                               "7" ~ "Não realizado",
+                               .default = "Missing") |> as_factor(),
+                               
+   #Variáveis que estsavam sem label. 
+   #Arquivo tuberculnet.def parace indicar que os labels estão no arquivo TMR_TB.CNV
+   def_test_molec = case_match(test_molec,
+                               c("0","9") ~ "Ign/Branco",
+                               "1" ~ "Detect sensível rifamp",
+                               "2" ~ "Detect resistente rifamp",
+                               "3" ~ "Não detectável",
+                               "4" ~ "Inconclusivo",
+                               "5" ~ "Não realizado",
+                              .default = "Missing") |> as_factor(),                            
+                               
+    #Tipo de notificação
     tp_not = case_when(tp_not == 2 ~ "Individual", 
                        .default = tp_not),
     
@@ -255,16 +328,81 @@ base |> slice_sample(n = 10000) |>
                          transf == 3 ~ "UF diferente",
                          transf == 4 ~ "País diferente",
                          transf == 9 ~ "Ignorado",
-                         .default = "Missing") |> as_factor() ) |>
-  
-  count(def_transf)
+                         .default = "Missing") |> as_factor() ) 
   
   
   
   
-  
-  
-  
-  
-  
+
+# Regiões, UF e municípios  -----------------------------------------------
+
+base |>
+  slice_sample(n = 10000) |>
+  mutate( 
+    #Adicionar "Missing" a erros de preenchimento no código das UFs.
+    #Código de UF diferente dos presentes em c_ufs (códigos correto das ufs), então missing.
+    across( c(sg_uf_ocor, sg_uf_not, sg_uf), ~ case_when(!.x %in% c_ufs ~ "Missing", .default = .x )  |> as_factor() ),
+    
+    #sg_uf_ocor = case_when(!sg_uf_ocor %in% c_ufs ~ "Missing", .default = sg_uf_ocor) |> as_factor(),
+    #sg_uf_not = case_when(!sg_uf_not %in% c_ufs ~ "Missing", .default = sg_uf_not) |> as_factor(),
+    #sg_uf = case_when(!sg_uf %in% c_ufs ~ "Missing", .default = sg_uf) |> as_factor() ) 
+    
+    #Copiar variáveis com código da UF. 
+    #A ideia é utilizar variáveis com código para fazer os joins e utilizar variáveis com label nas tabelas.
+    uf_not = sg_uf_not, 
+    uf_resd = sg_uf, 
+    uf_ocor = sg_uf_ocor, 
+    #Colocando label nas variáveis de interesse.
+    across( c(uf_not, uf_resd, uf_ocor), ~ 
+              recode(., '11' = "Rondônia", '12' ="Acre", '13'= "Amazonas", '14'= "Roraima", '15'= "Pará",'16'= "Amapá", '17'= "Tocantins", 
+                     '21'= "Maranhão", '22'= "Piauí", '23'= "Ceará", '24'= "Rio Grande do Norte", '25'= "Paraíba", '26'= "Pernambuco", '27'= "Alagoas", 
+                     '28'= "Sergipe", '29' ="Bahia", '31'= "Minas Gerais", '32'= "Espírito Santo", '33'= "Rio de Janeiro", '35'= "São Paulo", 
+                     '41'= "Paraná", '42'= "Santa Catarina", '43'= "Rio Grande do Sul", '50'= "Mato Grosso do Sul",'51'= "Mato Grosso", 
+                     '52'= "Goiás", '53'= "Distrito Federal", '99' = "CNRAC", 
+                     #Matém o missing nas UFs com código errado
+                     "Missing" = "Missing", 
+                     #Indica algum erro de preenchimento
+                     .default = "Erro Preenchimento") |> as_factor() ),
+    #Criando região de residência, ocorrência e notificação
+    across( c(uf_not, uf_resd, uf_ocor), ~ case_when(
+      #Região desconhecida
+      .x == "Missing" ~ "Missing",
+      #Região Norte
+      .x %in% c("Acre","Amapá","Amazonas","Pará","Rondônia","Roraima", "Tocantins") ~ "Norte",
+      #Região Nordeste
+      .x %in% c("Alagoas","Bahia","Ceará","Maranhão","Paraíba","Pernambuco","Piauí","Rio Grande do Norte","Sergipe") ~ "Nordeste",
+      #Região Centro-Oeste
+      .x %in% c("Goiás","Mato Grosso", "Mato Grosso do Sul","Distrito Federal") ~ "Centro Oeste",
+      #Região Sudeste
+      .x %in% c("Rio de Janeiro","São Paulo","Espírito Santo","Minas Gerais") ~ "Sudeste", TRUE ~ "Sul") |> as_factor(),
+      #Nomeando as regiões. Extração do nomes das variáveis de origem.
+      .names = "reg_{str_sub(.col, start = 4, end = 7)}"), 
+
+
+
+
+
+
+
+
+
+
+
+
+#Regional de saúde onde está localizado o município da
+#unidade de saúde ou outra fonte notificadora
+id_regiona 
+
+#Regional de saúde onde está localizado o município de residência 
+#do paciente por ocasião da notificação
+id_rg_resi
+
+#Notificação
+sg_uf_not
+id_municip  
+
+
+#Residência
+sg_uf  
+id_mn_resi  
 
