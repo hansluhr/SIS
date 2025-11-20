@@ -51,7 +51,13 @@ importar_empilhar_salvar_sia <- function(
         
         # Lê e trata o primeiro arquivo encontrado
         tmp <- read.dbc::read.dbc(arquivos[1]) |>
+          
           data.table::setDT() |>
+          
+          dplyr::filter(
+            
+            stringr::str_detect(PA_PROC_ID, "^09") ) |>
+          
           tratar_sia() |> janitor::clean_names() 
         
         # >>> Aqui entra o passo de salvar no DuckDB depois <<<
